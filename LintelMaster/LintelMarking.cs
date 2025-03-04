@@ -130,31 +130,25 @@ public partial class LintelMarker
     /// <summary>
     /// Группирует перемычки по размерам
     /// </summary>
-    /// <param name="lintelDataList">Данные о перемычках</param>
-    /// <returns>Словарь групп перемычек</returns>
     private Dictionary<SizeKey, List<LintelData>> GroupLintels(List<LintelData> lintelDataList)
     {
-        Dictionary<SizeKey, List<LintelData>> groups = lintelDataList
-            .GroupBy(ld => new SizeKey(ld.Thick, ld.Height, ld.Width))
-            .ToDictionary(g => g.Key, g => g.ToList());
+        Dictionary<SizeKey, List<LintelData>> groups = [];
 
-        //Dictionary<SizeKey, List<LintelData>> groups = [];
+        foreach (LintelData lintelData in lintelDataList)
+        {
+            FamilyInstance lintel = lintelData.Instance;
 
-        //foreach (LintelData lintelData in lintelDataList)
-        //{
-        //    FamilyInstance lintel = lintelData.Instance;
+            SizeKey dimensions = new(lintelData.Thick, lintelData.Width, lintelData.Height);
 
-        //    SizeKey dimensions = new(lintelData.Thick, lintelData.Width, lintelData.Height);
+            lintelData.Size = dimensions; // Устанавливаем размер !
 
-        //    lintelData.Size = dimensions; // Устанавливаем размер ???
+            if (!groups.ContainsKey(dimensions))
+            {
+                groups[dimensions] = [];
+            }
 
-        //    if (!groups.ContainsKey(dimensions))
-        //    {
-        //        groups[dimensions] = [];
-        //    }
-
-        //    groups[dimensions].Add(lintelData);
-        //}
+            groups[dimensions].Add(lintelData);
+        }
 
         return groups;
     }
@@ -200,8 +194,8 @@ public partial class LintelMarker
     /// </summary>
     private void FindAndMergeGroups(List<SizeKey> smallGroups, List<SizeKey> allGroups, UnionSize unionFind, Dictionary<SizeKey, int> groupSizes)
     {
-        // Сначала находим лучшие совпадения для всех малых групп
-        List<GroupMatch> bestMatches = FindBestMatches(smallGroups, allGroups);
+        // Сначала находим совпадения для всех малых групп
+        List<GroupMatch> bestMatches = GetMatches(smallGroups, allGroups);
 
         // Объединяем группы в порядке качества совпадения (от лучшего к худшему)
         foreach (GroupMatch match in bestMatches.OrderBy(m => m.Score))
@@ -246,7 +240,7 @@ public partial class LintelMarker
     /// <summary>
     /// Находит лучшие совпадения для малых групп
     /// </summary>
-    private List<GroupMatch> FindBestMatches(List<SizeKey> smallGroups, List<SizeKey> allGroups)
+    private List<GroupMatch> GetMatches(List<SizeKey> smallGroups, List<SizeKey> allGroups)
     {
         List<GroupMatch> matches = [];
 
@@ -263,9 +257,9 @@ public partial class LintelMarker
                 }
 
                 // Проверяем попадание в допуски
-                if (IsWithinTolerances(smallKey, targetKey))
+                if (IsSizeTolerances(smallKey, targetKey))
                 {
-                    double score = CalculateWeightedDifference(smallKey, targetKey);
+                    double score = CalculateDifference(smallKey, targetKey);
 
                     if (score < bestScore)
                     {
@@ -287,7 +281,7 @@ public partial class LintelMarker
     /// <summary>
     /// Проверяет, находятся ли размеры в пределах допусков
     /// </summary>
-    private bool IsWithinTolerances(SizeKey source, SizeKey target)
+    private bool IsSizeTolerances(SizeKey source, SizeKey target)
     {
         double diffThick = Math.Abs(source.Thick - target.Thick);
         double diffWidth = Math.Abs(source.Width - target.Width);
@@ -295,13 +289,13 @@ public partial class LintelMarker
 
         // Проверяем индивидуальные допуски
         bool withinIndividualTolerances =
-            diffThick <= _config.ThickTolerance &&
-            diffWidth <= _config.WidthTolerance &&
-            diffHeight <= _config.HeightTolerance;
+            diffThick < _config.ThickTolerance &&
+            diffWidth < _config.WidthTolerance &&
+            diffHeight < _config.HeightTolerance;
 
         // Проверяем общий допуск
         double totalDeviation = diffThick + diffWidth + diffHeight;
-        bool withinTotalDeviation = totalDeviation <= _config.MaxTotalDeviation;
+        bool withinTotalDeviation = totalDeviation < _config.MaxTotalDeviation;
 
         return withinIndividualTolerances && withinTotalDeviation;
     }
@@ -356,7 +350,7 @@ public partial class LintelMarker
     /// <param name="source">Исходный ключ</param>
     /// <param name="target">Целевой ключ</param>
     /// <returns>Взвешенная разница</returns>
-    private double CalculateWeightedDifference(SizeKey source, SizeKey target)
+    private double CalculateDifference(SizeKey source, SizeKey target)
     {
         double totalDiff = 0;
 
