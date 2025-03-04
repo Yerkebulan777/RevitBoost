@@ -12,16 +12,6 @@ public partial class LintelMarker
     private readonly MarkConfig _config;
 
     /// <summary>
-    /// Создает экземпляр маркировщика перемычек с конфигурацией по умолчанию
-    /// </summary>
-    /// <param name="doc">Документ Revit</param>
-    public LintelMarker(Document doc)
-    {
-        _config = new MarkConfig();
-        _doc = doc;
-    }
-
-    /// <summary>
     /// Создает экземпляр маркировщика с указанной конфигурацией
     /// </summary>
     /// <param name="doc">Документ Revit</param>
@@ -55,25 +45,19 @@ public partial class LintelMarker
     }
 
 
-    /// <summary>
-    /// Извлекает данные из перемычек и группирует их по размерам за один проход
-    /// </summary>
-    protected IDictionary<SizeKey, List<LintelData>> CreateLintelDataGroups(List<FamilyInstance> lintels)
+    protected IDictionary<SizeKey, List<LintelData>> CategorizeLintelData(List<FamilyInstance> lintels)
     {
         SortedDictionary<SizeKey, List<LintelData>> groups = new();
 
         foreach (FamilyInstance lintel in lintels)
         {
-            // Получаем и округляем параметры
             double thickRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, _config.ThickParam), _config.RoundBase);
             double widthRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, _config.WidthParam), _config.RoundBase);
             double heightRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, _config.HeightParam), _config.RoundBase);
 
-            // Создаем ключ размера
             SizeKey dimensions = new(thickRound, widthRound, heightRound);
 
-            // Создаем и заполняем данные перемычки
-            LintelData data = new(lintel)
+            LintelData lintelData = new(lintel)
             {
                 Thick = thickRound,
                 Width = widthRound,
@@ -88,7 +72,7 @@ public partial class LintelMarker
                 groups[dimensions] = group;
             }
 
-            group.Add(data);
+            group.Add(lintelData);
         }
 
         return groups;
@@ -267,9 +251,9 @@ public partial class LintelMarker
 
             //foreach (var lintel in entry.Value)
             //{
-            //    if (data.ContainsKey(lintel))
+            //    if (lintelData.ContainsKey(lintel))
             //    {
-            //        data[lintel].Size = rootKey;
+            //        lintelData[lintel].Size = rootKey;
             //    }
 
             //    newGroups[rootKey].Add(lintel);
