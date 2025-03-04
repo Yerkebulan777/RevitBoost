@@ -1,4 +1,6 @@
-﻿namespace RevitBIMTool.Models
+﻿using LintelMaster;
+
+namespace RevitBIMTool.Models
 {
     public class UnionSize
     {

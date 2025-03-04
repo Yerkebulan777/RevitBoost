@@ -1,4 +1,6 @@
-﻿namespace RevitUtils;
+﻿using RevitUtils;
+
+namespace LintelMaster;
 /// <summary>
 /// Утилиты для работы с перемычками
 /// </summary>

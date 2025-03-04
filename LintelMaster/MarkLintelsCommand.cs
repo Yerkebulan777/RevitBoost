@@ -1,8 +1,7 @@
 ﻿using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
-using RevitBIMTool.Core;
-using RevitBIMTool.Model;
+using LintelMaster;
 
 
 namespace RevitBIMTool.Commands
