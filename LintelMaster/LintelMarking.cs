@@ -89,7 +89,7 @@ public partial class LintelMarker
         // Шаг 1: Подготовка данных для группировки
         Dictionary<SizeKey, int> groupSizes = groups.ToDictionary(g => g.Key, g => g.Value.Count);
 
-        List<SizeKey> smallGroups = FindSmallGroups(groupSizes, threshold);
+        List<SizeKey> smallGroups = groupSizes.Where(g => g.Value < threshold).Select(g => g.Key).ToList(); 
 
         List<SizeKey> allGroups = groupSizes.Keys.ToList();
 
@@ -105,14 +105,6 @@ public partial class LintelMarker
             // Шаг 4: Применяем результаты объединений к данным
             ApplyGroupMerges(groups, unionFind);
         }
-    }
-
-    /// <summary>
-    /// Находит малые группы, которые нужно объединить
-    /// </summary>
-    private List<SizeKey> FindSmallGroups(Dictionary<SizeKey, int> groupSizes, int minCount)
-    {
-        return groupSizes.Where(g => g.Value < minCount).Select(g => g.Key).ToList();
     }
 
     /// <summary>
