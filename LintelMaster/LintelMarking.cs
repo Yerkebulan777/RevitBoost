@@ -93,7 +93,6 @@ public partial class LintelMarker
 
         List<SizeKey> allGroups = groupSizes.Keys.ToList();
 
-        // Нечего объединять, если нет малых групп или всего одна группа
         if (smallGroups.Count != 0 && allGroups.Count > 1)
         {
             // Шаг 2: Создаем и заполняем структуру для отслеживания объединений
@@ -219,6 +218,36 @@ public partial class LintelMarker
     }
 
     /// <summary>
+    /// Вычисляет взвешенную разницу между двумя ключами размеров
+    /// </summary>
+    private double CalculateDifference(SizeKey source, SizeKey target)
+    {
+        double totalDiff = 0;
+
+        double weightFactor = 10.0;
+
+        for (int i = 0; i < _config.GroupingOrder.Count; i++)
+        {
+            double weight = Math.Pow(weightFactor, _config.GroupingOrder.Count - i);
+
+            switch (_config.GroupingOrder[i])
+            {
+                case GroupingParameter.Thick:
+                    totalDiff += Math.Abs(source.Thick - target.Thick) * weight;
+                    break;
+                case GroupingParameter.Width:
+                    totalDiff += Math.Abs(source.Width - target.Width) * weight;
+                    break;
+                case GroupingParameter.Height:
+                    totalDiff += Math.Abs(source.Height - target.Height) * weight;
+                    break;
+            }
+        }
+
+        return totalDiff;
+    }
+
+    /// <summary>
     /// Применяет результаты объединения к данным перемычек
     /// </summary>
     private void ApplyGroupMerges(Dictionary<SizeKey, List<LintelData>> groups, UnionSize unionFind)
@@ -259,71 +288,6 @@ public partial class LintelMarker
         //{
         //    groups[entry.Key] = entry.Value;
         //}
-    }
-
-
-    /// <summary>
-    /// Вычисляет взвешенную разницу между двумя ключами размеров
-    /// </summary>
-    /// <param name="source">Исходный ключ</param>
-    /// <param name="target">Целевой ключ</param>
-    /// <returns>Взвешенная разница</returns>
-    private double CalculateDifference(SizeKey source, SizeKey target)
-    {
-        double totalDiff = 0;
-
-        double weightFactor = 10.0;
-
-        for (int i = 0; i < _config.GroupingOrder.Count; i++)
-        {
-            double weight = Math.Pow(weightFactor, _config.GroupingOrder.Count - i);
-
-            switch (_config.GroupingOrder[i])
-            {
-                case GroupingParameter.Thick:
-                    totalDiff += Math.Abs(source.Thick - target.Thick) * weight;
-                    break;
-                case GroupingParameter.Width:
-                    totalDiff += Math.Abs(source.Width - target.Width) * weight;
-                    break;
-                case GroupingParameter.Height:
-                    totalDiff += Math.Abs(source.Height - target.Height) * weight;
-                    break;
-            }
-        }
-
-        return totalDiff;
-    }
-
-    /// <summary>
-    /// Назначает марки перемычкам, сортируя группы по размерам
-    /// </summary>
-    /// <param name="groups">Словарь групп перемычек</param>
-    /// <param name="data">Данные о перемычках</param>
-    private void AssignMarks(Dictionary<SizeKey, List<FamilyInstance>> groups, Dictionary<FamilyInstance, LintelData> data)
-    {
-        // Сортируем группы непосредственно здесь
-        var sortedGroups = groups.Keys
-                           .OrderBy(g => g.Thick)
-                           .ThenBy(g => g.Width)
-                           .ThenBy(g => g.Height)
-                           .ToList();
-
-        // Назначаем марки группам
-        for (int i = 0; i < sortedGroups.Count; i++)
-        {
-            SizeKey group = sortedGroups[i];
-            string mark = $"{_config.Prefix}{i + 1}";
-
-            // Сохраняем марку для каждой перемычки в группе
-            foreach (FamilyInstance lintel in groups[group])
-            {
-                if (data.ContainsKey(lintel))
-                {
-                    data[lintel].Mark = mark;
-                }
-            }
-        }
     }
 
 }
