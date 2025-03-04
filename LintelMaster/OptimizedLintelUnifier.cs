@@ -95,53 +95,50 @@ public class OptimizedLintelUnifier
         // Приоритизируем обработку наименьших групп сначала
         foreach (SizeKey sourceKey in smallGroups.OrderBy(g => groupSizes[g]))
         {
-            // Пропускаем уже объединенные группы
-            if (processedGroups.Contains(sourceKey))
+            if (!processedGroups.Contains(sourceKey))
             {
-                continue;
-            }
+                // Находим корневую группу для текущей группы
+                SizeKey sourceRoot = unionFind.FindRoot(sourceKey);
 
-            // Находим корневую группу для текущей группы
-            SizeKey sourceRoot = unionFind.FindRoot(sourceKey);
-
-            // Если группа уже достигла минимального размера, пропускаем
-            int currentSize = CalculateCurrentGroupSize(sourceRoot, groupSizes, unionFind);
-            if (currentSize >= _minCount)
-            {
-                continue;
-            }
-
-            // Ищем лучшее соответствие для текущей группы
-            SizeKey? bestTarget = null;
-            double bestScore = double.MaxValue;
-
-            foreach (SizeKey targetKey in allGroups)
-            {
-                // Пропускаем сравнение с самой собой или уже объединенными группами
-                if (sourceKey.Equals(targetKey) ||
-                    unionFind.FindRoot(sourceKey).Equals(unionFind.FindRoot(targetKey)))
+                // Если группа уже достигла минимального размера, пропускаем
+                int currentSize = CalculateCurrentGroupSize(sourceRoot, groupSizes, unionFind);
+                if (currentSize >= _minCount)
                 {
                     continue;
                 }
 
-                // Проверяем, подходят ли размеры по допускам
-                if (IsSizeWithinTolerances(sourceKey, targetKey))
-                {
-                    double score = CalculateSimilarityScore(sourceKey, targetKey);
+                // Ищем лучшее соответствие для текущей группы
+                SizeKey? bestTarget = null;
+                double bestScore = double.MaxValue;
 
-                    if (score < bestScore)
+                foreach (SizeKey targetKey in allGroups)
+                {
+                    // Пропускаем сравнение с самой собой или уже объединенными группами
+                    if (sourceKey.Equals(targetKey) ||
+                        unionFind.FindRoot(sourceKey).Equals(unionFind.FindRoot(targetKey)))
                     {
-                        bestScore = score;
-                        bestTarget = targetKey;
+                        continue;
+                    }
+
+                    // Проверяем, подходят ли размеры по допускам
+                    if (IsSizeWithinTolerances(sourceKey, targetKey))
+                    {
+                        double score = CalculateSimilarityScore(sourceKey, targetKey);
+
+                        if (score < bestScore)
+                        {
+                            bestScore = score;
+                            bestTarget = targetKey;
+                        }
                     }
                 }
-            }
 
-            // Если нашли подходящую пару - объединяем
-            if (bestTarget.HasValue)
-            {
-                unionFind.Union(sourceKey, bestTarget.Value, groupSizes);
-                _ = processedGroups.Add(sourceKey);
+                // Если нашли подходящую пару - объединяем
+                if (bestTarget.HasValue)
+                {
+                    unionFind.Union(sourceKey, bestTarget.Value, groupSizes);
+                    _ = processedGroups.Add(sourceKey);
+                }
             }
         }
     }
