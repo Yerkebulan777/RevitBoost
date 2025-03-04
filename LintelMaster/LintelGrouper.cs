@@ -48,9 +48,6 @@ public class LintelGrouper
             }
         }
 
-        // Назначаем идентификаторы групп (опционально)
-        AssignGroupIdentifiers(groups);
-
         return groups;
     }
 
@@ -100,26 +97,6 @@ public class LintelGrouper
         return individualTolerances && totalDeviation < deviation;
     }
 
-    /// <summary>
-    /// Назначает идентификаторы групп сгруппированным перемычкам
-    /// </summary>
-    private void AssignGroupIdentifiers(List<List<LintelData>> groups)
-    {
-        // Реализация зависит от структуры SizeKey
-        // Например:
-        for (int i = 0; i < groups.Count; i++)
-        {
-            _ = groups[i][0];
-            SizeKey sizeKey = new(); // Предполагается, что у SizeKey есть конструктор по умолчанию
 
-            // Устанавливаем соответствующие значения для группы
-            // Этот блок требует корректировки в соответствии с реализацией SizeKey
 
-            // Назначаем одинаковый SizeKey всем перемычкам в группе
-            foreach (LintelData lintel in groups[i])
-            {
-                lintel.Size = sizeKey;
-            }
-        }
-    }
 }

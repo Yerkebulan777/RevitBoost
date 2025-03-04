@@ -100,7 +100,7 @@ public partial class LintelMarker
             UnionSize unionFind = new(allGroups);
 
             // Шаг 3: Ищем и применяем лучшие объединения
-            FindAndMergeGroups(smallGroups, allGroups, unionFind, groupSizes);
+            DetectAndUnifyGroups(smallGroups, allGroups, unionFind, groupSizes);
 
             // Шаг 4: Применяем результаты объединений к данным
             ApplyGroupMerges(groups, unionFind);
@@ -118,7 +118,7 @@ public partial class LintelMarker
     /// <summary>
     /// Ищет и выполняет объединение групп на основе их сходства
     /// </summary>
-    private void FindAndMergeGroups(List<SizeKey> smallGroups, List<SizeKey> allGroups, UnionSize unionFind, Dictionary<SizeKey, int> groupSizes)
+    private void DetectAndUnifyGroups(List<SizeKey> smallGroups, List<SizeKey> allGroups, UnionSize unionFind, Dictionary<SizeKey, int> groupSizes)
     {
         // Сначала находим совпадения для всех малых групп
         List<GroupMatch> bestMatches = GetMatches(smallGroups, allGroups);
