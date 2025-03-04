@@ -37,7 +37,7 @@ public class LintelUnifier
     /// <returns>Словарь групп перемычек, где ключ - размеры, значение - список перемычек</returns>
     public Dictionary<SizeKey, List<LintelData>> CategorizeLintelData(List<FamilyInstance> lintels)
     {
-        Dictionary<SizeKey, List<LintelData>> groups = [];
+        Dictionary<SizeKey, List<LintelData>> result = [];
 
         foreach (FamilyInstance lintel in lintels)
         {
@@ -58,16 +58,16 @@ public class LintelUnifier
             };
 
             // Добавляем в соответствующую группу
-            if (!groups.TryGetValue(dimensions, out List<LintelData> group))
+            if (!result.TryGetValue(dimensions, out List<LintelData> group))
             {
                 group = [];
-                groups[dimensions] = group;
+                result[dimensions] = group;
             }
 
             group.Add(lintelData);
         }
 
-        return groups;
+        return result;
     }
 
     /// <summary>
