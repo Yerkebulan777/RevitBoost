@@ -75,7 +75,6 @@ public class LintelGrouper
         return thicknessWithinTolerance && widthWithinTolerance && heightWithinTolerance && totalDeviationWithinLimit;
     }
 
-
     /// <summary>
     /// Проверяет, находятся ли размеры в пределах допусков
     /// </summary>

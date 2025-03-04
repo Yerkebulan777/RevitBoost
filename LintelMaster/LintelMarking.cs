@@ -226,11 +226,11 @@ public partial class LintelMarker
 
         double weightFactor = 10.0;
 
-        for (int i = 0; i < _config.GroupingOrder.Count; i++)
+        for (int idx = 0; idx < _config.GroupingOrder.Count; idx++)
         {
-            double weight = Math.Pow(weightFactor, _config.GroupingOrder.Count - i);
+            double weight = Math.Pow(weightFactor, _config.GroupingOrder.Count - idx);
 
-            switch (_config.GroupingOrder[i])
+            switch (_config.GroupingOrder[idx])
             {
                 case GroupingParameter.Thick:
                     totalDiff += Math.Abs(source.Thick - target.Thick) * weight;
