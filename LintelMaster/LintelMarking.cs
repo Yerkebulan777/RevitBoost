@@ -130,9 +130,9 @@ public partial class LintelMarker
     /// <summary>
     /// Группирует перемычки по размерам
     /// </summary>
-    private Dictionary<SizeKey, List<LintelData>> GroupLintels(List<LintelData> lintelDataList)
+    private IDictionary<SizeKey, List<LintelData>> GroupLintels(List<LintelData> lintelDataList)
     {
-        Dictionary<SizeKey, List<LintelData>> groups = [];
+        SortedDictionary<SizeKey, List<LintelData>> groups = [];
 
         foreach (LintelData lintelData in lintelDataList)
         {
