@@ -182,7 +182,7 @@ public partial class LintelMarker
             FindAndMergeGroups(smallGroups, allGroups, unionFind, groupSizes);
 
             // Шаг 4: Применяем результаты объединений к данным
-            ApplyGroupMerges(groups, data, unionFind);
+            ApplyGroupMerges(groups, unionFind);
         }
     }
 
@@ -308,17 +308,15 @@ public partial class LintelMarker
     /// <summary>
     /// Применяет результаты объединения к данным перемычек
     /// </summary>
-    private void ApplyGroupMerges(
-        Dictionary<SizeKey, List<FamilyInstance>> groups,
-        Dictionary<FamilyInstance, LintelData> data,
-        UnionSize unionFind)
+    private void ApplyGroupMerges(Dictionary<SizeKey, List<LintelData>> groups, UnionSize unionFind)
     {
         Dictionary<SizeKey, List<FamilyInstance>> newGroups = [];
 
         // Для каждой исходной группы
-        foreach (KeyValuePair<SizeKey, List<FamilyInstance>> entry in groups)
+        foreach (KeyValuePair<SizeKey, List<LintelData>> entry in groups)
         {
             SizeKey originalKey = entry.Key;
+
             SizeKey rootKey = unionFind.FindRoot(originalKey);
 
             // Создаем новую группу, если еще не существует
@@ -328,24 +326,25 @@ public partial class LintelMarker
             }
 
             // Обновляем размеры в данных и добавляем в новую группу
-            foreach (FamilyInstance lintel in entry.Value)
-            {
-                if (data.ContainsKey(lintel))
-                {
-                    data[lintel].Size = rootKey;
-                }
 
-                newGroups[rootKey].Add(lintel);
-            }
+            //foreach (var lintel in entry.Value)
+            //{
+            //    if (data.ContainsKey(lintel))
+            //    {
+            //        data[lintel].Size = rootKey;
+            //    }
+
+            //    newGroups[rootKey].Add(lintel);
+            //}
         }
 
         // Заменяем старые группы на новые
-        groups.Clear();
+        //groups.Clear();
 
-        foreach (KeyValuePair<SizeKey, List<FamilyInstance>> entry in newGroups)
-        {
-            groups[entry.Key] = entry.Value;
-        }
+        //foreach (KeyValuePair<SizeKey, List<FamilyInstance>> entry in newGroups)
+        //{
+        //    groups[entry.Key] = entry.Value;
+        //}
     }
 
 
