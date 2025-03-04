@@ -48,7 +48,7 @@ public static class Host
         catch (Exception ex)
         {
             // Запись в Debug Output в случае ошибки
-            System.Diagnostics.Debug.WriteLine($"Критическая ошибка при запуске хоста: {ex}");
+            Debug.WriteLine($"Критическая ошибка при запуске хоста: {ex}");
             throw;
         }
     }
@@ -82,4 +82,5 @@ public static class Host
         var exception = (Exception)args.ExceptionObject;
         Debug.WriteLine($"Необработанное исключение: {exception}");
     }
+
 }
