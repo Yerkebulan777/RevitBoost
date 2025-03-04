@@ -10,6 +10,11 @@ public class LintelUnifier
 {
     private readonly MarkConfig _config;
 
+    private int deviation => _config.MaxTotalDeviation;
+    private int thickTolerance => _config.ThickTolerance;
+    private int widthTolerance => _config.WidthTolerance;
+    private int heightTolerance => _config.HeightTolerance;
+
     public LintelUnifier(MarkConfig config)
     {
         _config = config;
