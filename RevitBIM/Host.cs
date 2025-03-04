@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 
-namespace RevitBIM;
+namespace RevitBoost;
 
 /// <summary>
 ///     Предоставляет хост для сервисов приложения и управляет их жизненным циклом
@@ -15,7 +15,7 @@ public static class Host
     private static IHost _host;
 
     /// <summary>
-    ///     Запускает хост и настраивает сервисы приложения
+    ///  Запускает хост и настраивает сервисы приложения
     /// </summary>
     public static void Start()
     {

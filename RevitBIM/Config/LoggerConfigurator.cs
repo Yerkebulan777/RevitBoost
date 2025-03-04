@@ -3,7 +3,7 @@ using Serilog;
 using Serilog.Core;
 using Serilog.Events;
 
-namespace RevitBIM.Config;
+namespace RevitBoost.Config;
 
 /// <summary>
 ///     Application logging configuration

@@ -1,8 +1,8 @@
 ﻿using Autodesk.Revit.UI;
 using Nice3point.Revit.Toolkit.External;
-using RevitBIM.Commands;
+using RevitBoost.Commands;
 
-namespace RevitBIM;
+namespace RevitBoost;
 
 /// <summary>
 ///     Application entry point
@@ -23,9 +23,9 @@ public class Application : ExternalApplication
 
     private void CreateRibbon()
     {
-        RibbonPanel panel = Application.CreatePanel("Commands", "RevitBIM");
+        RibbonPanel panel = Application.CreatePanel("Commands", "RevitBoost");
         PushButton button = panel.AddPushButton<StartupCommand>("Execute");
-        button.SetImage("/RevitBIM;component/Resources/Icons/RibbonIcon16.png");
-        button.SetLargeImage("/RevitBIM;component/Resources/Icons/RibbonIcon32.png");
+        button.SetImage("/RevitBoost;component/Resources/Icons/RibbonIcon16.png");
+        button.SetLargeImage("/RevitBoost;component/Resources/Icons/RibbonIcon32.png");
     }
 }

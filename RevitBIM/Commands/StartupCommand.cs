@@ -3,7 +3,7 @@ using Nice3point.Revit.Toolkit.External;
 using System.Windows;
 
 
-namespace RevitBIM.Commands;
+namespace RevitBoost.Commands;
 
 /// <summary>
 ///     External command entry point invoked from the Revit interface

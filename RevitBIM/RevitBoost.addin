@@ -1,9 +1,9 @@
 ﻿<RevitAddIns>
     <AddIn Type="Application">
-        <Name>RevitBIM</Name>
-        <Assembly>RevitBIM/RevitBIM.dll</Assembly>
+        <Name>RevitBoost</Name>
+        <Assembly>RevitBoost/RevitBoost.dll</Assembly>
         <AddInId>1F82B247-520E-4993-BA88-003270B9F18F</AddInId>
-        <FullClassName>RevitBIM.Application</FullClassName>
+        <FullClassName>RevitBoost.Application</FullClassName>
         <VendorId>Development</VendorId>
         <VendorDescription></VendorDescription>
         <VendorEmail></VendorEmail>
