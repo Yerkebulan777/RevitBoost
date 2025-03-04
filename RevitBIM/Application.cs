@@ -28,4 +28,5 @@ public class Application : ExternalApplication
         button.SetImage("/RevitBoost;component/Resources/Icons/RibbonIcon16.png");
         button.SetLargeImage("/RevitBoost;component/Resources/Icons/RibbonIcon32.png");
     }
+
 }

@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.13.35825.156
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RevitBoost", "RevitBIM\RevitBoost.csproj", "{AD10656A-EF44-4727-A6A2-04515F49D3DF}"
+	ProjectSection(ProjectDependencies) = postProject
+		{FBF8B387-586C-4F0F-B17C-64A20E94AFA2} = {FBF8B387-586C-4F0F-B17C-64A20E94AFA2}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommonUtils", "CommonUtils\CommonUtils.csproj", "{F9AF90B7-F310-49B2-BC7C-32EE361B271E}"
 EndProject
