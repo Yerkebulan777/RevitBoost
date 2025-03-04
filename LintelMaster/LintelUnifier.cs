@@ -265,15 +265,14 @@ public class LintelUnifier
 
         // Проверка индивидуальных допусков
         bool withinIndividualTolerances =
-            thickDifference <= _config.ThickTolerance &&
-            widthDifference <= _config.WidthTolerance &&
-            heightDifference <= _config.HeightTolerance;
+            thickDifference <= thickTolerance &&
+            widthDifference <= widthTolerance &&
+            heightDifference <= heightTolerance;
 
         // Проверка общего допуска
         double totalDifference = thickDifference + widthDifference + heightDifference;
-        bool withinTotalTolerance = totalDifference <= _config.MaxTotalDeviation;
 
-        return withinIndividualTolerances && withinTotalTolerance;
+        return withinIndividualTolerances && totalDifference < deviation;
     }
 
     /// <summary>
