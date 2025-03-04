@@ -54,104 +54,46 @@ public partial class LintelMarker
         return lintels;
     }
 
-    /// <summary>
-    /// Маркирует перемычки с унификацией похожих элементов
-    /// </summary>
-    /// <param name="lintels">Список перемычек</param>
-    public void MarkLintels(List<FamilyInstance> lintels)
-    {
-        if (lintels.Count != 0)
-        {
-            List<LintelData> data = GetLintelData(lintels);
-
-            Dictionary<SizeKey, List<LintelData>> groups = GroupLintels(data);
-
-            //MergeSmallGroups(groups, data);
-
-            //AssignMarks(groups, data);
-
-            //using Transaction t = new(_doc, "Маркировка перемычек");
-
-            //_ = t.Start();
-
-            //foreach (FamilyInstance lintel in lintels)
-            //{
-            //    if (data.ContainsKey(lintel) && data[lintel].Mark != null)
-            //    {
-            //        string mark = data[lintel].Mark;
-
-            //        LintelUtils.SetMark(lintel, _config.MarkParam, mark);
-
-            //        LintelData lintelData = data[lintel];
-
-            //        string typeName = $"{mark} {lintelData.Thick}x{lintelData.Width}x{lintelData.Height}";
-
-            //        LintelUtils.SetTypeName(lintel, typeName);
-            //    }
-            //}
-
-            //_ = t.Commit();
-        }
-    }
 
     /// <summary>
-    /// Получает данные о перемычках
+    /// Извлекает данные из перемычек и группирует их по размерам за один проход
     /// </summary>
-    /// <param name="lintels">Список перемычек</param>
-    /// <returns>Словарь с данными о перемычках</returns>
-    private List<LintelData> GetLintelData(List<FamilyInstance> lintels)
+    protected IDictionary<SizeKey, List<LintelData>> CreateLintelDataGroups(List<FamilyInstance> lintels)
     {
-        List<LintelData> lintelDataList = [];
+        SortedDictionary<SizeKey, List<LintelData>> groups = new();
 
         foreach (FamilyInstance lintel in lintels)
         {
+            // Получаем и округляем параметры
             double thickRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, _config.ThickParam), _config.RoundBase);
-
+            double widthRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, _config.WidthParam), _config.RoundBase);
             double heightRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, _config.HeightParam), _config.RoundBase);
 
-            double widthRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, _config.WidthParam), _config.RoundBase);
-
+            // Создаем ключ размера
             SizeKey dimensions = new(thickRound, widthRound, heightRound);
 
+            // Создаем и заполняем данные перемычки
             LintelData data = new(lintel)
             {
                 Thick = thickRound,
-                Height = heightRound,
                 Width = widthRound,
-                Size = dimensions,
+                Height = heightRound,
+                Size = dimensions
             };
 
-            lintelDataList.Add(data);
-        }
-
-        return lintelDataList;
-    }
-
-    /// <summary>
-    /// Группирует перемычки по размерам
-    /// </summary>
-    private IDictionary<SizeKey, List<LintelData>> GroupLintels(List<LintelData> lintelDataList)
-    {
-        SortedDictionary<SizeKey, List<LintelData>> groups = [];
-
-        foreach (LintelData lintelData in lintelDataList)
-        {
-            FamilyInstance lintel = lintelData.Instance;
-
-            SizeKey dimensions = new(lintelData.Thick, lintelData.Width, lintelData.Height);
-
-            lintelData.Size = dimensions; // Устанавливаем размер !
-
-            if (!groups.ContainsKey(dimensions))
+            // Добавляем в соответствующую группу
+            if (!groups.TryGetValue(dimensions, out var group))
             {
-                groups[dimensions] = [];
+                group = new List<LintelData>();
+                groups[dimensions] = group;
             }
 
-            groups[dimensions].Add(lintelData);
+            group.Add(data);
         }
 
         return groups;
     }
+
 
     /// <summary>
     /// Объединяет малочисленные группы с подходящими группами

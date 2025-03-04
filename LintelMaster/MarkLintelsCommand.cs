@@ -36,11 +36,6 @@ namespace RevitBIMTool.Commands
                 // Находим перемычки
                 List<FamilyInstance> lintels = marker.FindByFamilyName(familyName);
 
-                if (lintels.Count > 0)
-                {
-                    marker.MarkLintels(lintels);
-                }
-
                 TaskDialog.Show("Успех", $"Успешно промаркировано {lintels.Count} перемычек.");
 
                 return Result.Succeeded;
