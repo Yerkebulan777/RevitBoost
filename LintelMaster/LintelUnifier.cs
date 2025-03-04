@@ -281,15 +281,15 @@ public class LintelUnifier
     private double CalculateSimilarityScore(SizeKey source, SizeKey target)
     {
         double totalScore = 0;
-        double weightMultiplier = 10.0; // Множитель для весов параметров
+        double weightMultiplier = 10; // Множитель для весов параметров
 
         // Применяем веса в соответствии с приоритетом параметров
-        for (int i = 0; i < _config.GroupingOrder.Count; i++)
+        for (int idx = 0; idx < _config.GroupingOrder.Count; idx++)
         {
             // Больший вес для более приоритетных параметров
-            double weight = Math.Pow(weightMultiplier, _config.GroupingOrder.Count - i - 1);
+            double weight = Math.Pow(weightMultiplier, _config.GroupingOrder.Count - idx - 1);
 
-            switch (_config.GroupingOrder[i])
+            switch (_config.GroupingOrder[idx])
             {
                 case GroupingParameter.Thick:
                     totalScore += Math.Abs(source.Thick - target.Thick) * weight;
