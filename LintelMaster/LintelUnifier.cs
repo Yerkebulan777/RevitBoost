@@ -199,6 +199,7 @@ public class LintelUnifier
         foreach (SizeKey sourceKey in groupsToUnify)
         {
             double bestScore = double.MaxValue;
+
             SizeKey? bestTarget = null;
 
             // Для каждой группы ищем наилучшее соответствие
