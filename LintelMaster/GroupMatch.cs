@@ -3,10 +3,6 @@
 /// <summary>
 /// Класс для хранения информации о совпадении групп
 /// </summary>
-/// <param name="Source"></param>
-/// <param name="Target"></param>
-/// <param name="Score"></param>
-/// 
 public readonly record struct GroupMatch
 {
     /// <summary>
