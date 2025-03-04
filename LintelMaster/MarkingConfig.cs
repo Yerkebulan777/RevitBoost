@@ -5,10 +5,7 @@
 /// </summary>
 public class MarkConfig
 {
-    /// <summary>
-    /// Максимальное допустимое отклонение для объединения групп (мм)
-    /// </summary>
-    public int MaxTotalDeviation { get; set; } = 150;
+
 
     /// <summary>
     /// Минимальное количество элементов для "большой" группы
@@ -51,19 +48,24 @@ public class MarkConfig
     public string FamilyName { get; set; } = "Перемычка";
 
     /// <summary>
-    /// Допуск для ширины проема (мм)
+    /// Максимальное допустимое отклонение для объединения групп (мм)
     /// </summary>
-    public int WidthTolerance { get; set; } = 25;
+    public int MaxTotalDeviation { get; set; } = 500;
 
     /// <summary>
     /// Допуск для толщины стены (мм)
     /// </summary>
-    public int ThickTolerance { get; set; } = 50;
+    public int ThickTolerance { get; set; } = 25;
+
+    /// <summary>
+    /// Допуск для ширины проема (мм)
+    /// </summary>
+    public int WidthTolerance { get; set; } = 50;
 
     /// <summary>
     /// Допуск для высоты (мм)
     /// </summary>
-    public int HeightTolerance { get; set; } = 100;
+    public int HeightTolerance { get; set; } = 300;
 
     /// <summary>
     /// Порядок сортировки параметров при группировке (1-толщина, 2-ширина, 3-высота)

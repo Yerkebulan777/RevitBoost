@@ -42,8 +42,7 @@ public partial class LintelMarker
         StringComparison comp = StringComparison.CurrentCultureIgnoreCase;
 
         IList<Element> instances = new FilteredElementCollector(_doc)
-            .OfCategory(bic)
-            .OfClass(typeof(FamilyInstance))
+            .OfCategory(bic).OfClass(typeof(FamilyInstance))
             .ToElements();
 
         List<FamilyInstance> lintels = instances
@@ -169,7 +168,9 @@ public partial class LintelMarker
     {
         // Шаг 1: Подготовка данных для группировки
         Dictionary<SizeKey, int> groupSizes = groups.ToDictionary(g => g.Key, g => g.Value.Count);
+
         List<SizeKey> smallGroups = FindSmallGroups(groupSizes, threshold);
+
         List<SizeKey> allGroups = groupSizes.Keys.ToList();
 
         // Нечего объединять, если нет малых групп или всего одна группа
@@ -310,9 +311,10 @@ public partial class LintelMarker
     /// </summary>
     private void ApplyGroupMerges(Dictionary<SizeKey, List<LintelData>> groups, UnionSize unionFind)
     {
+        // Для каждой исходной группы
+
         Dictionary<SizeKey, List<FamilyInstance>> newGroups = [];
 
-        // Для каждой исходной группы
         foreach (KeyValuePair<SizeKey, List<LintelData>> entry in groups)
         {
             SizeKey originalKey = entry.Key;
@@ -382,20 +384,23 @@ public partial class LintelMarker
     }
 
     /// <summary>
-    /// Назначает марки перемычкам
+    /// Назначает марки перемычкам, сортируя группы по размерам
     /// </summary>
     /// <param name="groups">Словарь групп перемычек</param>
     /// <param name="data">Данные о перемычках</param>
     private void AssignMarks(Dictionary<SizeKey, List<FamilyInstance>> groups, Dictionary<FamilyInstance, LintelData> data)
     {
-        // Создаем сортировщик групп на основе конфигурации
-        List<SizeKey> sortedGroups = SortGroupsByConfiguration(groups.Keys);
+        // Сортируем группы непосредственно здесь
+        var sortedGroups = groups.Keys
+                           .OrderBy(g => g.Thick)
+                           .ThenBy(g => g.Width)
+                           .ThenBy(g => g.Height)
+                           .ToList();
 
         // Назначаем марки группам
         for (int i = 0; i < sortedGroups.Count; i++)
         {
             SizeKey group = sortedGroups[i];
-
             string mark = $"{_config.Prefix}{i + 1}";
 
             // Сохраняем марку для каждой перемычки в группе
@@ -409,34 +414,4 @@ public partial class LintelMarker
         }
     }
 
-    /// <summary>
-    /// Сортирует группы по заданному в конфигурации порядку
-    /// </summary>
-    /// <param name="groups">Группы для сортировки</param>
-    /// <returns>Отсортированный список групп</returns>
-    private List<SizeKey> SortGroupsByConfiguration(IEnumerable<SizeKey> groups)
-    {
-        IOrderedEnumerable<SizeKey> orderedGroups = null;
-
-        // Применяем сортировку согласно указанному порядку
-        for (int i = 0; i < _config.GroupingOrder.Count; i++)
-        {
-            GroupingParameter parameter = _config.GroupingOrder[i];
-
-            switch (parameter)
-            {
-                case GroupingParameter.Thick:
-                    orderedGroups = groups.OrderBy(g => g.Thick);
-                    break;
-                case GroupingParameter.Width:
-                    orderedGroups = groups.OrderBy(g => g.Width);
-                    break;
-                case GroupingParameter.Height:
-                    orderedGroups = groups.OrderBy(g => g.Height);
-                    break;
-            }
-        }
-
-        return orderedGroups.ToList();
-    }
 }
