@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 
@@ -63,7 +64,7 @@ public static class Host
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Ошибка при остановке хоста: {ex}");
+            Debug.WriteLine($"Ошибка при остановке хоста: {ex}");
         }
     }
 
@@ -79,6 +80,6 @@ public static class Host
     private static void OnUnhandledException(object sender, UnhandledExceptionEventArgs args)
     {
         var exception = (Exception)args.ExceptionObject;
-        System.Diagnostics.Debug.WriteLine($"Необработанное исключение: {exception}");
+        Debug.WriteLine($"Необработанное исключение: {exception}");
     }
 }
