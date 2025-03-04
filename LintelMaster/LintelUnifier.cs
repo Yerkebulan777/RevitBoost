@@ -15,19 +15,34 @@ public class LintelUnifier
         _config = config;
     }
 
+
     /// <summary>
-    /// Категоризирует перемычки по размерам и выполняет унификацию групп
+    /// Выполняет унификацию групп перемычек
     /// </summary>
-    /// <param name="lintels">Список экземпляров перемычек</param>
-    /// <param name="threshold">Пороговое значение для унификации групп</param>
-    /// <returns>Словарь унифицированных групп перемычек</returns>
-    public Dictionary<SizeKey, List<LintelData>> CategorizeAndUnify(List<FamilyInstance> lintels, int threshold)
+    /// <param name="groups">Исходный словарь групп</param>
+    /// <param name="threshold">Пороговое значение для унификации</param>
+    /// <returns>Словарь унифицированных групп</returns>
+    public Dictionary<SizeKey, List<LintelData>> UnifyGroups(List<FamilyInstance> lintels, int threshold)
     {
-        // Сначала категоризируем перемычки
         Dictionary<SizeKey, List<LintelData>> initialGroups = CategorizeLintelData(lintels);
 
-        // Затем выполняем унификацию групп
-        return UnifyGroups(initialGroups, threshold);
+        Dictionary<SizeKey, int> groupSizes = initialGroups.ToDictionary(g => g.Key, g => g.Value.Count);
+
+        List<SizeKey> groupsToUnify = groupSizes.Where(g => g.Value < threshold).Select(g => g.Key).ToList();
+
+        List<SizeKey> allGroupKeys = groupSizes.Keys.ToList();
+
+        UnionSize unionFind = new(allGroupKeys);
+
+        // Находим оптимальные пары для унификации
+        List<GroupMatch> matchesToApply = DetectGroupsToUnify(groupsToUnify, allGroupKeys, threshold);
+
+        // Применяем найденные пары к структуре объединения
+        _ = ApplyGroupMatches(matchesToApply, unionFind, groupSizes);
+
+        // Создаем новый словарь с унифицированными группами
+        return BuildUnifiedGroups(initialGroups, unionFind);
+
     }
 
     /// <summary>
@@ -68,59 +83,6 @@ public class LintelUnifier
         }
 
         return result;
-    }
-
-    /// <summary>
-    /// Выполняет унификацию групп перемычек
-    /// </summary>
-    /// <param name="groups">Исходный словарь групп</param>
-    /// <param name="threshold">Пороговое значение для унификации</param>
-    /// <returns>Словарь унифицированных групп</returns>
-    public Dictionary<SizeKey, List<LintelData>> UnifyGroups(Dictionary<SizeKey, List<LintelData>> groups, int threshold)
-    {
-        // Если групп меньше 2, унифицировать нечего
-        if (groups.Count < 2)
-        {
-            return new Dictionary<SizeKey, List<LintelData>>(groups);
-        }
-
-        try
-        {
-            // Подготовка данных для унификации
-            Dictionary<SizeKey, int> groupSizes = groups.ToDictionary(g => g.Key, g => g.Value.Count);
-
-            // Группы, требующие унификации - их размер меньше порогового значения
-            List<SizeKey> groupsToUnify = groupSizes
-                .Where(g => g.Value < threshold)
-                .Select(g => g.Key)
-                .ToList();
-
-            // Список всех групп
-            List<SizeKey> allGroupKeys = groupSizes.Keys.ToList();
-
-            // Если нет групп для унификации или всего одна группа, возвращаем исходные группы
-            if (groupsToUnify.Count == 0 || allGroupKeys.Count <= 1)
-            {
-                return new Dictionary<SizeKey, List<LintelData>>(groups);
-            }
-
-            // Создаем структуру для отслеживания объединений
-            UnionSize unionFind = new(allGroupKeys);
-
-            // Находим оптимальные пары для унификации
-            List<GroupMatch> matchesToApply = DetectGroupsToUnify(groupsToUnify, allGroupKeys, threshold);
-
-            // Применяем найденные пары к структуре объединения
-            _ = ApplyGroupMatches(matchesToApply, unionFind, groupSizes);
-
-            // Создаем новый словарь с унифицированными группами
-            return BuildUnifiedGroups(groups, unionFind);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Ошибка при унификации групп: {ex.Message}");
-            return new Dictionary<SizeKey, List<LintelData>>(groups);
-        }
     }
 
     /// <summary>
