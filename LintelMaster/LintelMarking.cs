@@ -84,7 +84,7 @@ public partial class LintelMarker
     /// </summary>
     /// <param name="groups">Словарь групп перемычек</param>
     /// <param name="data">Данные о перемычках</param>
-    protected void MergeSmallGroups(Dictionary<SizeKey, List<LintelData>> groups, int threshold)
+    protected void UnifyGroups(Dictionary<SizeKey, List<LintelData>> groups, int threshold)
     {
         // Шаг 1: Подготовка данных для группировки
         Dictionary<SizeKey, int> groupSizes = groups.ToDictionary(g => g.Key, g => g.Value.Count);
@@ -250,7 +250,7 @@ public partial class LintelMarker
     /// <summary>
     /// Применяет результаты объединения к данным перемычек
     /// </summary>
-    private void ApplyGroupMerges(Dictionary<SizeKey, List<LintelData>> groups, UnionSize unionFind)
+    private void ApplyGroupMerges(IDictionary<SizeKey, List<LintelData>> groups, UnionSize unionFind)
     {
         // Для каждой исходной группы
 
