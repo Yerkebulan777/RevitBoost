@@ -25,9 +25,9 @@ namespace RevitBIMTool.Commands
                 MarkConfig config = new MarkConfig
                 {
                     MarkParam = "BI_марка_изделия",
-                    ThickParam = "Толщина стены",
-                    WidthParam = "Ширина проема",
-                    HeightParam = "Высота",
+                    ThickParameter = "Толщина стены",
+                    WidthParameter = "Ширина проема",
+                    HeightParameter = "Высота",
                 };
 
                 // Создаем маркировщик

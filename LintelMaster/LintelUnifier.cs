@@ -6,20 +6,17 @@ using RevitUtils;
 /// <summary>
 /// Класс, отвечающий за алгоритм унификации перемычек
 /// </summary>
-public class LintelUnifier
+public class LintelUnifier(MarkConfig config)
 {
-    private readonly MarkConfig _config;
-
-    private int deviation => _config.MaxTotalDeviation;
-    private int thickTolerance => _config.ThickTolerance;
-    private int widthTolerance => _config.WidthTolerance;
-    private int heightTolerance => _config.HeightTolerance;
-
-    public LintelUnifier(MarkConfig config)
-    {
-        _config = config;
-    }
-
+    private string thickParam => config.ThickParameter;
+    private string widthParam => config.WidthParameter;
+    private string heightParam => config.HeightParameter;
+    private int deviation => config.MaxTotalDeviation;
+    private int thickTolerance => config.ThickTolerance;
+    private int widthTolerance => config.WidthTolerance;
+    private int heightTolerance => config.HeightTolerance;
+    private int roundBase => config.RoundBase;
+    private int minCount => config.MinCount;
 
     /// <summary>
     /// Выполняет унификацию групп перемычек
@@ -62,9 +59,9 @@ public class LintelUnifier
         foreach (FamilyInstance lintel in lintels)
         {
             // Получаем и округляем размеры
-            double thickRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, _config.ThickParam), _config.RoundBase);
-            double widthRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, _config.WidthParam), _config.RoundBase);
-            double heightRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, _config.HeightParam), _config.RoundBase);
+            double thickRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, thickParam), roundBase);
+            double widthRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, widthParam), roundBase);
+            double heightRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, heightParam), roundBase);
 
             SizeKey dimensions = new(thickRound, widthRound, heightRound);
 
@@ -143,7 +140,7 @@ public class LintelUnifier
                 // Проверяем, не превысит ли объединенная группа порог минимального размера
                 int currentSize = CalculateCurrentGroupSize(sourceRoot, groupSizes, unionFind);
 
-                if (currentSize < _config.MinCount)
+                if (currentSize < minCount)
                 {
                     unionFind.Union(sourceKey, targetKey, groupSizes);
                     _ = processedGroups.Add(sourceKey);
@@ -285,20 +282,20 @@ public class LintelUnifier
         double weightMultiplier = 10; // Множитель для весов параметров
 
         // Применяем веса в соответствии с приоритетом параметров
-        for (int idx = 0; idx < _config.GroupingOrder.Count; idx++)
+        for (int idx = 0; idx < 3; idx++)
         {
             // Больший вес для более приоритетных параметров
-            double weight = Math.Pow(weightMultiplier, _config.GroupingOrder.Count - idx - 1);
+            double weight = Math.Pow(weightMultiplier, 3 - idx - 1);
 
-            switch (_config.GroupingOrder[idx])
+            switch (idx)
             {
-                case GroupingParameter.Thick:
+                case (int)GroupingParameter.Thick:
                     totalScore += Math.Abs(source.Thick - target.Thick) * weight;
                     break;
-                case GroupingParameter.Width:
+                case (int)GroupingParameter.Width:
                     totalScore += Math.Abs(source.Width - target.Width) * weight;
                     break;
-                case GroupingParameter.Height:
+                case (int)GroupingParameter.Height:
                     totalScore += Math.Abs(source.Height - target.Height) * weight;
                     break;
             }
