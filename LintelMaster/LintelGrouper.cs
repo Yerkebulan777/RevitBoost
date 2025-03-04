@@ -6,6 +6,10 @@
 public class LintelGrouper
 {
     private readonly MarkConfig _config;
+    private int deviation => _config.MaxTotalDeviation;
+    private int thickTolerance => _config.ThickTolerance;
+    private int widthTolerance => _config.WidthTolerance;
+    private int heightTolerance => _config.HeightTolerance;
 
     public LintelGrouper(MarkConfig config)
     {
@@ -18,19 +22,16 @@ public class LintelGrouper
     public List<List<LintelData>> GroupLintels(List<LintelData> lintels)
     {
         // Сортируем перемычки по наиболее значимым параметрам для эффективной группировки
-        var sortedLintels = lintels.OrderBy(l => l.Thick)
-                                  .ThenBy(l => l.Width)
-                                  .ThenBy(l => l.Height)
-                                  .ToList();
+        List<LintelData> sortedLintels = lintels.OrderBy(l => l.Thick).ThenBy(l => l.Width).ThenBy(l => l.Height).ToList();
 
-        var groups = new List<List<LintelData>>();
+        List<List<LintelData>> groups = [];
 
-        foreach (var lintel in sortedLintels)
+        foreach (LintelData lintel in sortedLintels)
         {
             bool addedToExistingGroup = false;
 
             // Пытаемся добавить в существующую группу, соответствующую требованиям допусков
-            foreach (var group in groups)
+            foreach (List<LintelData> group in groups)
             {
                 if (CanAddToGroup(group, lintel))
                 {
@@ -43,7 +44,7 @@ public class LintelGrouper
             // Создаем новую группу, если перемычка не подходит для существующих групп
             if (!addedToExistingGroup)
             {
-                groups.Add(new List<LintelData> { lintel });
+                groups.Add([lintel]);
             }
         }
 
@@ -59,12 +60,12 @@ public class LintelGrouper
     private bool CanAddToGroup(List<LintelData> group, LintelData candidate)
     {
         // Используем первый элемент группы в качестве эталона
-        var reference = group[0];
+        LintelData reference = group[0];
 
         // Проверяем допуски для каждого параметра
-        bool thicknessWithinTolerance = Math.Abs(candidate.Thick - reference.Thick) <= _config.ThickTolerance;
-        bool widthWithinTolerance = Math.Abs(candidate.Width - reference.Width) <= _config.WidthTolerance;
-        bool heightWithinTolerance = Math.Abs(candidate.Height - reference.Height) <= _config.HeightTolerance;
+        bool thicknessWithinTolerance = Math.Abs(candidate.Thick - reference.Thick) <= thickTolerance;
+        bool widthWithinTolerance = Math.Abs(candidate.Width - reference.Width) <= widthTolerance;
+        bool heightWithinTolerance = Math.Abs(candidate.Height - reference.Height) <= heightTolerance;
 
         // Вычисляем общее отклонение относительно эталонных значений
         double totalDeviation = Math.Abs(candidate.Thick - reference.Thick) +
@@ -72,9 +73,31 @@ public class LintelGrouper
                                Math.Abs(candidate.Height - reference.Height);
 
         // Убеждаемся, что общее отклонение находится в допустимых пределах
-        bool totalDeviationWithinLimit = totalDeviation <= _config.MaxTotalDeviation;
+        bool totalDeviationWithinLimit = totalDeviation <= deviation;
 
         return thicknessWithinTolerance && widthWithinTolerance && heightWithinTolerance && totalDeviationWithinLimit;
+    }
+
+
+    /// <summary>
+    /// Проверяет, находятся ли размеры в пределах допусков
+    /// </summary>
+    protected bool IsSizeTolerances(SizeKey source, SizeKey target)
+    {
+        double diffThick = Math.Abs(source.Thick - target.Thick);
+        double diffWidth = Math.Abs(source.Width - target.Width);
+        double diffHeight = Math.Abs(source.Height - target.Height);
+
+        // Проверяем индивидуальные допуски
+        bool individualTolerances =
+            diffThick < thickTolerance &&
+            diffWidth < widthTolerance &&
+            diffHeight < heightTolerance;
+
+        // Проверяем общий допуск
+        double totalDeviation = diffThick + diffWidth + diffHeight;
+
+        return individualTolerances && totalDeviation < deviation;
     }
 
     /// <summary>
@@ -86,14 +109,14 @@ public class LintelGrouper
         // Например:
         for (int i = 0; i < groups.Count; i++)
         {
-            var representativeLintel = groups[i][0];
-            var sizeKey = new SizeKey(); // Предполагается, что у SizeKey есть конструктор по умолчанию
+            _ = groups[i][0];
+            SizeKey sizeKey = new(); // Предполагается, что у SizeKey есть конструктор по умолчанию
 
             // Устанавливаем соответствующие значения для группы
             // Этот блок требует корректировки в соответствии с реализацией SizeKey
 
             // Назначаем одинаковый SizeKey всем перемычкам в группе
-            foreach (var lintel in groups[i])
+            foreach (LintelData lintel in groups[i])
             {
                 lintel.Size = sizeKey;
             }
