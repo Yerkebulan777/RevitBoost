@@ -63,7 +63,7 @@ public class OptimizedLintelUnifier(MarkConfig config)
         // Оптимизированный поиск пар для унификации
         OptimizedFindAndApplyMatches(smallGroups, allGroups, unionFind, groupSizes);
 
-        // Строим результирующий словарь унифицированных групп
+        // Pезультирующий словарь унифицированных групп
         return UnifiedGroups(groupedLintels, unionFind);
     }
 
@@ -119,8 +119,8 @@ public class OptimizedLintelUnifier(MarkConfig config)
                 // Если нашли подходящую пару - объединяем
                 if (bestTarget.HasValue)
                 {
+                    processedGroups.Add(sourceKey);
                     unionFind.Union(sourceKey, bestTarget.Value, groupSizes);
-                    _ = processedGroups.Add(sourceKey);
                 }
             }
         }
