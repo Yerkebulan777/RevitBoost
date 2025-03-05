@@ -90,27 +90,28 @@ public class OptimizedLintelUnifier(MarkConfig config)
                     continue;
                 }
 
-                // Ищем лучшее соответствие для текущей группы
                 SizeKey? bestTarget = null;
+                // Ищем соответствие для группы
                 double bestScore = double.MaxValue;
 
                 foreach (SizeKey targetKey in allGroups)
                 {
-                    // Пропускаем сравнение с самой собой или уже объединенными группами
-                    if (sourceKey.Equals(targetKey) || unionFind.FindRoot(sourceKey).Equals(unionFind.FindRoot(targetKey)))
+                    if (!sourceKey.Equals(targetKey))
                     {
-                        continue;
-                    }
-
-                    // Проверяем, подходят ли размеры по допускам
-                    if (IsSizeWithinTolerances(sourceKey, targetKey))
-                    {
-                        double score = CalculateSimilarityScore(sourceKey, targetKey);
-
-                        if (score < bestScore)
+                        // Пропускаем сравнение с уже объединенными группами
+                        if (!sourceKey.Equals(unionFind.FindRoot(targetKey)))
                         {
-                            bestScore = score;
-                            bestTarget = targetKey;
+                            // Проверяем, подходят ли размеры по допускам
+                            if (IsSizeWithinTolerances(sourceKey, targetKey))
+                            {
+                                double score = CalculateSimilarityScore(sourceKey, targetKey);
+
+                                if (score < bestScore)
+                                {
+                                    bestScore = score;
+                                    bestTarget = targetKey;
+                                }
+                            }
                         }
                     }
                 }
