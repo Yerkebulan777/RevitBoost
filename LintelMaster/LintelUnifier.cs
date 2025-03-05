@@ -13,8 +13,6 @@ public class LintelUnifier(MarkConfig config)
     private int thickTolerance => config.ThickTolerance;
     private int widthTolerance => config.WidthTolerance;
     private int heightTolerance => config.HeightTolerance;
-    private int roundBase => config.RoundBase;
-    private int minCount => config.MinCount;
 
     /// <summary>
     /// Выполняет унификацию групп перемычек
@@ -57,9 +55,9 @@ public class LintelUnifier(MarkConfig config)
         foreach (FamilyInstance lintel in lintels)
         {
             // Получаем и округляем размеры
-            double thickRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, thickParam), roundBase);
-            double widthRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, widthParam), roundBase);
-            double heightRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, heightParam), roundBase);
+            double thickRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, thickParam));
+            double widthRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, widthParam));
+            double heightRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, heightParam));
 
             SizeKey dimensions = new(thickRound, widthRound, heightRound);
 
@@ -138,7 +136,7 @@ public class LintelUnifier(MarkConfig config)
                 // Проверяем, не превысит ли объединенная группа порог минимального размера
                 int currentSize = CalculateCurrentGroupSize(sourceRoot, groupSizes, unionFind);
 
-                if (currentSize < minCount)
+                if (currentSize < 5)
                 {
                     unionFind.Union(sourceKey, targetKey, groupSizes);
                     _ = processedGroups.Add(sourceKey);

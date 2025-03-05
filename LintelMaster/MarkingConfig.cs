@@ -5,15 +5,6 @@
 /// </summary>
 public class MarkConfig
 {
-    /// <summary>
-    /// Минимальное количество элементов для "большой" группы
-    /// </summary>
-    public int MinCount { get; set; } = 5;
-
-    /// <summary>
-    /// Базовое значение для округления (мм)
-    /// </summary>
-    public int RoundBase { get; set; } = 50;
 
     /// <summary>
     /// Префикс для марок

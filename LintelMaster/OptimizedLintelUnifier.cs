@@ -13,8 +13,8 @@ public class OptimizedLintelUnifier(MarkConfig config)
     private readonly int _thickTolerance = config.ThickTolerance;
     private readonly int _widthTolerance = config.WidthTolerance;
     private readonly int _heightTolerance = config.HeightTolerance;
-    private readonly int _roundBase = config.RoundBase;
-    private readonly int _minCount = config.MinCount;
+
+    private int OptimalGroupSize { get; } = 5;
 
     /// <summary>
     /// Выполняет унификацию групп перемычек в один проход
@@ -34,9 +34,9 @@ public class OptimizedLintelUnifier(MarkConfig config)
         }
 
         // Получаем размеры групп и малые группы в один проход
-        Dictionary<SizeKey, int> groupSizes = new();
+        Dictionary<SizeKey, int> groupSizes = [];
 
-        List<SizeKey> smallGroups = new();
+        List<SizeKey> smallGroups = [];
 
         foreach (KeyValuePair<SizeKey, List<LintelData>> group in groupedLintels)
         {
@@ -72,7 +72,7 @@ public class OptimizedLintelUnifier(MarkConfig config)
     /// </summary>
     private void OptimizedFindAndApplyMatches(List<SizeKey> smallGroups, List<SizeKey> allGroups, UnionSize unionFind, Dictionary<SizeKey, int> groupSizes)
     {
-        HashSet<SizeKey> processedGroups = new();
+        HashSet<SizeKey> processedGroups = [];
 
         // Приоритизируем обработку наименьших групп сначала
         foreach (SizeKey sourceKey in smallGroups.OrderBy(g => groupSizes[g]))
@@ -82,9 +82,10 @@ public class OptimizedLintelUnifier(MarkConfig config)
                 // Находим корневую группу для текущей группы
                 SizeKey sourceRoot = unionFind.FindRoot(sourceKey);
 
-                // Если группа уже достигла минимального размера, пропускаем
+                // Если группа уже достигла отимльного размера, пропускаем
                 int currentSize = CalculateCurrentGroupSize(sourceRoot, groupSizes, unionFind);
-                if (currentSize >= _minCount)
+
+                if (currentSize > OptimalGroupSize)
                 {
                     continue;
                 }
@@ -96,8 +97,7 @@ public class OptimizedLintelUnifier(MarkConfig config)
                 foreach (SizeKey targetKey in allGroups)
                 {
                     // Пропускаем сравнение с самой собой или уже объединенными группами
-                    if (sourceKey.Equals(targetKey) ||
-                        unionFind.FindRoot(sourceKey).Equals(unionFind.FindRoot(targetKey)))
+                    if (sourceKey.Equals(targetKey) || unionFind.FindRoot(sourceKey).Equals(unionFind.FindRoot(targetKey)))
                     {
                         continue;
                     }
@@ -216,10 +216,10 @@ public class OptimizedLintelUnifier(MarkConfig config)
     /// </summary>
     private Dictionary<SizeKey, List<LintelData>> BuildUnifiedGroups(Dictionary<SizeKey, List<LintelData>> originalGroups, UnionSize unionFind)
     {
-        Dictionary<SizeKey, List<LintelData>> unifiedGroups = new();
+        Dictionary<SizeKey, List<LintelData>> unifiedGroups = [];
 
         // Оптимизация: предварительно находим все корневые группы
-        Dictionary<SizeKey, List<SizeKey>> rootToOriginal = new();
+        Dictionary<SizeKey, List<SizeKey>> rootToOriginal = [];
 
         foreach (SizeKey key in originalGroups.Keys)
         {
@@ -240,7 +240,7 @@ public class OptimizedLintelUnifier(MarkConfig config)
             SizeKey rootKey = entry.Key;
             List<SizeKey> originalKeys = entry.Value;
 
-            List<LintelData> unifiedGroup = new();
+            List<LintelData> unifiedGroup = [];
             unifiedGroups[rootKey] = unifiedGroup;
 
             // Обновляем и добавляем элементы из всех оригинальных групп
