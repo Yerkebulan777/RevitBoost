@@ -31,7 +31,7 @@ namespace RevitBIMTool.Commands
                 };
 
                 // Создаем маркировщик
-                LintelMarker marker = new LintelMarker(doc, config);
+                LintelManager marker = new LintelManager(doc, config);
 
                 // Находим перемычки
                 List<FamilyInstance> lintels = marker.FindByFamilyName(familyName);

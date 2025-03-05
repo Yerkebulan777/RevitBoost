@@ -3,7 +3,7 @@
 /// <summary>
 /// Основной класс для маркировки перемычек
 /// </summary>
-public partial class LintelMarker
+public partial class LintelManager
 {
     private readonly Document _doc;
     private readonly MarkConfig _config;
@@ -13,7 +13,7 @@ public partial class LintelMarker
     /// </summary>
     /// <param name="doc">Документ Revit</param>
     /// <param name="config">Конфигурация маркировки</param>
-    public LintelMarker(Document doc, MarkConfig config)
+    public LintelManager(Document doc, MarkConfig config)
     {
         _config = config;
         _doc = doc;
