@@ -170,9 +170,7 @@ public class OptimizedLintelUnifier(MarkConfig config)
     /// </summary>
     private int CalculateCurrentGroupSize(SizeKey rootKey, Dictionary<SizeKey, int> groupSizes, UnionSize unionFind)
     {
-        return groupSizes
-            .Where(entry => unionFind.FindRoot(entry.Key).Equals(rootKey))
-            .Sum(entry => entry.Value);
+        return groupSizes.Where(entry => unionFind.FindRoot(entry.Key).Equals(rootKey)).Sum(entry => entry.Value);
     }
 
     /// <summary>
