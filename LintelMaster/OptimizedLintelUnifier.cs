@@ -4,35 +4,17 @@ using RevitUtils;
 /// <summary>
 /// Оптимизированный класс для унификации перемычек
 /// </summary>
-public class OptimizedLintelUnifier
+public class OptimizedLintelUnifier(MarkConfig config)
 {
-    private readonly MarkConfig _config;
-
-    // Кэшированные параметры из конфигурации для быстрого доступа
-    private readonly string _thickParam;
-    private readonly string _widthParam;
-    private readonly string _heightParam;
-    private readonly int _deviation;
-    private readonly int _thickTolerance;
-    private readonly int _widthTolerance;
-    private readonly int _heightTolerance;
-    private readonly int _roundBase;
-    private readonly int _minCount;
-
-    public OptimizedLintelUnifier(MarkConfig config)
-    {
-        _config = config;
-
-        _thickParam = config.ThickParameter;
-        _widthParam = config.WidthParameter;
-        _heightParam = config.HeightParameter;
-        _deviation = config.MaxTotalDeviation;
-        _thickTolerance = config.ThickTolerance;
-        _widthTolerance = config.WidthTolerance;
-        _heightTolerance = config.HeightTolerance;
-        _roundBase = config.RoundBase;
-        _minCount = config.MinCount;
-    }
+    private readonly string _thickParam = config.ThickParameter;
+    private readonly string _widthParam = config.WidthParameter;
+    private readonly string _heightParam = config.HeightParameter;
+    private readonly int _totalDeviation = config.MaxTotalDeviation;
+    private readonly int _thickTolerance = config.ThickTolerance;
+    private readonly int _widthTolerance = config.WidthTolerance;
+    private readonly int _heightTolerance = config.HeightTolerance;
+    private readonly int _roundBase = config.RoundBase;
+    private readonly int _minCount = config.MinCount;
 
     /// <summary>
     /// Выполняет унификацию групп перемычек в один проход
@@ -53,6 +35,7 @@ public class OptimizedLintelUnifier
 
         // Получаем размеры групп и малые группы в один проход
         Dictionary<SizeKey, int> groupSizes = new();
+
         List<SizeKey> smallGroups = new();
 
         foreach (KeyValuePair<SizeKey, List<LintelData>> group in groupedLintels)
@@ -74,6 +57,7 @@ public class OptimizedLintelUnifier
 
         // Находим оптимальные пары для объединения
         List<SizeKey> allGroups = groupSizes.Keys.ToList();
+
         UnionSize unionFind = new(allGroups);
 
         // Оптимизированный поиск пар для унификации
@@ -217,7 +201,7 @@ public class OptimizedLintelUnifier
             Math.Abs(source.Width - target.Width) +
             Math.Abs(source.Height - target.Height);
 
-        return totalDifference < _deviation;
+        return totalDifference < _totalDeviation;
     }
 
     /// <summary>
