@@ -64,7 +64,7 @@ public class OptimizedLintelUnifier(MarkConfig config)
         OptimizedFindAndApplyMatches(smallGroups, allGroups, unionFind, groupSizes);
 
         // Строим результирующий словарь унифицированных групп
-        return BuildUnifiedGroups(groupedLintels, unionFind);
+        return UnifiedGroups(groupedLintels, unionFind);
     }
 
     /// <summary>
@@ -215,7 +215,7 @@ public class OptimizedLintelUnifier(MarkConfig config)
     /// <summary>
     /// Создает новый словарь с унифицированными группами
     /// </summary>
-    private Dictionary<SizeKey, List<LintelData>> BuildUnifiedGroups(Dictionary<SizeKey, List<LintelData>> originalGroups, UnionSize unionFind)
+    private Dictionary<SizeKey, List<LintelData>> UnifiedGroups(Dictionary<SizeKey, List<LintelData>> originalGroups, UnionSize unionFind)
     {
         Dictionary<SizeKey, List<LintelData>> unifiedGroups = [];
 
