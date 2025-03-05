@@ -1,6 +1,4 @@
 ﻿using LintelMaster;
-using RevitBIMTool.Models;
-
 using RevitUtils;
 
 /// <summary>

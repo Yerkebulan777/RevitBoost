@@ -1,48 +1,45 @@
-﻿using LintelMaster;
+﻿namespace LintelMaster;
 
-namespace RevitBIMTool.Models
+public class UnionSize
 {
-    public class UnionSize
+    private readonly Dictionary<SizeKey, SizeKey> parent;
+
+    public UnionSize(List<SizeKey> keys)
     {
-        private readonly Dictionary<SizeKey, SizeKey> parent;
+        parent = keys.ToDictionary(k => k, k => k);
+    }
 
-        public UnionSize(List<SizeKey> keys)
+    /// <summary>
+    /// Находит корневой элемент для указанного ключа
+    /// </summary>
+    public SizeKey FindRoot(SizeKey key)
+    {
+        if (!parent[key].Equals(key))
         {
-            parent = keys.ToDictionary(k => k, k => k);
+            parent[key] = FindRoot(parent[key]); // Сжатие пути
         }
 
-        /// <summary>
-        /// Находит корневой элемент для указанного ключа
-        /// </summary>
-        public SizeKey FindRoot(SizeKey key)
+        return parent[key];
+    }
+
+    /// <summary>
+    /// Объединяет две группы
+    /// </summary>
+    public void Union(SizeKey key1, SizeKey key2, Dictionary<SizeKey, int> groupSizes)
+    {
+        SizeKey root1 = FindRoot(key1);
+        SizeKey root2 = FindRoot(key2);
+
+        if (!root1.Equals(root2))
         {
-            if (!parent[key].Equals(key))
+            // Всегда делаем корнем большую группу
+            if (groupSizes[root1] < groupSizes[root2])
             {
-                parent[key] = FindRoot(parent[key]); // Сжатие пути
+                parent[root1] = root2;
             }
-
-            return parent[key];
-        }
-
-        /// <summary>
-        /// Объединяет две группы
-        /// </summary>
-        public void Union(SizeKey key1, SizeKey key2, Dictionary<SizeKey, int> groupSizes)
-        {
-            SizeKey root1 = FindRoot(key1);
-            SizeKey root2 = FindRoot(key2);
-
-            if (!root1.Equals(root2))
+            else
             {
-                // Всегда делаем корнем большую группу
-                if (groupSizes[root1] < groupSizes[root2])
-                {
-                    parent[root1] = root2;
-                }
-                else
-                {
-                    parent[root2] = root1;
-                }
+                parent[root2] = root1;
             }
         }
     }

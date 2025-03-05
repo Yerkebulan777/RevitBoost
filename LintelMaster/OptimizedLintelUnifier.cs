@@ -1,5 +1,4 @@
 ﻿using LintelMaster;
-using RevitBIMTool.Models;
 using RevitUtils;
 
 /// <summary>
@@ -24,7 +23,6 @@ public class OptimizedLintelUnifier
     {
         _config = config;
 
-        // Кэшируем настройки для более быстрого доступа
         _thickParam = config.ThickParameter;
         _widthParam = config.WidthParameter;
         _heightParam = config.HeightParameter;
@@ -284,4 +282,6 @@ public class OptimizedLintelUnifier
 
         return unifiedGroups;
     }
+
+
 }
