@@ -1,7 +1,4 @@
-﻿using RevitBIMTool.Models;
-using RevitUtils;
-
-namespace LintelMaster;
+﻿namespace LintelMaster;
 
 /// <summary>
 /// Основной класс для маркировки перемычек
