@@ -136,9 +136,9 @@ public class OptimizedLintelUnifier(MarkConfig config)
         foreach (FamilyInstance lintel in lintels)
         {
             // Получаем и округляем размеры (один вызов функции вместо трёх)
-            double thickRound = RoundSize(LintelUtils.GetParamValue(lintel, _thickParam));
-            double widthRound = RoundSize(LintelUtils.GetParamValue(lintel, _widthParam));
-            double heightRound = RoundSize(LintelUtils.GetParamValue(lintel, _heightParam));
+            double thickRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, _thickParam));
+            double widthRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, _widthParam));
+            double heightRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, _heightParam));
 
             SizeKey dimensions = new(thickRound, widthRound, heightRound);
 
@@ -162,14 +162,6 @@ public class OptimizedLintelUnifier(MarkConfig config)
         }
 
         return result;
-    }
-
-    /// <summary>
-    /// Округляет размер до базового значения
-    /// </summary>
-    private double RoundSize(double sizeInFeet)
-    {
-        return UnitManager.FootToRoundedMm(sizeInFeet, _roundBase);
     }
 
     /// <summary>
