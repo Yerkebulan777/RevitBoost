@@ -42,7 +42,6 @@ public class OptimizedLintelUnifier(MarkConfig config)
         return groupedLintels;
     }
 
-
     /// <summary>
     /// Определяет группы для унификации на основе пороговых  значений
     /// </summary>
