@@ -50,68 +50,6 @@ public class OptimizedLintelUnifier(MarkConfig config)
         return groupedLintels;
     }
 
-    /// <summary>
-    /// Находит и применяет оптимальные пары для унификации в один проход
-    /// </summary>
-    private void OptimizedFindAndApplyMatches(List<SizeKey> smallGroups, Dictionary<SizeKey, int> groupSizes)
-    {
-        HashSet<SizeKey> processedGroups = [];
-
-        List<SizeKey> allGroups = groupSizes.Keys.ToList();
-
-        UnionSize unionFind = new(groupSizes.Keys.ToList());
-
-        // Приоритизируем обработку наименьших групп сначала
-        foreach (SizeKey sourceKey in smallGroups.OrderBy(g => groupSizes[g]))
-        {
-            if (!processedGroups.Contains(sourceKey))
-            {
-                // Находим корневую группу для текущей группы
-                SizeKey sourceRoot = unionFind.FindRoot(sourceKey);
-
-                // Если группа уже достигла отимльного размера, пропускаем
-                int currentSize = CalculateCurrentGroupSize(sourceRoot, groupSizes, unionFind);
-
-                if (currentSize > OptimalGroupSize)
-                {
-                    continue;
-                }
-
-                SizeKey? bestTarget = null;
-                // Ищем соответствие для группы
-                double bestScore = double.MaxValue;
-
-                foreach (SizeKey targetKey in allGroups)
-                {
-                    if (!sourceKey.Equals(targetKey))
-                    {
-                        // Пропускаем сравнение с уже объединенными группами
-                        if (!sourceKey.Equals(unionFind.FindRoot(targetKey)))
-                        {
-                            // Проверяем, подходят ли размеры по допускам
-                            if (IsSizeWithinTolerances(sourceKey, targetKey))
-                            {
-                                double score = CalculateSimilarityScore(sourceKey, targetKey);
-
-                                if (score < bestScore)
-                                {
-                                    bestScore = score;
-                                    bestTarget = targetKey;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Если нашли подходящую пару - объединяем
-                if (bestTarget.HasValue)
-                {
-                    _ = processedGroups.Add(sourceKey);
-                    _ = unionFind.Union(sourceKey, bestTarget.Value, groupSizes);
-                }
-            }
-        }
-    }
 
     /// <summary>
     /// Категоризирует перемычки по их размерам
@@ -183,6 +121,69 @@ public class OptimizedLintelUnifier(MarkConfig config)
         };
 
         return groupsToUnify.Count > 0;
+    }
+
+    /// <summary>
+    /// Находит и применяет оптимальные пары для унификации в один проход
+    /// </summary>
+    private void OptimizedFindAndApplyMatches(List<SizeKey> smallGroups, Dictionary<SizeKey, int> groupSizes)
+    {
+        HashSet<SizeKey> processedGroups = [];
+
+        List<SizeKey> allGroups = groupSizes.Keys.ToList();
+
+        UnionSize unionFind = new(groupSizes.Keys.ToList());
+
+        // Приоритизируем обработку наименьших групп сначала
+        foreach (SizeKey sourceKey in smallGroups.OrderBy(g => groupSizes[g]))
+        {
+            if (!processedGroups.Contains(sourceKey))
+            {
+                // Находим корневую группу для текущей группы
+                SizeKey sourceRoot = unionFind.FindRoot(sourceKey);
+
+                // Если группа уже достигла отимльного размера, пропускаем
+                int currentSize = CalculateCurrentGroupSize(sourceRoot, groupSizes, unionFind);
+
+                if (currentSize > OptimalGroupSize)
+                {
+                    continue;
+                }
+
+                SizeKey? bestTarget = null;
+                // Ищем соответствие для группы
+                double bestScore = double.MaxValue;
+
+                foreach (SizeKey targetKey in allGroups)
+                {
+                    if (!sourceKey.Equals(targetKey))
+                    {
+                        // Пропускаем сравнение с уже объединенными группами
+                        if (!sourceKey.Equals(unionFind.FindRoot(targetKey)))
+                        {
+                            // Проверяем, подходят ли размеры по допускам
+                            if (IsSizeWithinTolerances(sourceKey, targetKey))
+                            {
+                                double score = CalculateSimilarityScore(sourceKey, targetKey);
+
+                                if (score < bestScore)
+                                {
+                                    bestScore = score;
+                                    bestTarget = targetKey;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Если нашли подходящую пару - объединяем
+                if (bestTarget.HasValue)
+                {
+                    _ = processedGroups.Add(sourceKey);
+                    _ = unionFind.Union(sourceKey, bestTarget.Value, groupSizes);
+                }
+            }
+        }
     }
 
 
