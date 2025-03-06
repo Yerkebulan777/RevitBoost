@@ -3,7 +3,7 @@
 /// <summary>
 /// Структура для хранения и сравнения ключевых размеров перемычки
 /// </summary>
-public struct SizeKey : IEquatable<SizeKey>
+public readonly struct SizeKey : IEquatable<SizeKey>
 {
     /// <summary>
     /// Толщина стены
@@ -56,7 +56,7 @@ public struct SizeKey : IEquatable<SizeKey>
     /// </summary>
     public override int GetHashCode()
     {
-        return Convert.ToInt32(Thick * 10000 + Width * 100 + Height);
+        return Convert.ToInt32((Thick * 1000) + (Width * 100) + (Height * 10));
     }
 
     /// <summary>
@@ -66,4 +66,5 @@ public struct SizeKey : IEquatable<SizeKey>
     {
         return $"{Thick}x{Width}x{Height}";
     }
+
 }

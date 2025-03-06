@@ -287,7 +287,6 @@ public class LintelUnifier(MarkConfig config)
             widthDifference <= widthTolerance &&
             heightDifference <= heightTolerance;
 
-        // Проверка общего допуска
         double totalDifference = thickDifference + widthDifference + heightDifference;
 
         return withinIndividualTolerances && totalDifference < totalDeviation;

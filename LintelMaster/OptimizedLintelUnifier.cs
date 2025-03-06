@@ -1,5 +1,6 @@
 ﻿using LintelMaster;
 using RevitUtils;
+using System.Collections.Generic;
 
 /// <summary>
 /// Оптимизированный класс для унификации перемычек
@@ -14,7 +15,18 @@ public class OptimizedLintelUnifier(MarkConfig config)
     private readonly int _widthTolerance = config.WidthTolerance;
     private readonly int _heightTolerance = config.HeightTolerance;
 
-    private int OptimalGroupSize { get; } = 5;
+    private const int MinGroupThreshold = 5;
+    private const int OptimalGroupSize = 10;
+
+    /// <summary>
+    /// Структура для хранения результатов анализа групп
+    /// </summary>
+    private struct GroupAnalysisResult
+    {
+        public List<SizeKey> GroupsToUnify { get; set; }
+
+        public Dictionary<SizeKey, int> GroupSizes { get; set; }
+    }
 
     /// <summary>
     /// Выполняет унификацию групп перемычек в один проход
@@ -27,52 +39,27 @@ public class OptimizedLintelUnifier(MarkConfig config)
         // Группируем перемычки по размерам
         Dictionary<SizeKey, List<LintelData>> groupedLintels = CategorizeLintelData(lintels);
 
-        // Если групп меньше двух, унификация не требуется
-        if (groupedLintels.Count <= 1)
+        // Анализируем группы и определяем, какие нужно унифицировать
+        if (AnalyzeGroups(groupedLintels, out GroupAnalysisResult result))
         {
-            return groupedLintels;
+
+            // Pезультирующий словарь унифицированных групп
+            return UnifiedGroups(groupedLintels, unionFind);
         }
 
-        // Получаем размеры групп и малые группы в один проход
-        Dictionary<SizeKey, int> groupSizes = [];
-
-        List<SizeKey> smallGroups = [];
-
-        foreach (KeyValuePair<SizeKey, List<LintelData>> group in groupedLintels)
-        {
-            int size = group.Value.Count;
-            groupSizes[group.Key] = size;
-
-            if (size < threshold)
-            {
-                smallGroups.Add(group.Key);
-            }
-        }
-
-        // Если нет малых групп, унификация не требуется
-        if (smallGroups.Count == 0)
-        {
-            return groupedLintels;
-        }
-
-        // Находим оптимальные пары для объединения
-        List<SizeKey> allGroups = groupSizes.Keys.ToList();
-
-        UnionSize unionFind = new(allGroups);
-
-        // Оптимизированный поиск пар для унификации
-        OptimizedFindAndApplyMatches(smallGroups, allGroups, unionFind, groupSizes);
-
-        // Pезультирующий словарь унифицированных групп
-        return UnifiedGroups(groupedLintels, unionFind);
+        return groupedLintels;
     }
 
     /// <summary>
     /// Находит и применяет оптимальные пары для унификации в один проход
     /// </summary>
-    private void OptimizedFindAndApplyMatches(List<SizeKey> smallGroups, List<SizeKey> allGroups, UnionSize unionFind, Dictionary<SizeKey, int> groupSizes)
+    private void OptimizedFindAndApplyMatches(List<SizeKey> smallGroups, Dictionary<SizeKey, int> groupSizes)
     {
         HashSet<SizeKey> processedGroups = [];
+
+        List<SizeKey> allGroups = groupSizes.Keys.ToList();
+
+        UnionSize unionFind = new(groupSizes.Keys.ToList());
 
         // Приоритизируем обработку наименьших групп сначала
         foreach (SizeKey sourceKey in smallGroups.OrderBy(g => groupSizes[g]))
@@ -119,8 +106,8 @@ public class OptimizedLintelUnifier(MarkConfig config)
                 // Если нашли подходящую пару - объединяем
                 if (bestTarget.HasValue)
                 {
-                    processedGroups.Add(sourceKey);
-                    unionFind.Union(sourceKey, bestTarget.Value, groupSizes);
+                    _ = processedGroups.Add(sourceKey);
+                    _ = unionFind.Union(sourceKey, bestTarget.Value, groupSizes);
                 }
             }
         }
@@ -164,6 +151,40 @@ public class OptimizedLintelUnifier(MarkConfig config)
 
         return result;
     }
+
+
+    /// <summary>
+    /// Определяет группы для унификации на основе пороговых  значений
+    /// </summary>
+    private bool AnalyzeGroups(Dictionary<SizeKey, List<LintelData>> groups, out GroupAnalysisResult result)
+    {
+        List<SizeKey> groupsToUnify = [];
+
+        Dictionary<SizeKey, int> groupSizes = [];
+
+        if (groups.Count >= MinGroupThreshold)
+        {
+            foreach (KeyValuePair<SizeKey, List<LintelData>> pair in groups)
+            {
+                int size = pair.Value.Count;
+                groupSizes[pair.Key] = size;
+
+                if (size < OptimalGroupSize)
+                {
+                    groupsToUnify.Add(pair.Key);
+                }
+            }
+        }
+
+        result = new GroupAnalysisResult
+        {
+            GroupsToUnify = groupsToUnify,
+            GroupSizes = groupSizes
+        };
+
+        return groupsToUnify.Count > 0;
+    }
+
 
     /// <summary>
     /// Рассчитывает текущий размер группы с учетом всех выполненных объединений
