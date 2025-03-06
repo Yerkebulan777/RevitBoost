@@ -29,7 +29,7 @@ public sealed class UnitManager
     }
 
 
-    public static double FootToRoundedMm(double length, int baseVal = 50)
+    public static double FootToRoundedMm(double length, int baseVal = 10)
     {
         double millimeters = FootToMm(length);
         return baseVal * Math.Round(millimeters / baseVal);

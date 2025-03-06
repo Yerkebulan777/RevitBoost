@@ -149,7 +149,7 @@ public class OptimizedLintelUnifier(MarkConfig config)
                 Thick = thickRound,
                 Width = widthRound,
                 Height = heightRound,
-                Size = dimensions
+                DimensionsGroup = dimensions
             };
 
             // Более эффективно используем TryGetValue
@@ -249,7 +249,7 @@ public class OptimizedLintelUnifier(MarkConfig config)
 
                 foreach (LintelData lintel in originalLintelData)
                 {
-                    lintel.Size = rootKey;
+                    lintel.DimensionsGroup = rootKey;
                     unifiedGroup.Add(lintel);
                 }
             }

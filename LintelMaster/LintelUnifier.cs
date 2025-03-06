@@ -6,6 +6,8 @@ using RevitUtils;
 /// </summary>
 public class LintelUnifier(MarkConfig config)
 {
+    const int minGroupCount = 5;
+    const int optimalGroupSize = 15;
     private string thickParam => config.ThickParameter;
     private string widthParam => config.WidthParameter;
     private string heightParam => config.HeightParameter;
@@ -22,24 +24,41 @@ public class LintelUnifier(MarkConfig config)
     /// <returns>Словарь унифицированных групп</returns>
     public Dictionary<SizeKey, List<LintelData>> UnifyGroups(List<FamilyInstance> lintels, int threshold)
     {
-        Dictionary<SizeKey, List<LintelData>> initialGroups = CategorizeLintelData(lintels);
+        Dictionary<SizeKey, List<LintelData>> groupedLintels = CategorizeLintelData(lintels);
 
-        Dictionary<SizeKey, int> groupSizes = initialGroups.ToDictionary(g => g.Key, g => g.Value.Count);
+        if (groupedLintels.Count > minGroupCount)
+        {
+            // Получаем размеры групп и малые группы
 
-        List<SizeKey> groupsToUnify = groupSizes.Where(g => g.Value < threshold).Select(g => g.Key).ToList();
+            Dictionary<SizeKey, int> groupSizes = [];
 
-        List<SizeKey> allGroupKeys = groupSizes.Keys.ToList();
+            List<SizeKey> groupsToUnify = [];
 
-        UnionSize unionFind = new(allGroupKeys);
+            foreach (KeyValuePair<SizeKey, List<LintelData>> group in groupedLintels)
+            {
+                int size = group.Value.Count;
+                groupSizes[group.Key] = size;
 
-        // Находим оптимальные пары для унификации
-        List<GroupMatch> matchesToApply = DetectGroupsToUnify(groupsToUnify, allGroupKeys, threshold);
+                if (size < threshold)
+                {
+                    groupsToUnify.Add(group.Key);
+                }
+            }
 
-        // Применяем найденные пары к структуре объединения
-        _ = ApplyGroupMatches(matchesToApply, unionFind, groupSizes);
+            if (groupsToUnify.Count > 0)
+            {
+                //// Находим оптимальные пары для унификации
+                //List<GroupMatch> matchesToApply = DetectGroupsToUnify(groupsToUnify, allGroupKeys, threshold);
 
-        // Создаем новый словарь с унифицированными группами
-        return BuildUnifiedGroups(initialGroups, unionFind);
+                // Применяем найденные пары к структуре объединения
+                var unionFind = ApplyGroupMatches(matchesToApply, unionFind, groupSizes);
+
+                // Создаем новый словарь с унифицированными группами
+                return BuildUnifiedGroups(groupedLintels, unionFind);
+            }
+        }
+
+        return groupedLintels;
 
     }
 
@@ -56,8 +75,8 @@ public class LintelUnifier(MarkConfig config)
         {
             // Получаем и округляем размеры
             double thickRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, thickParam));
-            double widthRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, widthParam));
-            double heightRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, heightParam));
+            double widthRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, widthParam), 50);
+            double heightRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, heightParam), 100);
 
             SizeKey dimensions = new(thickRound, widthRound, heightRound);
 
@@ -67,7 +86,7 @@ public class LintelUnifier(MarkConfig config)
                 Thick = thickRound,
                 Width = widthRound,
                 Height = heightRound,
-                Size = dimensions
+                DimensionsGroup = dimensions
             };
 
             // Добавляем в соответствующую группу
@@ -92,6 +111,11 @@ public class LintelUnifier(MarkConfig config)
     /// <returns>Список пар групп для унификации</returns>
     private List<GroupMatch> DetectGroupsToUnify(List<SizeKey> groupsToUnify, List<SizeKey> allGroupKeys, int threshold)
     {
+        // Находим оптимальные пары для объединения
+        List<SizeKey> allGroups = groupSizes.Keys.ToList();
+        UnionSize unionFind = new(allGroups);
+
+
         // Получаем все потенциальные пары для унификации
         List<GroupMatch> potentialMatches = FindPotentialMatches(groupsToUnify, allGroupKeys);
 
@@ -173,7 +197,7 @@ public class LintelUnifier(MarkConfig config)
             foreach (LintelData lintel in entry.Value)
             {
                 // Обновляем размеры в соответствии с корневой группой
-                lintel.Size = rootKey;
+                lintel.DimensionsGroup = rootKey;
                 unifiedGroups[rootKey].Add(lintel);
             }
         }

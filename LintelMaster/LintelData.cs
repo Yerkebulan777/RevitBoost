@@ -30,10 +30,6 @@ public class LintelData
     /// <summary>
     /// Идентификатор группы
     /// </summary>
-    public SizeKey Size { get; set; }
+    public SizeKey DimensionsGroup { get; set; }
 
-    /// <summary>
-    /// Присвоенная марка
-    /// </summary>
-    public string Mark { get; set; }
 }
