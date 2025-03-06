@@ -9,8 +9,6 @@ public class OptimizedLintelUnifier(MarkConfig config)
     private const int MinGroupThreshold = 5;
     private const int OptimalGroupSize = 10;
 
-
-
     private readonly int _thickTolerance = config.ThickTolerance;
     private readonly int _widthTolerance = config.WidthTolerance;
     private readonly int _heightTolerance = config.HeightTolerance;
