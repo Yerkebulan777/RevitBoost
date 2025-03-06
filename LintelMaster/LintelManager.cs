@@ -47,8 +47,8 @@ public partial class LintelManager(Document doc, MarkConfig config)
         {
             // Получаем и округляем размеры (один вызов функции вместо трёх)
             double thickRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, _thickParam));
-            double widthRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, _widthParam));
-            double heightRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, _heightParam));
+            double widthRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, _widthParam), 50);
+            double heightRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, _heightParam), 150);
 
             SizeKey dimensions = new(thickRound, widthRound, heightRound);
 
