@@ -86,7 +86,7 @@ public class LintelUnifier(MarkConfig config)
                 Thick = thickRound,
                 Width = widthRound,
                 Height = heightRound,
-                DimensionsGroup = dimensions
+                GroupId = dimensions
             };
 
             // Добавляем в соответствующую группу
@@ -197,7 +197,7 @@ public class LintelUnifier(MarkConfig config)
             foreach (LintelData lintel in entry.Value)
             {
                 // Обновляем размеры в соответствии с корневой группой
-                lintel.DimensionsGroup = rootKey;
+                lintel.GroupId = rootKey;
                 unifiedGroups[rootKey].Add(lintel);
             }
         }

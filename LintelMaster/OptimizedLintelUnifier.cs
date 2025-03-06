@@ -205,7 +205,7 @@ public class OptimizedLintelUnifier(MarkConfig config)
             // Добавляем данные в группу, обновляя SizeKey
             foreach (LintelData lintelData in entry.Value)
             {
-                lintelData.DimensionsName = rootKey;
+                lintelData.GroupName = rootKey;
                 group.Add(lintelData);
             }
         }
