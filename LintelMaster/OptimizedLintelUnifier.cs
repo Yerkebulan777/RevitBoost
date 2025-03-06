@@ -100,7 +100,6 @@ public class OptimizedLintelUnifier(MarkingConfig config)
         return unionFind;
     }
 
-
     /// <summary>
     /// Находит наилучшую группу для объединения
     /// </summary>
@@ -161,9 +160,9 @@ public class OptimizedLintelUnifier(MarkingConfig config)
     {
         const double weightMultiplier = 10;
 
-        double thickScore = Math.Abs(source.Thick - target.Thick) * Math.Pow(weightMultiplier, 2);
-        double widthScore = Math.Abs(source.Width - target.Width) * weightMultiplier;
-        double heightScore = Math.Abs(source.Height - target.Height);
+        double thickScore = Math.Abs(source.Thick - target.Thick) * Math.Pow(weightMultiplier, 2); // 1 приоритет
+        double widthScore = Math.Abs(source.Width - target.Width) * weightMultiplier; // 2 приоритет
+        double heightScore = Math.Abs(source.Height - target.Height); // 3 приоритет
 
         return thickScore + widthScore + heightScore;
     }
