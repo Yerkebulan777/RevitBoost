@@ -1,24 +1,18 @@
-﻿namespace LintelMaster;
+﻿using RevitUtils;
+
+namespace LintelMaster;
 
 /// <summary>
 /// Основной класс для маркировки перемычек
 /// </summary>
-public partial class LintelManager
+public partial class LintelManager(Document doc, MarkConfig config)
 {
-    private readonly Document _doc;
-    private readonly MarkConfig _config;
+    private readonly string _thickParam = config.ThickParameter;
+    private readonly string _widthParam = config.WidthParameter;
+    private readonly string _heightParam = config.HeightParameter;
 
-    /// <summary>
-    /// Создает экземпляр маркировщика с указанной конфигурацией
-    /// </summary>
-    /// <param name="doc">Документ Revit</param>
-    /// <param name="config">Конфигурация маркировки</param>
-    public LintelManager(Document doc, MarkConfig config)
-    {
-        _config = config;
-        _doc = doc;
-    }
-
+    private readonly Document _doc = doc;
+    
     /// <summary>
     /// Находит все перемычки в модели на основе наименования семейства
     /// </summary>
@@ -41,6 +35,43 @@ public partial class LintelManager
         return lintels;
     }
 
+    /// <summary>
+    /// Категоризирует перемычки по их размерам
+    /// </summary>
+    public Dictionary<SizeKey, List<LintelData>> CategorizeLintelData(List<FamilyInstance> lintels)
+    {
+        // Предварительно рассчитываем ожидаемую ёмкость словаря
+        Dictionary<SizeKey, List<LintelData>> result = new(Math.Min(lintels.Count, 50));
 
+        foreach (FamilyInstance lintel in lintels)
+        {
+            // Получаем и округляем размеры (один вызов функции вместо трёх)
+            double thickRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, _thickParam));
+            double widthRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, _widthParam));
+            double heightRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, _heightParam));
+
+            SizeKey dimensions = new(thickRound, widthRound, heightRound);
+
+            // Создаем объект данных перемычки
+            LintelData lintelData = new(lintel)
+            {
+                Thick = thickRound,
+                Width = widthRound,
+                Height = heightRound,
+                DimensionsGroup = dimensions
+            };
+
+            // Более эффективно используем TryGetValue
+            if (!result.TryGetValue(dimensions, out List<LintelData> group))
+            {
+                group = [];
+                result[dimensions] = group;
+            }
+
+            group.Add(lintelData);
+        }
+
+        return result;
+    }
 
 }

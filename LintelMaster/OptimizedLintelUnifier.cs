@@ -1,22 +1,20 @@
 ﻿using LintelMaster;
 using RevitUtils;
-using System.Collections.Generic;
 
 /// <summary>
 /// Оптимизированный класс для унификации перемычек
 /// </summary>
 public class OptimizedLintelUnifier(MarkConfig config)
 {
-    private readonly string _thickParam = config.ThickParameter;
-    private readonly string _widthParam = config.WidthParameter;
-    private readonly string _heightParam = config.HeightParameter;
-    private readonly int _totalDeviation = config.MaxTotalDeviation;
+    private const int MinGroupThreshold = 5;
+    private const int OptimalGroupSize = 10;
+
+
+
     private readonly int _thickTolerance = config.ThickTolerance;
     private readonly int _widthTolerance = config.WidthTolerance;
     private readonly int _heightTolerance = config.HeightTolerance;
-
-    private const int MinGroupThreshold = 5;
-    private const int OptimalGroupSize = 10;
+    private readonly int _totalDeviation = config.MaxTotalDeviation;
 
     /// <summary>
     /// Структура для хранения результатов анализа групп
@@ -24,7 +22,6 @@ public class OptimizedLintelUnifier(MarkConfig config)
     private struct GroupAnalysisResult
     {
         public List<SizeKey> GroupsToUnify { get; set; }
-
         public Dictionary<SizeKey, int> GroupSizes { get; set; }
     }
 
@@ -34,61 +31,19 @@ public class OptimizedLintelUnifier(MarkConfig config)
     /// <param name="lintels">Список экземпляров перемычек</param>
     /// <param name="threshold">Пороговое значение для унификации</param>
     /// <returns>Словарь унифицированных групп</returns>
-    public Dictionary<SizeKey, List<LintelData>> UnifyGroups(List<FamilyInstance> lintels, int threshold)
+    public Dictionary<SizeKey, List<LintelData>> UnifyGroups(Dictionary<SizeKey, List<LintelData>> groupedLintels)
     {
-        // Группируем перемычки по размерам
-        Dictionary<SizeKey, List<LintelData>> groupedLintels = CategorizeLintelData(lintels);
-
         // Анализируем группы и определяем, какие нужно унифицировать
         if (AnalyzeGroups(groupedLintels, out GroupAnalysisResult result))
         {
+            UnionSize unionFind = ConsolidateSmallGroups(result);
 
-            // Pезультирующий словарь унифицированных групп
-            return UnifiedGroups(groupedLintels, unionFind);
+            return CreateUnifiedGroups(groupedLintels, unionFind);
         }
 
         return groupedLintels;
     }
 
-
-    /// <summary>
-    /// Категоризирует перемычки по их размерам
-    /// </summary>
-    public Dictionary<SizeKey, List<LintelData>> CategorizeLintelData(List<FamilyInstance> lintels)
-    {
-        // Предварительно рассчитываем ожидаемую ёмкость словаря
-        Dictionary<SizeKey, List<LintelData>> result = new(Math.Min(lintels.Count, 50));
-
-        foreach (FamilyInstance lintel in lintels)
-        {
-            // Получаем и округляем размеры (один вызов функции вместо трёх)
-            double thickRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, _thickParam));
-            double widthRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, _widthParam));
-            double heightRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, _heightParam));
-
-            SizeKey dimensions = new(thickRound, widthRound, heightRound);
-
-            // Создаем объект данных перемычки
-            LintelData lintelData = new(lintel)
-            {
-                Thick = thickRound,
-                Width = widthRound,
-                Height = heightRound,
-                DimensionsGroup = dimensions
-            };
-
-            // Более эффективно используем TryGetValue
-            if (!result.TryGetValue(dimensions, out List<LintelData> group))
-            {
-                group = [];
-                result[dimensions] = group;
-            }
-
-            group.Add(lintelData);
-        }
-
-        return result;
-    }
 
 
     /// <summary>
@@ -124,75 +79,64 @@ public class OptimizedLintelUnifier(MarkConfig config)
     }
 
     /// <summary>
-    /// Находит и применяет оптимальные пары для унификации в один проход
+    /// Унифицирует малые группы
     /// </summary>
-    private void OptimizedFindAndApplyMatches(List<SizeKey> smallGroups, Dictionary<SizeKey, int> groupSizes)
+    private UnionSize ConsolidateSmallGroups(GroupAnalysisResult result)
     {
+        Dictionary<SizeKey, int> groupSizes = result.GroupSizes;
+        List<SizeKey> allGroups = groupSizes.Keys.ToList();
+        UnionSize unionFind = new(allGroups);
         HashSet<SizeKey> processedGroups = [];
 
-        List<SizeKey> allGroups = groupSizes.Keys.ToList();
-
-        UnionSize unionFind = new(groupSizes.Keys.ToList());
-
         // Приоритизируем обработку наименьших групп сначала
-        foreach (SizeKey sourceKey in smallGroups.OrderBy(g => groupSizes[g]))
+        foreach (SizeKey sourceKey in result.GroupsToUnify.OrderBy(g => groupSizes[g]))
         {
+            // Пропускаем обработанные группы
             if (!processedGroups.Contains(sourceKey))
             {
-                // Находим корневую группу для текущей группы
-                SizeKey sourceRoot = unionFind.FindRoot(sourceKey);
+                SizeKey? bestTarget = FindBestMatchingGroup(sourceKey, allGroups, unionFind);
 
-                // Если группа уже достигла отимльного размера, пропускаем
-                int currentSize = CalculateCurrentGroupSize(sourceRoot, groupSizes, unionFind);
-
-                if (currentSize > OptimalGroupSize)
+                if (bestTarget != null && processedGroups.Add(sourceKey))
                 {
-                    continue;
-                }
-
-                SizeKey? bestTarget = null;
-                // Ищем соответствие для группы
-                double bestScore = double.MaxValue;
-
-                foreach (SizeKey targetKey in allGroups)
-                {
-                    if (!sourceKey.Equals(targetKey))
-                    {
-                        // Пропускаем сравнение с уже объединенными группами
-                        if (!sourceKey.Equals(unionFind.FindRoot(targetKey)))
-                        {
-                            // Проверяем, подходят ли размеры по допускам
-                            if (IsSizeWithinTolerances(sourceKey, targetKey))
-                            {
-                                double score = CalculateSimilarityScore(sourceKey, targetKey);
-
-                                if (score < bestScore)
-                                {
-                                    bestScore = score;
-                                    bestTarget = targetKey;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Если нашли подходящую пару - объединяем
-                if (bestTarget.HasValue)
-                {
-                    _ = processedGroups.Add(sourceKey);
-                    _ = unionFind.Union(sourceKey, bestTarget.Value, groupSizes);
+                    unionFind.Union(sourceKey, bestTarget.Value, groupSizes);
                 }
             }
         }
+
+        return unionFind;
     }
 
 
     /// <summary>
-    /// Рассчитывает текущий размер группы с учетом всех выполненных объединений
+    /// Находит наилучшую группу для объединения
     /// </summary>
-    private int CalculateCurrentGroupSize(SizeKey rootKey, Dictionary<SizeKey, int> groupSizes, UnionSize unionFind)
+    private SizeKey? FindBestMatchingGroup(SizeKey sourceKey, List<SizeKey> allGroups, UnionSize unionFind)
     {
-        return groupSizes.Where(entry => unionFind.FindRoot(entry.Key).Equals(rootKey)).Sum(entry => entry.Value);
+        double bestScore = double.MaxValue;
+        SizeKey? bestTarget = null;
+
+        foreach (SizeKey targetKey in allGroups)
+        {
+            // Пропускаем сравнение с собой и уже объединенными группами
+            if (sourceKey.Equals(targetKey) || sourceKey.Equals(unionFind.FindRoot(targetKey)))
+            {
+                continue;
+            }
+
+            // Проверяем допуски и вычисляем оценку схожести
+            if (IsSizeWithinTolerances(sourceKey, targetKey))
+            {
+                double score = CalculateSimilarityScore(sourceKey, targetKey);
+
+                if (score < bestScore)
+                {
+                    bestScore = score;
+                    bestTarget = targetKey;
+                }
+            }
+        }
+
+        return bestTarget;
     }
 
     /// <summary>
@@ -208,7 +152,7 @@ public class OptimizedLintelUnifier(MarkConfig config)
             return false;
         }
 
-        // Проверка общего допуска, только если индивидуальные допуски прошли
+        // Проверка общего допуска
         double totalDifference =
             Math.Abs(source.Thick - target.Thick) +
             Math.Abs(source.Width - target.Width) +
@@ -222,7 +166,6 @@ public class OptimizedLintelUnifier(MarkConfig config)
     /// </summary>
     private double CalculateSimilarityScore(SizeKey source, SizeKey target)
     {
-        // Оптимизированный расчет оценки схожести
         const double weightMultiplier = 10;
 
         double thickScore = Math.Abs(source.Thick - target.Thick) * Math.Pow(weightMultiplier, 2);
@@ -235,45 +178,35 @@ public class OptimizedLintelUnifier(MarkConfig config)
     /// <summary>
     /// Создает новый словарь с унифицированными группами
     /// </summary>
-    private Dictionary<SizeKey, List<LintelData>> UnifiedGroups(Dictionary<SizeKey, List<LintelData>> originalGroups, UnionSize unionFind)
+    private Dictionary<SizeKey, List<LintelData>> CreateUnifiedGroups(Dictionary<SizeKey, List<LintelData>> originalGroups, UnionSize unionFind)
     {
         Dictionary<SizeKey, List<LintelData>> unifiedGroups = [];
+        Dictionary<SizeKey, SizeKey> keyToRoot = [];
 
-        // Оптимизация: предварительно находим все корневые группы
-        Dictionary<SizeKey, List<SizeKey>> rootToOriginal = [];
-
+        // Заранее находим корневые группы для каждого ключа
         foreach (SizeKey key in originalGroups.Keys)
         {
-            SizeKey rootKey = unionFind.FindRoot(key);
-
-            if (!rootToOriginal.TryGetValue(rootKey, out List<SizeKey> originals))
-            {
-                originals = [];
-                rootToOriginal[rootKey] = originals;
-            }
-
-            originals.Add(key);
+            keyToRoot[key] = unionFind.FindRoot(key);
         }
 
-        // Итерируем по корневым группам для более эффективного построения результата
-        foreach (KeyValuePair<SizeKey, List<SizeKey>> entry in rootToOriginal)
+        // Создаем новые группы на основе корневых ключей
+        foreach (KeyValuePair<SizeKey, List<LintelData>> entry in originalGroups)
         {
-            SizeKey rootKey = entry.Key;
-            List<SizeKey> originalKeys = entry.Value;
+            SizeKey originalKey = entry.Key;
+            SizeKey rootKey = keyToRoot[originalKey];
 
-            List<LintelData> unifiedGroup = [];
-            unifiedGroups[rootKey] = unifiedGroup;
-
-            // Обновляем и добавляем элементы из всех оригинальных групп
-            foreach (SizeKey originalKey in originalKeys)
+            // Инициализируем группу, если она еще не существует
+            if (!unifiedGroups.TryGetValue(rootKey, out List<LintelData> group))
             {
-                List<LintelData> originalLintelData = originalGroups[originalKey];
+                group = [];
+                unifiedGroups[rootKey] = group;
+            }
 
-                foreach (LintelData lintel in originalLintelData)
-                {
-                    lintel.DimensionsGroup = rootKey;
-                    unifiedGroup.Add(lintel);
-                }
+            // Добавляем данные в группу, обновляя SizeKey
+            foreach (LintelData lintelData in entry.Value)
+            {
+                lintelData.DimensionsName = rootKey;
+                group.Add(lintelData);
             }
         }
 
@@ -281,4 +214,7 @@ public class OptimizedLintelUnifier(MarkConfig config)
     }
 
 
+
 }
+
+
