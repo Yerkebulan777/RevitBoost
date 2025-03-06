@@ -5,7 +5,7 @@
 /// </summary>
 public class OptimizedLintelUnifier(MarkingConfig config)
 {
-    private const int MinGroupThreshold = 5;
+    private const int MinimumGroupSize = 5;
     private const int OptimalGroupSize = 10;
 
     private readonly int _thickTolerance = config.ThickTolerance;
@@ -49,7 +49,7 @@ public class OptimizedLintelUnifier(MarkingConfig config)
 
         Dictionary<SizeKey, int> groupSizes = [];
 
-        if (groups.Count >= MinGroupThreshold)
+        if (groups.Count >= MinimumGroupSize)
         {
             foreach (KeyValuePair<SizeKey, List<LintelData>> pair in groups)
             {

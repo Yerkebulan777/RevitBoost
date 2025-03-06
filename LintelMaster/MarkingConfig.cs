@@ -40,17 +40,17 @@ public class MarkingConfig
     /// <summary>
     /// Допуск для толщины стены (мм)
     /// </summary>
-    public int ThickTolerance { get; set; } = 25;
+    public int ThickTolerance { get; set; } = 50;
 
     /// <summary>
     /// Допуск для ширины проема (мм)
     /// </summary>
-    public int WidthTolerance { get; set; } = 50;
+    public int WidthTolerance { get; set; } = 100;
 
     /// <summary>
     /// Допуск для высоты (мм)
     /// </summary>
-    public int HeightTolerance { get; set; } = 300;
+    public int HeightTolerance { get; set; } = 500;
 
     /// <summary>
     /// Максимальное допустимое отклонение для объединения групп (мм)
