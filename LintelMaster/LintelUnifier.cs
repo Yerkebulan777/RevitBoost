@@ -47,8 +47,8 @@ public class LintelUnifier(MarkConfig config)
 
             if (groupsToUnify.Count > 0)
             {
-                //// Находим оптимальные пары для унификации
-                //List<GroupMatch> matchesToApply = DetectGroupsToUnify(groupsToUnify, allGroupKeys, threshold);
+                // Находим оптимальные пары для унификации
+                List<GroupMatch> matchesToApply = DetectGroupsToUnify(groupsToUnify, allGroupKeys, threshold);
 
                 // Применяем найденные пары к структуре объединения
                 var unionFind = ApplyGroupMatches(matchesToApply, unionFind, groupSizes);

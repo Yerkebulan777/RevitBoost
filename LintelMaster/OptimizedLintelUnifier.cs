@@ -140,21 +140,20 @@ public class OptimizedLintelUnifier(MarkConfig config)
     /// </summary>
     public bool IsSizeWithinTolerances(SizeKey source, SizeKey target)
     {
-        // Быстрая проверка для отсечения явно различающихся размеров
-        if (Math.Abs(source.Thick - target.Thick) > _thickTolerance ||
-            Math.Abs(source.Width - target.Width) > _widthTolerance ||
-            Math.Abs(source.Height - target.Height) > _heightTolerance)
-        {
-            return false;
-        }
+        // Вычисляем отклонения по каждому параметру
+        double thickDifference = Math.Abs(source.Thick - target.Thick);
+        double widthDifference = Math.Abs(source.Width - target.Width);
+        double heightDifference = Math.Abs(source.Height - target.Height);
 
-        // Проверка общего допуска
-        double totalDifference =
-            Math.Abs(source.Thick - target.Thick) +
-            Math.Abs(source.Width - target.Width) +
-            Math.Abs(source.Height - target.Height);
+        // Проверка допусков
+        bool individualTolerances =
+            thickDifference <= _thickTolerance &&
+            widthDifference <= _widthTolerance &&
+            heightDifference <= _heightTolerance;
 
-        return totalDifference < _totalDeviation;
+        double totalDifference = thickDifference + widthDifference + heightDifference;
+
+        return individualTolerances && totalDifference < _totalDeviation;
     }
 
     /// <summary>
