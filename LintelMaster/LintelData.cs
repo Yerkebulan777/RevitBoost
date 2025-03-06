@@ -30,7 +30,7 @@ public class LintelData
     /// <summary>
     /// Идентификатор группы
     /// </summary>
-    public SizeKey GroupId { get; set; }
+    public SizeKey GroupKey { get; set; }
 
     /// <summary>
     /// Наименование группы

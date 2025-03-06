@@ -58,7 +58,7 @@ public partial class LintelManager(Document doc, MarkConfig config)
                 Thick = thickRound,
                 Width = widthRound,
                 Height = heightRound,
-                GroupId = dimensions
+                GroupKey = dimensions
             };
 
             // Более эффективно используем TryGetValue
