@@ -49,10 +49,10 @@ public class UnionSize
             return root1;
         }
 
-        // Всегда делаем корнем большую группу
         int firstGroupSize = GetGroupSize(root1, groupSizes);
         int secondGroupSize = GetGroupSize(root2, groupSizes);
 
+        // Всегда делаем корнем большую группу
         if (firstGroupSize < secondGroupSize)
         {
             parent[root1] = root2;

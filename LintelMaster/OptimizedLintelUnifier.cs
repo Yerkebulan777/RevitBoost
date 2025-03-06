@@ -1,5 +1,4 @@
 ﻿using LintelMaster;
-using RevitUtils;
 
 /// <summary>
 /// Оптимизированный класс для унификации перемычек
@@ -35,7 +34,6 @@ public class OptimizedLintelUnifier(MarkingConfig config)
         if (AnalyzeGroups(groupedLintels, out GroupAnalysisResult result))
         {
             UnionSize unionFind = ConsolidateSmallGroups(result);
-
             return CreateUnifiedGroups(groupedLintels, unionFind);
         }
 
