@@ -6,10 +6,10 @@ using RevitUtils;
 /// </summary>
 public class GraphBasedLintelUnifier
 {
-    private readonly MarkConfig _config;
+    private readonly MarkingConfig _config;
     private readonly int _optimalGroupSize;
 
-    public GraphBasedLintelUnifier(MarkConfig config, int optimalGroupSize = 5)
+    public GraphBasedLintelUnifier(MarkingConfig config, int optimalGroupSize = 5)
     {
         _config = config;
         _optimalGroupSize = optimalGroupSize;

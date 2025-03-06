@@ -22,7 +22,7 @@ namespace RevitBIMTool.Commands
                 Document doc = commandData.Application.ActiveUIDocument.Document;
 
                 // Создаем конфигурацию
-                MarkConfig config = new MarkConfig
+                MarkingConfig config = new MarkingConfig
                 {
                     MarkParam = "BI_марка_изделия",
                     ThickParameter = "Толщина стены",

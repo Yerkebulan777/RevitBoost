@@ -4,7 +4,7 @@ using RevitUtils;
 /// <summary>
 /// Оптимизированный класс для унификации перемычек
 /// </summary>
-public class OptimizedLintelUnifier(MarkConfig config)
+public class OptimizedLintelUnifier(MarkingConfig config)
 {
     private const int MinGroupThreshold = 5;
     private const int OptimalGroupSize = 10;

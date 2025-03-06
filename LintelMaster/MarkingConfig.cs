@@ -3,7 +3,7 @@
 /// <summary>
 /// Конфигурация алгоритма маркировки
 /// </summary>
-public class MarkConfig
+public class MarkingConfig
 {
 
     /// <summary>

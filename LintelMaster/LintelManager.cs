@@ -5,7 +5,7 @@ namespace LintelMaster;
 /// <summary>
 /// Основной класс для маркировки перемычек
 /// </summary>
-public partial class LintelManager(Document doc, MarkConfig config)
+public partial class LintelManager(Document doc, MarkingConfig config)
 {
     private readonly string _thickParam = config.ThickParameter;
     private readonly string _widthParam = config.WidthParameter;
