@@ -9,10 +9,10 @@ public class LintelUnifier(MarkConfig config)
     private string thickParam => config.ThickParameter;
     private string widthParam => config.WidthParameter;
     private string heightParam => config.HeightParameter;
-    private int deviation => config.MaxTotalDeviation;
     private int thickTolerance => config.ThickTolerance;
     private int widthTolerance => config.WidthTolerance;
     private int heightTolerance => config.HeightTolerance;
+    private int totalDeviation => config.MaxTotalDeviation;
 
     /// <summary>
     /// Выполняет унификацию групп перемычек
@@ -266,7 +266,7 @@ public class LintelUnifier(MarkConfig config)
         // Проверка общего допуска
         double totalDifference = thickDifference + widthDifference + heightDifference;
 
-        return withinIndividualTolerances && totalDifference < deviation;
+        return withinIndividualTolerances && totalDifference < totalDeviation;
     }
 
     /// <summary>
