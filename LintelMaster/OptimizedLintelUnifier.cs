@@ -43,7 +43,6 @@ public class OptimizedLintelUnifier(MarkConfig config)
     }
 
 
-
     /// <summary>
     /// Определяет группы для унификации на основе пороговых  значений
     /// </summary>
