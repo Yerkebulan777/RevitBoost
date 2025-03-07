@@ -8,17 +8,17 @@ public readonly struct SizeKey : IEquatable<SizeKey>
     /// <summary>
     /// Толщина стены
     /// </summary>
-    public double Thick { get; }
+    public int ThickInMm { get; }
 
     /// <summary>
     /// Ширина проема
     /// </summary>
-    public double Width { get; }
+    public int WidthInMm { get; }
 
     /// <summary>
     /// Высота
     /// </summary>
-    public double Height { get; }
+    public int HeightInMm { get; }
 
     /// <summary>
     /// Создает новый экземпляр ключа размеров
@@ -26,11 +26,11 @@ public readonly struct SizeKey : IEquatable<SizeKey>
     /// <param name="thick">Толщина стены</param>
     /// <param name="width">Ширина проема</param>
     /// <param name="height">Высота</param>
-    public SizeKey(double thick, double width, double height)
+    public SizeKey(int thick, int width, int height)
     {
-        Thick = thick;
-        Width = width;
-        Height = height;
+        ThickInMm = thick;
+        WidthInMm = width;
+        HeightInMm = height;
     }
 
     /// <summary>
@@ -46,9 +46,9 @@ public readonly struct SizeKey : IEquatable<SizeKey>
     /// </summary>
     public bool Equals(SizeKey other)
     {
-        return Thick == other.Thick &&
-               Width == other.Width &&
-               Height == other.Height;
+        return ThickInMm == other.ThickInMm &&
+               WidthInMm == other.WidthInMm &&
+               HeightInMm == other.HeightInMm;
     }
 
     /// <summary>
@@ -56,7 +56,7 @@ public readonly struct SizeKey : IEquatable<SizeKey>
     /// </summary>
     public override int GetHashCode()
     {
-        return Convert.ToInt32((Thick * 1000) + (Width * 100) + (Height * 10));
+        return Convert.ToInt32((ThickInMm * 1000) + (WidthInMm * 100) + (HeightInMm * 10));
     }
 
     /// <summary>
@@ -64,7 +64,7 @@ public readonly struct SizeKey : IEquatable<SizeKey>
     /// </summary>
     public override string ToString()
     {
-        return $"{Thick}x{Width}x{Height}";
+        return $"{ThickInMm}x{WidthInMm}x{HeightInMm}";
     }
 
 }

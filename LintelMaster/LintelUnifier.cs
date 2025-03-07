@@ -138,9 +138,9 @@ public class LintelUnifier(MarkingConfig config)
     public bool IsSizeWithinTolerances(SizeKey source, SizeKey target)
     {
         // Вычисляем отклонения по каждому параметру
-        double thickDifference = Math.Abs(source.Thick - target.Thick);
-        double widthDifference = Math.Abs(source.Width - target.Width);
-        double heightDifference = Math.Abs(source.Height - target.Height);
+        double thickDifference = Math.Abs(source.ThickInMm - target.ThickInMm);
+        double widthDifference = Math.Abs(source.WidthInMm - target.WidthInMm);
+        double heightDifference = Math.Abs(source.HeightInMm - target.HeightInMm);
 
         // Проверка допусков
         bool individualTolerances =
@@ -160,9 +160,9 @@ public class LintelUnifier(MarkingConfig config)
     {
         const double weightMultiplier = 10;
 
-        double thickScore = Math.Abs(source.Thick - target.Thick) * Math.Pow(weightMultiplier, 2); // 1 приоритет
-        double widthScore = Math.Abs(source.Width - target.Width) * weightMultiplier; // 2 приоритет
-        double heightScore = Math.Abs(source.Height - target.Height); // 3 приоритет
+        double thickScore = Math.Abs(source.ThickInMm - target.ThickInMm) * Math.Pow(weightMultiplier, 2); // 1 приоритет
+        double widthScore = Math.Abs(source.WidthInMm - target.WidthInMm) * weightMultiplier; // 2 приоритет
+        double heightScore = Math.Abs(source.HeightInMm - target.HeightInMm); // 3 приоритет
 
         return thickScore + widthScore + heightScore;
     }

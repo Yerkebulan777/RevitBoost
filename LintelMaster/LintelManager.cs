@@ -12,7 +12,7 @@ public partial class LintelManager(Document doc, MarkingConfig config)
     private readonly string _heightParam = config.HeightParameter;
 
     private readonly Document _doc = doc;
-    
+
     /// <summary>
     /// Находит все перемычки в модели на основе наименования семейства
     /// </summary>
@@ -46,9 +46,9 @@ public partial class LintelManager(Document doc, MarkingConfig config)
         foreach (FamilyInstance lintel in lintels)
         {
             // Получаем и округляем размеры (один вызов функции вместо трёх)
-            double thickRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, _thickParam));
-            double widthRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, _widthParam), 50);
-            double heightRound = UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, _heightParam), 150);
+            int thickRound = Convert.ToInt32(UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, _thickParam)));
+            int widthRound = Convert.ToInt32(UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, _widthParam), 50));
+            int heightRound = Convert.ToInt32(UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, _heightParam), 100));
 
             SizeKey dimensions = new(thickRound, widthRound, heightRound);
 

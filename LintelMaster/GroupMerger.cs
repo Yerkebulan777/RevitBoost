@@ -255,9 +255,9 @@ public class GroupMerger
     private bool IsWithinTolerance(SizeKey source, SizeKey target)
     {
         // Отклонения по каждому параметру
-        double thickDiff = Math.Abs(source.Thick - target.Thick);
-        double widthDiff = Math.Abs(source.Width - target.Width);
-        double heightDiff = Math.Abs(source.Height - target.Height);
+        double thickDiff = Math.Abs(source.ThickInMm - target.ThickInMm);
+        double widthDiff = Math.Abs(source.WidthInMm - target.WidthInMm);
+        double heightDiff = Math.Abs(source.HeightInMm - target.HeightInMm);
 
         // Проверка индивидуальных допусков
         bool withinLimits =
@@ -282,9 +282,9 @@ public class GroupMerger
         int totalElements)
     {
         // Нормализуем различия относительно допусков
-        double thickDiff = Math.Abs(source.Thick - target.Thick) / _thickTolerance;
-        double widthDiff = Math.Abs(source.Width - target.Width) / _widthTolerance;
-        double heightDiff = Math.Abs(source.Height - target.Height) / _heightTolerance;
+        double thickDiff = Math.Abs(source.ThickInMm - target.ThickInMm) / _thickTolerance;
+        double widthDiff = Math.Abs(source.WidthInMm - target.WidthInMm) / _widthTolerance;
+        double heightDiff = Math.Abs(source.HeightInMm - target.HeightInMm) / _heightTolerance;
 
         // Взвешенная оценка размеров
         double sizeScore =
