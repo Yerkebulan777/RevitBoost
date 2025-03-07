@@ -43,7 +43,6 @@
 		<StartAction>Program</StartAction>
 		<StartProgram>C:\Program Files\Autodesk\Revit $(RevitVersion)\Revit.exe</StartProgram>
 		<StartArguments>/language ENG</StartArguments>
-		<TargetFramework>net48</TargetFramework>
 	</PropertyGroup>
 
 	<ItemGroup>
