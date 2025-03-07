@@ -1,9 +1,8 @@
 ﻿using Autodesk.Revit.Attributes;
 using Autodesk.Revit.UI;
-using LintelMaster;
 
 
-namespace RevitBIMTool.Commands
+namespace LintelMaster
 {
     /// <summary>
     /// Команда для маркировки перемычек
@@ -16,16 +15,14 @@ namespace RevitBIMTool.Commands
         {
             try
             {
-                string familyName = "Перемычка";
-
                 // Получаем документ
                 Document doc = commandData.Application.ActiveUIDocument.Document;
 
-                LintelManager marker = new LintelManager(doc, new GroupingConfig());
-                
-                var lintels = marker.GetFamilyInstancesByName(familyName);
+                LintelManager marker = new(new GroupingConfig());
 
-                TaskDialog.Show("Успех", $"Успешно промаркировано {lintels.Count} перемычек.");
+                List<FamilyInstance> lintels = marker.GetInstancesByName(doc, "Перемычка");
+
+                TaskDialog.Show("УРА!", $"Успешно промаркировано {lintels.Count} перемычек.");
 
                 return Result.Succeeded;
             }

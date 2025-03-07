@@ -5,36 +5,16 @@
 /// </summary>
 public class LintelData
 {
+    public readonly SizeKey GroupKey;
     public readonly FamilyInstance Instance;
 
-    public LintelData(FamilyInstance lintel)
+    public LintelData(FamilyInstance lintel, int thick, int width, int height)
     {
+        GroupKey = new SizeKey(thick, width, height);
         Instance = lintel;
     }
 
-    /// <summary>
-    /// Толщина стены
-    /// </summary>
-    public double Thick { get; set; }
-
-    /// <summary>
-    /// Высота проема
-    /// </summary>
-    public double Height { get; set; }
-
-    /// <summary>
-    /// Ширина проема
-    /// </summary>
-    public double Width { get; set; }
-
-    /// <summary>
-    /// Идентификатор группы
-    /// </summary>
-    public SizeKey GroupKey { get; set; }
-
-    /// <summary>
-    /// Наименование группы
-    /// </summary>
+    /// Наименование группы  ///
     public SizeKey GroupName { get; set; }
 
 }
