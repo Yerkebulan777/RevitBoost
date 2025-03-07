@@ -21,20 +21,9 @@ namespace RevitBIMTool.Commands
                 // Получаем документ
                 Document doc = commandData.Application.ActiveUIDocument.Document;
 
-                // Создаем конфигурацию
-                MarkingConfig config = new MarkingConfig
-                {
-                    MarkParam = "BI_марка_изделия",
-                    ThickParameter = "Толщина стены",
-                    WidthParameter = "Ширина проема",
-                    HeightParameter = "Высота",
-                };
-
-                // Создаем маркировщик
-                LintelManager marker = new LintelManager(doc, config);
-
-                // Находим перемычки
-                List<FamilyInstance> lintels = marker.FindByFamilyName(familyName);
+                LintelManager marker = new LintelManager(doc, new GroupingConfig());
+                
+                var lintels = marker.FindByFamilyName(familyName);
 
                 TaskDialog.Show("Успех", $"Успешно промаркировано {lintels.Count} перемычек.");
 

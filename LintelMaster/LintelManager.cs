@@ -5,13 +5,11 @@ namespace LintelMaster;
 /// <summary>
 /// Основной класс для маркировки перемычек
 /// </summary>
-public partial class LintelManager(Document doc, MarkingConfig config)
+public partial class LintelManager(Document doc, GroupingConfig config)
 {
     private readonly string _thickParam = config.ThickParameter;
     private readonly string _widthParam = config.WidthParameter;
     private readonly string _heightParam = config.HeightParameter;
-
-    private readonly Document _doc = doc;
 
     /// <summary>
     /// Находит все перемычки в модели на основе наименования семейства
@@ -22,7 +20,7 @@ public partial class LintelManager(Document doc, MarkingConfig config)
         BuiltInCategory bic = BuiltInCategory.OST_StructuralFraming;
         StringComparison comp = StringComparison.CurrentCultureIgnoreCase;
 
-        IList<Element> instances = new FilteredElementCollector(_doc)
+        IList<Element> instances = new FilteredElementCollector(doc)
             .OfCategory(bic).OfClass(typeof(FamilyInstance))
             .ToElements();
 
@@ -48,7 +46,7 @@ public partial class LintelManager(Document doc, MarkingConfig config)
             // Получаем и округляем размеры (один вызов функции вместо трёх)
             int thickRound = Convert.ToInt32(UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, _thickParam)));
             int widthRound = Convert.ToInt32(UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, _widthParam), 50));
-            int heightRound = Convert.ToInt32(UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, _heightParam), 100));
+            int heightRound = Convert.ToInt32(UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, _heightParam), 150));
 
             SizeKey dimensions = new(thickRound, widthRound, heightRound);
 
