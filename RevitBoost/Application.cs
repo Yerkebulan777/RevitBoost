@@ -1,6 +1,7 @@
 ﻿using Autodesk.Revit.UI;
 using Nice3point.Revit.Toolkit.External;
 using RevitBoost.Commands;
+using System.Windows.Media.Imaging;
 
 namespace RevitBoost;
 
@@ -25,8 +26,14 @@ public class Application : ExternalApplication
     {
         RibbonPanel panel = Application.CreatePanel("Commands", "RevitBoost");
         PushButton button = panel.AddPushButton<StartupCommand>("Execute");
-        button.SetImage("/RevitBoost;component/Resources/Icons/RibbonIcon16.png");
-        button.SetLargeImage("/RevitBoost;component/Resources/Icons/RibbonIcon32.png");
+
+        Uri smallImageUri = new Uri("pack://application:,,,/RevitBoost;component/Resources/Icons/RibbonIcon16.png");
+        Uri largeImageUri = new Uri("pack://application:,,,/RevitBoost;component/Resources/Icons/RibbonIcon32.png");
+
+        button.Image = new BitmapImage(smallImageUri);
+        button.LargeImage = new BitmapImage(largeImageUri);
     }
+
+
 
 }
