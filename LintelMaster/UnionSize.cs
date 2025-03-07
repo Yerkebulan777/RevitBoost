@@ -37,6 +37,14 @@ public class UnionSize
     }
 
     /// <summary>
+    /// Проверяет, является ли ключ корневым элементом (не объединен с другими)
+    /// </summary>
+    public bool IsRoot(SizeKey key)
+    {
+        return parent[key].Equals(key);
+    }
+
+    /// <summary>
     /// Объединяет две группы и возвращает корневой элемент результирующей группы
     /// </summary>
     public SizeKey Union(SizeKey key1, SizeKey key2, Dictionary<SizeKey, int> groupSizes)
