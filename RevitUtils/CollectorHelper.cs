@@ -6,39 +6,14 @@ namespace RevitUtils;
 
 public static class CollectorHelper
 {
-    private static ILogger log = LogManager.Current;
+    private static readonly ILogger log = LogManager.Current;
 
     #region FilteredByFamilylName
 
-    public static FilteredElementCollector GetInstancesByFamilyName(Document doc, BuiltInCategory bic, string nameStart)
+    public static List<FamilyInstance> GetInstancesByFamilyName(Document doc, BuiltInCategory bic, string familyName)
     {
-        IList<ElementFilter> filters = [];
-
-        filters.Add(new Autodesk.Revit.DB.Architecture.RoomFilter());
-
-        FilteredElementCollector collector = new FilteredElementCollector(doc).OfClass(typeof(Family));
-
-        FilteredElementCollector instanceCollector = new(doc);
-
-        foreach (Family family in collector.OfType<Family>())
-        {
-            if (family.Name.StartsWith(nameStart, StringComparison.OrdinalIgnoreCase))
-            {
-                foreach (ElementId symbolId in family.GetFamilySymbolIds())
-                {
-                    filters.Add(new FamilyInstanceFilter(doc, symbolId));
-                }
-            }
-        }
-
-        LogicalOrFilter orFilter = new(filters);
-        instanceCollector = instanceCollector.OfCategory(bic);
-        instanceCollector = instanceCollector.WherePasses(orFilter);
-        instanceCollector = instanceCollector.WhereElementIsViewIndependent();
-
-        log.Debug($"Total elems by {nameStart} {instanceCollector.GetElementCount()} count");
-
-        return instanceCollector;
+        return new FilteredElementCollector(doc).OfCategory(bic).OfClass(typeof(FamilyInstance)).Cast<FamilyInstance>()
+        .Where(x => x.Symbol?.FamilyName?.IndexOf(familyName, StringComparison.OrdinalIgnoreCase) >=0).ToList();
     }
 
     #endregion
@@ -62,13 +37,8 @@ public static class CollectorHelper
         ElementParameterFilter typeFilter = new(typeRule);
         ElementParameterFilter symbolFilter = new(symbolRule);
         LogicalOrFilter logicOrFilter = new(typeFilter, symbolFilter);
-
         FilteredElementCollector collector = new FilteredElementCollector(doc).OfCategory(bic);
-        collector = collector.WherePasses(logicOrFilter).WhereElementIsNotElementType();
-
-        log.Debug($"Total elems by {symbolName} {collector.GetElementCount()} count");
-
-        return collector;
+        return collector.WherePasses(logicOrFilter).WhereElementIsNotElementType();
     }
 
     #endregion

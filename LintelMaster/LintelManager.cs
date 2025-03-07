@@ -18,14 +18,14 @@ public partial class LintelManager(Document doc, GroupingConfig config)
     public List<FamilyInstance> GetFamilyInstancesByName(string familyName)
     {
         BuiltInCategory bic = BuiltInCategory.OST_StructuralFraming;
-        StringComparison comp = StringComparison.CurrentCultureIgnoreCase;
+        StringComparison comp = StringComparison.OrdinalIgnoreCase;
 
         List<FamilyInstance> lintels = new FilteredElementCollector(doc)
             .OfCategory(bic)
             .OfClass(typeof(FamilyInstance))
-            .OfType<FamilyInstance>()
-            .Where(instance => instance.Symbol != null)
-            .Where(instance => instance.Symbol.FamilyName.Equals(familyName, comp))
+            .WhereElementIsNotElementType()
+            .Cast<FamilyInstance>()
+            .Where(instance => instance.Symbol?.FamilyName.Equals(familyName, comp) == true)
             .ToList();
 
         return lintels;
