@@ -25,7 +25,7 @@ public class Application : ExternalApplication
     private void CreateRibbon()
     {
         RibbonPanel panel = Application.CreatePanel("Commands", "RevitBoost");
-        PushButton button = panel.AddPushButton<StartupCommand>("Execute");
+        PushButton button = panel.AddPushButton<LintelTaggingCommand>("Execute");
 
         Uri smallImageUri = new Uri("pack://application:,,,/RevitBoost;component/Resources/Icons/RibbonIcon16.png");
         Uri largeImageUri = new Uri("pack://application:,,,/RevitBoost;component/Resources/Icons/RibbonIcon32.png");
