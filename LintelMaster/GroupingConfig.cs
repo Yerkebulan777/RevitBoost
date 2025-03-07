@@ -5,6 +5,24 @@
     /// </summary>
     public class GroupingConfig
     {
+        #region Наименования параметров
+        /// <summary>
+        /// Имя параметра для толщины стены
+        /// </summary>
+        public required string ThickParameterName { get; set; } = "Толщина стены";
+
+        /// <summary>
+        /// Имя параметра для ширины проема
+        /// </summary>
+        public required string WidthParameterName { get; set; } = "Ширина проема";
+
+        /// <summary>
+        /// Имя параметра для высоты
+        /// </summary>
+        public required string HeightParameterName { get; set; } = "Высота";
+        #endregion
+
+
         #region Свойства весов для группировки
         /// <summary>
         /// Вес для толщины стены (значение от 0 до 1)
@@ -55,23 +73,6 @@
         /// </summary>
         public int OptimalGroupSize { get; set; } = 10;
 
-        #endregion
-
-        #region Наименования параметров
-        /// <summary>
-        /// Имя параметра для толщины стены
-        /// </summary>
-        public string ThickParameter { get; set; } = "Толщина стены";
-
-        /// <summary>
-        /// Имя параметра для ширины проема
-        /// </summary>
-        public string WidthParameter { get; set; } = "Ширина проема";
-
-        /// <summary>
-        /// Имя параметра для высоты
-        /// </summary>
-        public string HeightParameter { get; set; } = "Высота";
         #endregion
 
         #region Параметры маркировки

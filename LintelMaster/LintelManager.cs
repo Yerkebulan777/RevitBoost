@@ -7,9 +7,9 @@ namespace LintelMaster;
 /// </summary>
 public sealed class LintelManager(GroupingConfig config)
 {
-    private readonly string _thickParam = config.ThickParameter;
-    private readonly string _widthParam = config.WidthParameter;
-    private readonly string _heightParam = config.HeightParameter;
+    private readonly string _thickParam = config.ThickParameterName;
+    private readonly string _widthParam = config.WidthParameterName;
+    private readonly string _heightParam = config.HeightParameterName;
 
     /// <summary>
     /// Категоризирует перемычки по их размерам
@@ -30,8 +30,7 @@ public sealed class LintelManager(GroupingConfig config)
 
             if (!result.TryGetValue(lintelData.GroupKey, out List<LintelData> group))
             {
-                result[lintelData.GroupKey] = group;
-                group = [];
+                result[lintelData.GroupKey] = group = [];
             }
 
             group.Add(lintelData);

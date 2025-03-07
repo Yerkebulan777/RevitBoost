@@ -15,9 +15,16 @@ namespace RevitBoost.Commands
         {
             Document doc = Document;
 
-            LintelManager manager = new(new GroupingConfig());
+            GroupingConfig config = new()
+            {
+                ThickParameterName = "Толщина",
+                WidthParameterName = "Ширина",
+                HeightParameterName = "Высота"
+            };
 
-            Dictionary<SizeKey, List<LintelData>> lintels = manager.RetrieveLintelData(doc, "Перемычка");
+            LintelManager manager = new(config);
+
+            Dictionary<SizeKey, List<LintelData>> lintels = manager.RetrieveLintelData(doc, "(перемычки)уголки_арматуры");
 
             TaskDialog.Show("УРА!", $"Успешно промаркировано {lintels.Count} типов перемычек.");
         }
