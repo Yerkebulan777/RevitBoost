@@ -19,7 +19,7 @@ namespace RevitBoost.Commands
 
             Dictionary<SizeKey, List<LintelData>> lintels = manager.RetrieveLintelData(doc, "Перемычка");
 
-            _ = TaskDialog.Show("УРА!", $"Успешно промаркировано {lintels.Count} типов перемычек.");
+            TaskDialog.Show("УРА!", $"Успешно промаркировано {lintels.Count} типов перемычек.");
         }
     }
 
