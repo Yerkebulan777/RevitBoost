@@ -27,9 +27,12 @@ public class GroupMerger
     /// </summary>
     private static double Clamp(double value, double min, double max)
     {
-        if (value < min) return min;
-        if (value > max) return max;
-        return value;
+        if (value < min)
+        {
+            return min;
+        }
+
+        return value > max ? max : value;
     }
 
     /// <summary>
@@ -85,10 +88,12 @@ public class GroupMerger
 
             // Если нет групп для объединения, возвращаем исходное группирование
             if (analysis.GroupsToMerge.Count == 0)
+            {
                 return groups;
+            }
 
             // Выполняем объединение групп
-            UnionSize unions = MergeSmallGroups(analysis);
+            UnionSize unions = AggregateGroups(analysis);
 
             // Создаем новый словарь с объединенными группами
             return CreateMergedGroups(groups, unions);
@@ -102,13 +107,13 @@ public class GroupMerger
     /// </summary>
     private GroupAnalysis AnalyzeGroups(Dictionary<SizeKey, List<LintelData>> groups)
     {
-        List<SizeKey> smallGroups = new List<SizeKey>();
-        Dictionary<SizeKey, int> sizes = new Dictionary<SizeKey, int>();
-        List<SizeKey> allKeys = new List<SizeKey>();
+        List<SizeKey> smallGroups = [];
+        Dictionary<SizeKey, int> sizes = [];
+        List<SizeKey> allKeys = [];
         int totalElements = 0;
 
         // Анализируем каждую группу
-        foreach (var pair in groups)
+        foreach (KeyValuePair<SizeKey, List<LintelData>> pair in groups)
         {
             SizeKey key = pair.Key;
             int size = pair.Value.Count;
@@ -136,13 +141,13 @@ public class GroupMerger
     /// <summary>
     /// Выполняет объединение малых групп в более крупные
     /// </summary>
-    private UnionSize MergeSmallGroups(GroupAnalysis analysis)
+    private UnionSize AggregateGroups(GroupAnalysis analysis)
     {
         // Структура для отслеживания объединений
-        UnionSize unionFind = new UnionSize(analysis.GroupKeyList);
+        UnionSize unionFind = new(analysis.GroupKeyList);
 
         // Группы, ожидающие обработки
-        HashSet<SizeKey> pendingGroups = new HashSet<SizeKey>(analysis.GroupsToMerge);
+        HashSet<SizeKey> pendingGroups = [.. analysis.GroupsToMerge];
 
         // Флаг наличия объединений на текущей итерации
         bool mergesPerformed = true;
@@ -158,7 +163,7 @@ public class GroupMerger
                 .ToList();
 
             // Группы для удаления из ожидающих после этой итерации
-            List<SizeKey> groupsToRemove = new List<SizeKey>();
+            List<SizeKey> groupsToRemove = [];
 
             // Обрабатываем каждую группу
             foreach (SizeKey sourceKey in sortedGroups)
@@ -171,15 +176,11 @@ public class GroupMerger
                 }
 
                 // Ищем наилучшую группу для объединения
-                SizeKey? bestMatch = FindBestMatch(
-                    sourceKey,
-                    unionFind,
-                    analysis);
+                SizeKey? bestMatch = FindBestMatch(sourceKey, unionFind, analysis);
 
-                // Если нашли подходящую группу
+                // Если нашли подходящую группу объединяем
                 if (bestMatch != null && !sourceKey.Equals(bestMatch.Value))
                 {
-                    // Объединяем группы
                     unionFind.Union(sourceKey, bestMatch.Value, analysis.GroupSizeMap);
                     groupsToRemove.Add(sourceKey);
                     mergesPerformed = true;
@@ -194,7 +195,7 @@ public class GroupMerger
             // Удаляем обработанные группы
             foreach (SizeKey key in groupsToRemove)
             {
-                pendingGroups.Remove(key);
+                _ = pendingGroups.Remove(key);
             }
 
             // Обновляем размеры групп после объединения
@@ -207,21 +208,18 @@ public class GroupMerger
     /// <summary>
     /// Находит наилучшую группу для объединения
     /// </summary>
-    private SizeKey? FindBestMatch(
-        SizeKey sourceKey,
-        UnionSize unionFind,
-        GroupAnalysis analysis)
+    private SizeKey? FindBestMatch(SizeKey sourceKey, UnionSize unionFind, GroupAnalysis analysis)
     {
-        double bestScore = double.MaxValue;
         SizeKey? bestMatch = null;
+
+        double bestScore = double.MaxValue;
 
         int sourceSize = GetEffectiveSize(sourceKey, unionFind, analysis.GroupSizeMap);
 
         foreach (SizeKey targetKey in analysis.GroupKeyList)
         {
             // Пропускаем сравнение с собой и уже объединенными группами
-            if (sourceKey.Equals(targetKey) ||
-                unionFind.FindRoot(targetKey).Equals(unionFind.FindRoot(sourceKey)))
+            if (sourceKey.Equals(targetKey) || unionFind.FindRoot(targetKey).Equals(unionFind.FindRoot(sourceKey)))
             {
                 continue;
             }
@@ -290,9 +288,9 @@ public class GroupMerger
 
         // Взвешенная оценка размеров
         double sizeScore =
-            thickDiff * _thickWeight +
-            widthDiff * _widthWeight +
-            heightDiff * _heightWeight;
+            (thickDiff * _thickWeight) +
+            (widthDiff * _widthWeight) +
+            (heightDiff * _heightWeight);
 
         // Фактор размера группы: чем меньше группа, тем выше приоритет объединения
         double sizeRatio = (double)sourceSize / totalElements;
@@ -312,7 +310,7 @@ public class GroupMerger
 
         // Суммируем размеры всех групп с тем же корнем
         int totalSize = 0;
-        foreach (var entry in sizes)
+        foreach (KeyValuePair<SizeKey, int> entry in sizes)
         {
             if (unionFind.FindRoot(entry.Key).Equals(rootKey))
             {
@@ -329,9 +327,9 @@ public class GroupMerger
     private void UpdateGroupSizes(UnionSize unionFind, Dictionary<SizeKey, int> sizes)
     {
         // Кэш размеров для быстрого доступа
-        Dictionary<SizeKey, int> effectiveSizes = new Dictionary<SizeKey, int>();
+        Dictionary<SizeKey, int> effectiveSizes = [];
 
-        foreach (var key in sizes.Keys.ToList())
+        foreach (SizeKey key in sizes.Keys.ToList())
         {
             SizeKey rootKey = unionFind.FindRoot(key);
 
@@ -349,8 +347,8 @@ public class GroupMerger
         Dictionary<SizeKey, List<LintelData>> originalGroups,
         UnionSize unionFind)
     {
-        Dictionary<SizeKey, List<LintelData>> mergedGroups = new Dictionary<SizeKey, List<LintelData>>();
-        Dictionary<SizeKey, SizeKey> keyToRoot = new Dictionary<SizeKey, SizeKey>();
+        Dictionary<SizeKey, List<LintelData>> mergedGroups = [];
+        Dictionary<SizeKey, SizeKey> keyToRoot = [];
 
         // Определяем корневую группу для каждого ключа
         foreach (SizeKey key in originalGroups.Keys)
@@ -359,7 +357,7 @@ public class GroupMerger
         }
 
         // Создаем новые группы на основе корневых ключей
-        foreach (var entry in originalGroups)
+        foreach (KeyValuePair<SizeKey, List<LintelData>> entry in originalGroups)
         {
             SizeKey originalKey = entry.Key;
             SizeKey rootKey = keyToRoot[originalKey];
@@ -367,7 +365,7 @@ public class GroupMerger
             // Инициализируем группу
             if (!mergedGroups.TryGetValue(rootKey, out List<LintelData> group))
             {
-                group = new List<LintelData>();
+                group = [];
                 mergedGroups[rootKey] = group;
             }
 
