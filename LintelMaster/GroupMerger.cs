@@ -1,94 +1,90 @@
-﻿namespace LintelMaster
+﻿namespace LintelMaster;
+
+/// <summary>
+/// Универсальный класс для объединения групп по схожим размерам
+/// </summary>
+public class GroupMerger
 {
+    // Границы для объединения групп
+    private readonly int _optimalGroupSize;
+
+    // Допуски размеров
+    private readonly int _thickTolerance;
+    private readonly int _widthTolerance;
+    private readonly int _heightTolerance;
+    private readonly int _maxTotalDeviation;
+
+    // Веса параметров (нормализованные, сумма = 1.0)
+    private readonly double _thickWeight;
+    private readonly double _widthWeight;
+    private readonly double _heightWeight;
+
+    // Вес фактора размера группы (0.0 - 1.0)
+    private readonly double _groupSizeWeight;
 
     /// <summary>
-    /// Универсальный класс для объединения групп по схожим размерам
+    /// Ограничивает значение указанным диапазоном
     /// </summary>
-    public class GroupMerger
+    private static double Clamp(double value, double min, double max)
     {
-        // Границы для объединения групп
-        private readonly int _minGroupThreshold;
-        private readonly int _optimalGroupSize;
+        if (value < min) return min;
+        if (value > max) return max;
+        return value;
+    }
 
-        // Допуски размеров
-        private readonly int _thickTolerance;
-        private readonly int _widthTolerance;
-        private readonly int _heightTolerance;
-        private readonly int _maxTotalDeviation;
+    /// <summary>
+    /// Структура для хранения результатов анализа групп
+    /// </summary>
+    private class GroupAnalysis
+    {
+        // Группы для объединения (меньше порогового размера)
+        public List<SizeKey> GroupsToMerge { get; set; }
 
-        // Веса параметров (нормализованные, сумма = 1.0)
-        private readonly double _thickWeight;
-        private readonly double _widthWeight;
-        private readonly double _heightWeight;
+        // Размеры всех групп
+        public Dictionary<SizeKey, int> GroupSizeMap { get; set; }
 
-        // Вес фактора размера группы (0.0 - 1.0)
-        private readonly double _groupSizeWeight;
+        // Все ключи групп
+        public List<SizeKey> GroupKeyList { get; set; }
 
-        /// <summary>
-        /// Ограничивает значение указанным диапазоном
-        /// </summary>
-        private static double Clamp(double value, double min, double max)
+        // Общее количество элементов
+        public int TotalElements { get; set; }
+    }
+
+    /// <summary>
+    /// Создает новый экземпляр группировщика по размерам
+    /// </summary>
+    public GroupMerger(GroupingConfig config)
+    {
+        _thickTolerance = config.ThickTolerance;
+        _widthTolerance = config.WidthTolerance;
+        _heightTolerance = config.HeightTolerance;
+        _maxTotalDeviation = config.MaxTotalDeviation;
+
+        _optimalGroupSize = config.OptimalGroupSize;
+
+        double totalWeight = config.ThickWeight + config.WidthWeight + config.HeightWeight;
+
+        _thickWeight = config.ThickWeight / totalWeight;
+        _widthWeight = config.WidthWeight / totalWeight;
+        _heightWeight = config.HeightWeight / totalWeight;
+
+        // Ограничиваем вес размера группы
+        _groupSizeWeight = Clamp(config.GroupSizeWeight, 0, 1);
+    }
+
+    /// <summary>
+    /// Выполняет объединение групп на основе схожести размеров
+    /// </summary>
+    public Dictionary<SizeKey, List<LintelData>> Merge(Dictionary<SizeKey, List<LintelData>> groups)
+    {
+        // Если групп меньше двух, объединение не требуется
+        if (groups.Count > 1)
         {
-            if (value < min) return min;
-            if (value > max) return max;
-            return value;
-        }
-
-        /// <summary>
-        /// Структура для хранения результатов анализа групп
-        /// </summary>
-        private class GroupAnalysis
-        {
-            // Группы для объединения (меньше порогового размера)
-            public List<SizeKey> SmallGroups { get; set; }
-
-            // Размеры всех групп
-            public Dictionary<SizeKey, int> Sizes { get; set; }
-
-            // Общее количество элементов
-            public int TotalElements { get; set; }
-
-            // Все ключи групп
-            public List<SizeKey> AllKeys { get; set; }
-        }
-
-        /// <summary>
-        /// Создает новый экземпляр группировщика по размерам
-        /// </summary>
-        public GroupMerger(GroupingConfig config)
-        {
-            _thickTolerance = config.ThickTolerance;
-            _widthTolerance = config.WidthTolerance;
-            _heightTolerance = config.HeightTolerance;
-            _maxTotalDeviation = config.MaxTotalDeviation;
-
-            _minGroupThreshold = config.MinGroupThreshold;
-            _optimalGroupSize = config.OptimalGroupSize;
-
-            // Нормализуем веса размеров
-            double totalWeight = config.ThickWeight + config.WidthWeight + config.HeightWeight;
-            _thickWeight = config.ThickWeight / totalWeight;
-            _widthWeight = config.WidthWeight / totalWeight;
-            _heightWeight = config.HeightWeight / totalWeight;
-
-            // Ограничиваем вес размера группы
-            _groupSizeWeight = Clamp(config.GroupSizeWeight, 0, 1);
-        }
-
-        /// <summary>
-        /// Выполняет объединение групп на основе схожести размеров
-        /// </summary>
-        public Dictionary<SizeKey, List<LintelData>> Merge(Dictionary<SizeKey, List<LintelData>> groups)
-        {
-            // Если групп меньше двух, объединение не требуется
-            if (groups.Count <= 1)
-                return groups;
-
             // Анализируем группы и определяем кандидатов для объединения
             GroupAnalysis analysis = AnalyzeGroups(groups);
 
             // Если нет групп для объединения, возвращаем исходное группирование
-            if (analysis.SmallGroups.Count == 0)
+            if (analysis.GroupsToMerge.Count == 0)
                 return groups;
 
             // Выполняем объединение групп
@@ -98,289 +94,291 @@
             return CreateMergedGroups(groups, unions);
         }
 
-        /// <summary>
-        /// Анализирует группы и определяет кандидатов для объединения
-        /// </summary>
-        private GroupAnalysis AnalyzeGroups(Dictionary<SizeKey, List<LintelData>> groups)
+        return groups;
+    }
+
+    /// <summary>
+    /// Анализирует группы и определяет кандидатов для объединения
+    /// </summary>
+    private GroupAnalysis AnalyzeGroups(Dictionary<SizeKey, List<LintelData>> groups)
+    {
+        List<SizeKey> smallGroups = new List<SizeKey>();
+        Dictionary<SizeKey, int> sizes = new Dictionary<SizeKey, int>();
+        List<SizeKey> allKeys = new List<SizeKey>();
+        int totalElements = 0;
+
+        // Анализируем каждую группу
+        foreach (var pair in groups)
         {
-            List<SizeKey> smallGroups = new List<SizeKey>();
-            Dictionary<SizeKey, int> sizes = new Dictionary<SizeKey, int>();
-            List<SizeKey> allKeys = new List<SizeKey>();
-            int totalElements = 0;
+            SizeKey key = pair.Key;
+            int size = pair.Value.Count;
 
-            // Анализируем каждую группу
-            foreach (var pair in groups)
+            allKeys.Add(key);
+            sizes[key] = size;
+            totalElements += size;
+
+            // Если размер группы меньше оптимального, добавляем в кандидаты
+            if (size < _optimalGroupSize)
             {
-                SizeKey key = pair.Key;
-                int size = pair.Value.Count;
-
-                allKeys.Add(key);
-                sizes[key] = size;
-                totalElements += size;
-
-                // Если размер группы меньше оптимального, добавляем в кандидаты
-                if (size < _optimalGroupSize)
-                {
-                    smallGroups.Add(key);
-                }
+                smallGroups.Add(key);
             }
-
-            return new GroupAnalysis
-            {
-                SmallGroups = smallGroups,
-                Sizes = sizes,
-                TotalElements = totalElements,
-                AllKeys = allKeys
-            };
         }
 
-        /// <summary>
-        /// Выполняет объединение малых групп в более крупные
-        /// </summary>
-        private UnionSize MergeSmallGroups(GroupAnalysis analysis)
+        return new GroupAnalysis
         {
-            // Структура для отслеживания объединений
-            UnionSize unionFind = new UnionSize(analysis.AllKeys);
+            GroupsToMerge = smallGroups,
+            GroupSizeMap = sizes,
+            TotalElements = totalElements,
+            GroupKeyList = allKeys
+        };
+    }
 
-            // Группы, ожидающие обработки
-            HashSet<SizeKey> pendingGroups = new HashSet<SizeKey>(analysis.SmallGroups);
+    /// <summary>
+    /// Выполняет объединение малых групп в более крупные
+    /// </summary>
+    private UnionSize MergeSmallGroups(GroupAnalysis analysis)
+    {
+        // Структура для отслеживания объединений
+        UnionSize unionFind = new UnionSize(analysis.GroupKeyList);
 
-            // Флаг наличия объединений на текущей итерации
-            bool mergesPerformed = true;
+        // Группы, ожидающие обработки
+        HashSet<SizeKey> pendingGroups = new HashSet<SizeKey>(analysis.GroupsToMerge);
 
-            // Продолжаем, пока есть группы для обработки и происходят объединения
-            while (mergesPerformed && pendingGroups.Count > 0)
-            {
-                mergesPerformed = false;
+        // Флаг наличия объединений на текущей итерации
+        bool mergesPerformed = true;
 
-                // Сортируем от наименьшей к наибольшей
-                List<SizeKey> sortedGroups = pendingGroups
-                    .OrderBy(g => GetEffectiveSize(g, unionFind, analysis.Sizes))
-                    .ToList();
-
-                // Группы для удаления из ожидающих после этой итерации
-                List<SizeKey> groupsToRemove = new List<SizeKey>();
-
-                // Обрабатываем каждую группу
-                foreach (SizeKey sourceKey in sortedGroups)
-                {
-                    // Пропускаем уже объединенные группы
-                    if (!unionFind.IsRoot(sourceKey))
-                    {
-                        groupsToRemove.Add(sourceKey);
-                        continue;
-                    }
-
-                    // Ищем наилучшую группу для объединения
-                    SizeKey? bestMatch = FindBestMatch(
-                        sourceKey,
-                        unionFind,
-                        analysis);
-
-                    // Если нашли подходящую группу
-                    if (bestMatch != null && !sourceKey.Equals(bestMatch.Value))
-                    {
-                        // Объединяем группы
-                        unionFind.Union(sourceKey, bestMatch.Value, analysis.Sizes);
-                        groupsToRemove.Add(sourceKey);
-                        mergesPerformed = true;
-                    }
-                    else
-                    {
-                        // Если не нашли - удаляем из ожидающих
-                        groupsToRemove.Add(sourceKey);
-                    }
-                }
-
-                // Удаляем обработанные группы
-                foreach (SizeKey key in groupsToRemove)
-                {
-                    pendingGroups.Remove(key);
-                }
-
-                // Обновляем размеры групп после объединения
-                UpdateGroupSizes(unionFind, analysis.Sizes);
-            }
-
-            return unionFind;
-        }
-
-        /// <summary>
-        /// Находит наилучшую группу для объединения
-        /// </summary>
-        private SizeKey? FindBestMatch(
-            SizeKey sourceKey,
-            UnionSize unionFind,
-            GroupAnalysis analysis)
+        // Продолжаем, пока есть группы для обработки и происходят объединения
+        while (mergesPerformed && pendingGroups.Count > 0)
         {
-            double bestScore = double.MaxValue;
-            SizeKey? bestMatch = null;
+            mergesPerformed = false;
 
-            int sourceSize = GetEffectiveSize(sourceKey, unionFind, analysis.Sizes);
+            // Сортируем от наименьшей к наибольшей
+            List<SizeKey> sortedGroups = pendingGroups
+                .OrderBy(g => GetEffectiveSize(g, unionFind, analysis.GroupSizeMap))
+                .ToList();
 
-            foreach (SizeKey targetKey in analysis.AllKeys)
+            // Группы для удаления из ожидающих после этой итерации
+            List<SizeKey> groupsToRemove = new List<SizeKey>();
+
+            // Обрабатываем каждую группу
+            foreach (SizeKey sourceKey in sortedGroups)
             {
-                // Пропускаем сравнение с собой и уже объединенными группами
-                if (sourceKey.Equals(targetKey) ||
-                    unionFind.FindRoot(targetKey).Equals(unionFind.FindRoot(sourceKey)))
+                // Пропускаем уже объединенные группы
+                if (!unionFind.IsRoot(sourceKey))
                 {
+                    groupsToRemove.Add(sourceKey);
                     continue;
                 }
 
-                // Проверяем допуски размеров
-                if (IsWithinTolerance(sourceKey, targetKey))
+                // Ищем наилучшую группу для объединения
+                SizeKey? bestMatch = FindBestMatch(
+                    sourceKey,
+                    unionFind,
+                    analysis);
+
+                // Если нашли подходящую группу
+                if (bestMatch != null && !sourceKey.Equals(bestMatch.Value))
                 {
-                    int targetSize = GetEffectiveSize(targetKey, unionFind, analysis.Sizes);
-
-                    // Вычисляем оценку схожести
-                    double score = CalculateScore(
-                        sourceKey,
-                        targetKey,
-                        sourceSize,
-                        targetSize,
-                        analysis.TotalElements);
-
-                    // Запоминаем лучшую группу
-                    if (score < bestScore)
-                    {
-                        bestScore = score;
-                        bestMatch = targetKey;
-                    }
+                    // Объединяем группы
+                    unionFind.Union(sourceKey, bestMatch.Value, analysis.GroupSizeMap);
+                    groupsToRemove.Add(sourceKey);
+                    mergesPerformed = true;
+                }
+                else
+                {
+                    // Если не нашли - удаляем из ожидающих
+                    groupsToRemove.Add(sourceKey);
                 }
             }
 
-            return bestMatch;
+            // Удаляем обработанные группы
+            foreach (SizeKey key in groupsToRemove)
+            {
+                pendingGroups.Remove(key);
+            }
+
+            // Обновляем размеры групп после объединения
+            UpdateGroupSizes(unionFind, analysis.GroupSizeMap);
         }
 
-        /// <summary>
-        /// Проверяет, находятся ли размеры в пределах допусков
-        /// </summary>
-        private bool IsWithinTolerance(SizeKey source, SizeKey target)
+        return unionFind;
+    }
+
+    /// <summary>
+    /// Находит наилучшую группу для объединения
+    /// </summary>
+    private SizeKey? FindBestMatch(
+        SizeKey sourceKey,
+        UnionSize unionFind,
+        GroupAnalysis analysis)
+    {
+        double bestScore = double.MaxValue;
+        SizeKey? bestMatch = null;
+
+        int sourceSize = GetEffectiveSize(sourceKey, unionFind, analysis.GroupSizeMap);
+
+        foreach (SizeKey targetKey in analysis.GroupKeyList)
         {
-            // Отклонения по каждому параметру
-            double thickDiff = Math.Abs(source.Thick - target.Thick);
-            double widthDiff = Math.Abs(source.Width - target.Width);
-            double heightDiff = Math.Abs(source.Height - target.Height);
+            // Пропускаем сравнение с собой и уже объединенными группами
+            if (sourceKey.Equals(targetKey) ||
+                unionFind.FindRoot(targetKey).Equals(unionFind.FindRoot(sourceKey)))
+            {
+                continue;
+            }
 
-            // Проверка индивидуальных допусков
-            bool withinLimits =
-                thickDiff <= _thickTolerance &&
-                widthDiff <= _widthTolerance &&
-                heightDiff <= _heightTolerance;
+            // Проверяем допуски размеров
+            if (IsWithinTolerance(sourceKey, targetKey))
+            {
+                int targetSize = GetEffectiveSize(targetKey, unionFind, analysis.GroupSizeMap);
 
-            // Проверка общего отклонения
-            double totalDiff = thickDiff + widthDiff + heightDiff;
+                // Вычисляем оценку схожести
+                double score = ComputeSimilarityScore(
+                    sourceKey,
+                    targetKey,
+                    sourceSize,
+                    targetSize,
+                    analysis.TotalElements);
 
-            return withinLimits && totalDiff < _maxTotalDeviation;
+                // Запоминаем лучшую группу
+                if (score < bestScore)
+                {
+                    bestScore = score;
+                    bestMatch = targetKey;
+                }
+            }
         }
 
-        /// <summary>
-        /// Вычисляет оценку схожести между двумя группами
-        /// </summary>
-        private double CalculateScore(
-            SizeKey source,
-            SizeKey target,
-            int sourceSize,
-            int targetSize,
-            int totalElements)
+        return bestMatch;
+    }
+
+    /// <summary>
+    /// Проверяет, находятся ли размеры в пределах допусков
+    /// </summary>
+    private bool IsWithinTolerance(SizeKey source, SizeKey target)
+    {
+        // Отклонения по каждому параметру
+        double thickDiff = Math.Abs(source.Thick - target.Thick);
+        double widthDiff = Math.Abs(source.Width - target.Width);
+        double heightDiff = Math.Abs(source.Height - target.Height);
+
+        // Проверка индивидуальных допусков
+        bool withinLimits =
+            thickDiff <= _thickTolerance &&
+            widthDiff <= _widthTolerance &&
+            heightDiff <= _heightTolerance;
+
+        // Проверка общего отклонения
+        double totalDiff = thickDiff + widthDiff + heightDiff;
+
+        return withinLimits && totalDiff < _maxTotalDeviation;
+    }
+
+    /// <summary>
+    /// Вычисляет оценку схожести между двумя группами
+    /// </summary>
+    private double ComputeSimilarityScore(
+        SizeKey source,
+        SizeKey target,
+        int sourceSize,
+        int targetSize,
+        int totalElements)
+    {
+        // Нормализуем различия относительно допусков
+        double thickDiff = Math.Abs(source.Thick - target.Thick) / _thickTolerance;
+        double widthDiff = Math.Abs(source.Width - target.Width) / _widthTolerance;
+        double heightDiff = Math.Abs(source.Height - target.Height) / _heightTolerance;
+
+        // Взвешенная оценка размеров
+        double sizeScore =
+            thickDiff * _thickWeight +
+            widthDiff * _widthWeight +
+            heightDiff * _heightWeight;
+
+        // Фактор размера группы: чем меньше группа, тем выше приоритет объединения
+        double sizeRatio = (double)sourceSize / totalElements;
+        double sizeFactor = (1 - sizeRatio) * _groupSizeWeight;
+
+        // Финальная оценка (меньше = лучше)
+        return sizeScore * (1 - sizeFactor);
+    }
+
+    /// <summary>
+    /// Возвращает эффективный размер группы с учетом объединений
+    /// </summary>
+    private int GetEffectiveSize(SizeKey key, UnionSize unionFind, Dictionary<SizeKey, int> sizes)
+    {
+        // Находим корень группы
+        SizeKey rootKey = unionFind.FindRoot(key);
+
+        // Суммируем размеры всех групп с тем же корнем
+        int totalSize = 0;
+        foreach (var entry in sizes)
         {
-            // Нормализуем различия относительно допусков
-            double thickDiff = Math.Abs(source.Thick - target.Thick) / _thickTolerance;
-            double widthDiff = Math.Abs(source.Width - target.Width) / _widthTolerance;
-            double heightDiff = Math.Abs(source.Height - target.Height) / _heightTolerance;
-
-            // Взвешенная оценка размеров
-            double sizeScore =
-                thickDiff * _thickWeight +
-                widthDiff * _widthWeight +
-                heightDiff * _heightWeight;
-
-            // Фактор размера группы: чем меньше группа, тем выше приоритет объединения
-            double sizeRatio = (double)sourceSize / totalElements;
-            double sizeFactor = (1 - sizeRatio) * _groupSizeWeight;
-
-            // Финальная оценка (меньше = лучше)
-            return sizeScore * (1 - sizeFactor);
+            if (unionFind.FindRoot(entry.Key).Equals(rootKey))
+            {
+                totalSize += entry.Value;
+            }
         }
 
-        /// <summary>
-        /// Возвращает эффективный размер группы с учетом объединений
-        /// </summary>
-        private int GetEffectiveSize(SizeKey key, UnionSize unionFind, Dictionary<SizeKey, int> sizes)
+        return totalSize;
+    }
+
+    /// <summary>
+    /// Обновляет информацию о размерах групп после объединения
+    /// </summary>
+    private void UpdateGroupSizes(UnionSize unionFind, Dictionary<SizeKey, int> sizes)
+    {
+        // Кэш размеров для быстрого доступа
+        Dictionary<SizeKey, int> effectiveSizes = new Dictionary<SizeKey, int>();
+
+        foreach (var key in sizes.Keys.ToList())
         {
-            // Находим корень группы
             SizeKey rootKey = unionFind.FindRoot(key);
 
-            // Суммируем размеры всех групп с тем же корнем
-            int totalSize = 0;
-            foreach (var entry in sizes)
+            if (!effectiveSizes.ContainsKey(rootKey))
             {
-                if (unionFind.FindRoot(entry.Key).Equals(rootKey))
-                {
-                    totalSize += entry.Value;
-                }
+                effectiveSizes[rootKey] = GetEffectiveSize(rootKey, unionFind, sizes);
             }
-
-            return totalSize;
         }
+    }
 
-        /// <summary>
-        /// Обновляет информацию о размерах групп после объединения
-        /// </summary>
-        private void UpdateGroupSizes(UnionSize unionFind, Dictionary<SizeKey, int> sizes)
+    /// <summary>
+    /// Создает новый словарь с объединенными группами
+    /// </summary>
+    private Dictionary<SizeKey, List<LintelData>> CreateMergedGroups(
+        Dictionary<SizeKey, List<LintelData>> originalGroups,
+        UnionSize unionFind)
+    {
+        Dictionary<SizeKey, List<LintelData>> mergedGroups = new Dictionary<SizeKey, List<LintelData>>();
+        Dictionary<SizeKey, SizeKey> keyToRoot = new Dictionary<SizeKey, SizeKey>();
+
+        // Определяем корневую группу для каждого ключа
+        foreach (SizeKey key in originalGroups.Keys)
         {
-            // Кэш размеров для быстрого доступа
-            Dictionary<SizeKey, int> effectiveSizes = new Dictionary<SizeKey, int>();
-
-            foreach (var key in sizes.Keys.ToList())
-            {
-                SizeKey rootKey = unionFind.FindRoot(key);
-
-                if (!effectiveSizes.ContainsKey(rootKey))
-                {
-                    effectiveSizes[rootKey] = GetEffectiveSize(rootKey, unionFind, sizes);
-                }
-            }
+            keyToRoot[key] = unionFind.FindRoot(key);
         }
 
-        /// <summary>
-        /// Создает новый словарь с объединенными группами
-        /// </summary>
-        private Dictionary<SizeKey, List<LintelData>> CreateMergedGroups(
-            Dictionary<SizeKey, List<LintelData>> originalGroups,
-            UnionSize unionFind)
+        // Создаем новые группы на основе корневых ключей
+        foreach (var entry in originalGroups)
         {
-            Dictionary<SizeKey, List<LintelData>> mergedGroups = new Dictionary<SizeKey, List<LintelData>>();
-            Dictionary<SizeKey, SizeKey> keyToRoot = new Dictionary<SizeKey, SizeKey>();
+            SizeKey originalKey = entry.Key;
+            SizeKey rootKey = keyToRoot[originalKey];
 
-            // Определяем корневую группу для каждого ключа
-            foreach (SizeKey key in originalGroups.Keys)
+            // Инициализируем группу
+            if (!mergedGroups.TryGetValue(rootKey, out List<LintelData> group))
             {
-                keyToRoot[key] = unionFind.FindRoot(key);
+                group = new List<LintelData>();
+                mergedGroups[rootKey] = group;
             }
 
-            // Создаем новые группы на основе корневых ключей
-            foreach (var entry in originalGroups)
+            // Добавляем данные в группу
+            foreach (LintelData itemData in entry.Value)
             {
-                SizeKey originalKey = entry.Key;
-                SizeKey rootKey = keyToRoot[originalKey];
-
-                // Инициализируем группу
-                if (!mergedGroups.TryGetValue(rootKey, out List<LintelData> group))
-                {
-                    group = new List<LintelData>();
-                    mergedGroups[rootKey] = group;
-                }
-
-                // Добавляем данные в группу
-                foreach (LintelData itemData in entry.Value)
-                {
-                    itemData.GroupName = rootKey;
-                    group.Add(itemData);
-                }
+                itemData.GroupName = rootKey;
+                group.Add(itemData);
             }
-
-            return mergedGroups;
         }
+
+        return mergedGroups;
     }
 }

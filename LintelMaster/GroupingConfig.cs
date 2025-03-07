@@ -48,11 +48,6 @@
         public double GroupSizeWeight { get; set; } = 0.4;
 
         /// <summary>
-        /// Минимальный размер группы для рассмотрения к объединению
-        /// </summary>
-        public int MinGroupThreshold { get; set; } = 5;
-
-        /// <summary>
         /// Оптимальный целевой размер группы
         /// </summary>
         public int OptimalGroupSize { get; set; } = 10;
