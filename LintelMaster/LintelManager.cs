@@ -12,19 +12,17 @@ public partial class LintelManager(Document doc, GroupingConfig config)
     private readonly string _heightParam = config.HeightParameter;
 
     /// <summary>
-    /// Находит все перемычки в модели на основе наименования семейства
+    /// Находит все семейства по наименованию
     /// </summary>
     /// <returns>Список перемычек</returns>
-    public List<FamilyInstance> FindByFamilyName(string familyName)
+    public List<FamilyInstance> GetFamilyInstancesByName(string familyName)
     {
         BuiltInCategory bic = BuiltInCategory.OST_StructuralFraming;
         StringComparison comp = StringComparison.CurrentCultureIgnoreCase;
 
-        IList<Element> instances = new FilteredElementCollector(doc)
-            .OfCategory(bic).OfClass(typeof(FamilyInstance))
-            .ToElements();
-
-        List<FamilyInstance> lintels = instances
+        List<FamilyInstance> lintels = new FilteredElementCollector(doc)
+            .OfCategory(bic)
+            .OfClass(typeof(FamilyInstance))
             .OfType<FamilyInstance>()
             .Where(instance => instance.Symbol != null)
             .Where(instance => instance.Symbol.FamilyName.Equals(familyName, comp))

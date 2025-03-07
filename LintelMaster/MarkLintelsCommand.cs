@@ -23,7 +23,7 @@ namespace RevitBIMTool.Commands
 
                 LintelManager marker = new LintelManager(doc, new GroupingConfig());
                 
-                var lintels = marker.FindByFamilyName(familyName);
+                var lintels = marker.GetFamilyInstancesByName(familyName);
 
                 TaskDialog.Show("Успех", $"Успешно промаркировано {lintels.Count} перемычек.");
 
