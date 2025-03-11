@@ -18,11 +18,11 @@ public static class FamilyEditorHelper
     /// <summary>
     /// Получает все вложенные семейства из семейства
     /// </summary>
-    public static List<FamilyInstance> GetNestedFamilies(Document doc, FamilyInstance parent)
+    public static List<FamilyInstance> GetNestedFamilies(Document doc, FamilyInstance parentInstance)
     {
         List<FamilyInstance> nestedInstances = [];
 
-        foreach (ElementId id in parent.GetSubComponentIds())
+        foreach (ElementId id in parentInstance.GetSubComponentIds())
         {
             Element nestedElement = doc.GetElement(id);
 
