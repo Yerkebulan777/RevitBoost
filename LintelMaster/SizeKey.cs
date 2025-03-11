@@ -3,7 +3,7 @@
 /// <summary>
 /// Структура для хранения и сравнения ключевых размеров перемычки
 /// </summary>
-public readonly struct SizeKey : IEquatable<SizeKey>
+public readonly struct SizeKey : IEquatable<SizeKey>, IComparable<SizeKey>
 {
     /// <summary>
     /// Толщина стены
@@ -51,12 +51,31 @@ public readonly struct SizeKey : IEquatable<SizeKey>
                HeightInMm == other.HeightInMm;
     }
 
-    /// <summary>
-    /// Получает хеш-код для текущего экземпляра
-    /// </summary>
+    public int CompareTo(SizeKey other)
+    {
+        if (ThickInMm != other.ThickInMm)
+        {
+            return ThickInMm.CompareTo(other.ThickInMm);
+        }
+
+        if (WidthInMm != other.WidthInMm)
+        {
+            return WidthInMm.CompareTo(other.WidthInMm);
+        }
+
+        return HeightInMm.CompareTo(other.HeightInMm);
+    }
+
     public override int GetHashCode()
     {
-        return Convert.ToInt32((ThickInMm * 1000) + (WidthInMm * 100) + (HeightInMm * 10));
+        unchecked
+        {
+            int hash = 10;
+            hash = (hash * 50) + ThickInMm;
+            hash = (hash * 30) + WidthInMm;
+            hash = (hash * 20) + HeightInMm;
+            return hash;
+        }
     }
 
     /// <summary>
