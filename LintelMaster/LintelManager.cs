@@ -1,5 +1,4 @@
-﻿using Autodesk.Revit.DB;
-using RevitUtils;
+﻿using RevitUtils;
 using System.Diagnostics;
 
 namespace LintelMaster;
@@ -18,7 +17,7 @@ public sealed class LintelManager(GroupingConfig config)
     /// </summary>
     public IDictionary<SizeKey, List<LintelData>> RetrieveLintelData(Document doc, string familyName)
     {
-        HashSet<string> hostFamilies = new();
+        HashSet<string> hostFamilies = [];
 
         SortedDictionary<SizeKey, List<LintelData>> result = [];
 
@@ -32,11 +31,11 @@ public sealed class LintelManager(GroupingConfig config)
 
             Debug.WriteLine($"Толщина: {thickRoundMm}, Ширина: {widthRoundMm}, Высота: {heightRoundMm}");
 
-            Family hostFamily = doc.GetElement(instance.Host.Id) as Family;
+            FamilyInstance parentInstance = FamilyHelper.GetParentFamily(doc, instance);
 
-            if (hostFamily != null)
+            if (parentInstance != null)
             {
-                hostFamilies.Add(hostFamily.Name);
+                hostFamilies.Add(parentInstance.Symbol.FamilyName);
             }
 
             LintelData lintelData = new(instance, thickRoundMm, widthRoundMm, heightRoundMm);
