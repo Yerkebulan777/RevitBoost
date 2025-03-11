@@ -3,7 +3,7 @@
 /// <summary>
 /// Статический класс для работы с вложенными семействами в редакторе семейств
 /// </summary>
-public static class FamilyEditorHelper
+public static class FamilyHelper
 {
     /// <summary>
     /// Находит родительское семейство по экземпляру вложенного семейства
