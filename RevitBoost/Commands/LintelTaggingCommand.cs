@@ -17,9 +17,9 @@ namespace RevitBoost.Commands
 
             GroupingConfig config = new()
             {
-                ThickParameterName = "Толщина",
-                WidthParameterName = "Ширина",
-                HeightParameterName = "Высота"
+                ThickParameterName = "BI_толщина_стены",
+                WidthParameterName = "BI_проем_ширина",
+                HeightParameterName = "BI_проем_высота"
             };
 
             LintelManager manager = new(config);
