@@ -27,18 +27,13 @@ namespace RevitBoost.Commands
 
             LintelManager manager = new(config);
 
-            Dictionary<SizeKey, List<LintelData>> lintels = manager.RetrieveLintelData(doc, "(перемычки)уголки_арматуры");
+            IDictionary<SizeKey, List<LintelData>> lintels = manager.RetrieveLintelData(doc, "(перемычки)уголки_арматуры");
 
-            stringBuilder.AppendLine($"Успешно промаркировано {lintels.Count} типов перемычек.");
+            stringBuilder.AppendLine($"Успешно получено {lintels.Count} типов.");
 
             foreach (KeyValuePair<SizeKey, List<LintelData>> group in lintels)
             {
-                stringBuilder.AppendLine($"Группа: {group.Key}");
-
-                foreach (LintelData lintel in group.Value)
-                {
-                    stringBuilder.AppendLine($"\t{lintel.Instance.Name}");
-                }
+                stringBuilder.AppendLine($"Группа: {group.Key} ({group.Value.Count})");
             }
 
             TaskDialog.Show("УРА!",  stringBuilder.ToString());

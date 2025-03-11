@@ -15,9 +15,9 @@ public sealed class LintelManager(GroupingConfig config)
     /// <summary>
     /// Категоризирует перемычки по их размерам
     /// </summary>
-    public Dictionary<SizeKey, List<LintelData>> RetrieveLintelData(Document doc, string familyName)
+    public IDictionary<SizeKey, List<LintelData>> RetrieveLintelData(Document doc, string familyName)
     {
-        Dictionary<SizeKey, List<LintelData>> result = new(100);
+        SortedDictionary<SizeKey, List<LintelData>> result = new();
 
         BuiltInCategory bic = BuiltInCategory.OST_StructuralFraming;
 
