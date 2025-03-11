@@ -38,7 +38,6 @@ public sealed class LintelManager(GroupingConfig config)
                 result[lintelData.GroupKey] = group = [];
             }
 
-
             FamilyInstance parentInstance = FamilyHelper.GetParentFamily(doc, instance);
 
             if (parentInstance != null)
