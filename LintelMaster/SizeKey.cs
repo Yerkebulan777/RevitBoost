@@ -86,4 +86,6 @@ public readonly struct SizeKey : IEquatable<SizeKey>, IComparable<SizeKey>
         return $"{ThickInMm}x{WidthInMm}x{HeightInMm}";
     }
 
+
+
 }
