@@ -1,4 +1,5 @@
-﻿using RevitUtils;
+﻿using Autodesk.Revit.DB;
+using RevitUtils;
 using System.Diagnostics;
 
 namespace LintelMaster;
@@ -17,31 +18,38 @@ public sealed class LintelManager(GroupingConfig config)
     /// </summary>
     public IDictionary<SizeKey, List<LintelData>> RetrieveLintelData(Document doc, string familyName)
     {
-        HashSet<string> familyNames = [];
+        HashSet<string> hostFamilies = new();
 
         SortedDictionary<SizeKey, List<LintelData>> result = [];
 
         BuiltInCategory bic = BuiltInCategory.OST_StructuralFraming;
 
-        foreach (FamilyInstance lintel in CollectorHelper.GetInstancesByFamilyName(doc, bic, familyName))
+        foreach (FamilyInstance instance in CollectorHelper.GetInstancesByFamilyName(doc, bic, familyName))
         {
-            int thickRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, _thickParam)));
-            int widthRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, _widthParam), 50));
-            int heightRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, _heightParam), 100));
+            int thickRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(instance, _thickParam)));
+            int widthRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(instance, _widthParam), 50));
+            int heightRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(instance, _heightParam), 100));
 
             Debug.WriteLine($"Толщина: {thickRoundMm}, Ширина: {widthRoundMm}, Высота: {heightRoundMm}");
 
-            LintelData lintelData = new(lintel, thickRoundMm, widthRoundMm, heightRoundMm);
+            Family hostFamily = doc.GetElement(instance.Host.Id) as Family;
+
+            if (hostFamily != null)
+            {
+                hostFamilies.Add(hostFamily.Name);
+            }
+
+            LintelData lintelData = new(instance, thickRoundMm, widthRoundMm, heightRoundMm);
 
             if (!result.TryGetValue(lintelData.GroupKey, out List<LintelData> group))
             {
                 result[lintelData.GroupKey] = group = [];
             }
 
-            familyNames.Add(lintel.Symbol.FamilyName);
-
             group.Add(lintelData);
         }
+
+        Debug.WriteLine($"Host families: {string.Join(", ", hostFamilies)}");
 
         return result;
     }

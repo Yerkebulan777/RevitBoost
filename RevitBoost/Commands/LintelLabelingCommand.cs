@@ -10,7 +10,7 @@ namespace RevitBoost.Commands
     /// Команда для маркировки перемычек
     /// </summary>
     [Transaction(TransactionMode.Manual)]
-    public class LintelTaggingCommand : ExternalCommand
+    public class LintelLabelingCommand : ExternalCommand
     {
         public override void Execute()
         {
@@ -35,6 +35,7 @@ namespace RevitBoost.Commands
             {
                 stringBuilder.AppendLine($"Группа: {group.Key} ({group.Value.Count})");
             }
+
 
             TaskDialog.Show("УРА!",  stringBuilder.ToString());
         }
