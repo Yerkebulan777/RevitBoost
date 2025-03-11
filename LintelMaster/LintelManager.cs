@@ -31,13 +31,6 @@ public sealed class LintelManager(GroupingConfig config)
 
             Debug.WriteLine($"Толщина: {thickRoundMm}, Ширина: {widthRoundMm}, Высота: {heightRoundMm}");
 
-            FamilyInstance parentInstance = FamilyHelper.GetParentFamily(doc, instance);
-
-            if (parentInstance != null)
-            {
-                hostFamilies.Add(parentInstance.Symbol.FamilyName);
-            }
-
             LintelData lintelData = new(instance, thickRoundMm, widthRoundMm, heightRoundMm);
 
             if (!result.TryGetValue(lintelData.GroupKey, out List<LintelData> group))
@@ -45,7 +38,16 @@ public sealed class LintelManager(GroupingConfig config)
                 result[lintelData.GroupKey] = group = [];
             }
 
+
+            FamilyInstance parentInstance = FamilyHelper.GetParentFamily(doc, instance);
+
+            if (parentInstance != null)
+            {
+                hostFamilies.Add(parentInstance.Symbol.FamilyName);
+            }
+
             group.Add(lintelData);
+
         }
 
         Debug.WriteLine($"Host families: {string.Join(", ", hostFamilies)}");
