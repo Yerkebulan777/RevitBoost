@@ -1,6 +1,4 @@
-﻿using RevitUtils;
-
-namespace LintelMaster;
+﻿namespace LintelMaster;
 
 /// <summary>
 /// Утилиты для работы с перемычками
@@ -47,7 +45,7 @@ public static class LintelUtils
         {
             if (prm.StorageType == StorageType.Double)
             {
-                return UnitManager.FootToMm(prm.AsDouble());
+                return prm.AsDouble();
             }
         }
 
