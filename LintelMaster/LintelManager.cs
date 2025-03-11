@@ -1,4 +1,5 @@
 ﻿using RevitUtils;
+using System.Diagnostics;
 
 namespace LintelMaster;
 
@@ -25,6 +26,8 @@ public sealed class LintelManager(GroupingConfig config)
             int thickRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, _thickParam)));
             int widthRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, _widthParam), 50));
             int heightRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(lintel, _heightParam), 100));
+
+            Debug.WriteLine($"Толщина: {thickRoundMm}, Ширина: {widthRoundMm}, Высота: {heightRoundMm}");
 
             LintelData lintelData = new(lintel, thickRoundMm, widthRoundMm, heightRoundMm);
 
