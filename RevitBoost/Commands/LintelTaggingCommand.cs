@@ -2,6 +2,7 @@
 using Autodesk.Revit.UI;
 using LintelMaster;
 using Nice3point.Revit.Toolkit.External;
+using System.Text;
 
 namespace RevitBoost.Commands
 {
@@ -22,11 +23,25 @@ namespace RevitBoost.Commands
                 HeightParameterName = "BI_проем_высота"
             };
 
+            StringBuilder stringBuilder = new();
+
             LintelManager manager = new(config);
 
             Dictionary<SizeKey, List<LintelData>> lintels = manager.RetrieveLintelData(doc, "(перемычки)уголки_арматуры");
 
-            TaskDialog.Show("УРА!", $"Успешно промаркировано {lintels.Count} типов перемычек.");
+            stringBuilder.AppendLine($"Успешно промаркировано {lintels.Count} типов перемычек.");
+
+            foreach (KeyValuePair<SizeKey, List<LintelData>> group in lintels)
+            {
+                stringBuilder.AppendLine($"Группа: {group.Key}");
+
+                foreach (LintelData lintel in group.Value)
+                {
+                    stringBuilder.AppendLine($"\t{lintel.Instance.Name}");
+                }
+            }
+
+            TaskDialog.Show("УРА!",  stringBuilder.ToString());
         }
     }
 
