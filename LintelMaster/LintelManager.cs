@@ -17,7 +17,9 @@ public sealed class LintelManager(GroupingConfig config)
     /// </summary>
     public IDictionary<SizeKey, List<LintelData>> RetrieveLintelData(Document doc, string familyName)
     {
-        SortedDictionary<SizeKey, List<LintelData>> result = new();
+        HashSet<string> familyNames = [];
+
+        SortedDictionary<SizeKey, List<LintelData>> result = [];
 
         BuiltInCategory bic = BuiltInCategory.OST_StructuralFraming;
 
@@ -35,6 +37,8 @@ public sealed class LintelManager(GroupingConfig config)
             {
                 result[lintelData.GroupKey] = group = [];
             }
+
+            familyNames.Add(lintel.Symbol.FamilyName);
 
             group.Add(lintelData);
         }
