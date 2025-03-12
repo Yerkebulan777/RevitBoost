@@ -1,164 +1,159 @@
-﻿namespace RevitUtils
+﻿namespace RevitUtils;
+
+public static class ParameterHelper
 {
-    public static class ParameterHelper
+    /// <summary>
+    /// Получает значение числового параметра типа double
+    /// </summary>
+    public static double GetParamValueDouble(FamilyInstance instance, string paramName)
     {
-        /// <summary>
-        /// Получает значение числового параметра типа double
-        /// </summary>
-        public static double GetParamValueDouble(FamilyInstance instance, string paramName)
-        {
-            Parameter prm = instance.LookupParameter(paramName);
+        Parameter prm = instance.LookupParameter(paramName);
 
-            if (prm != null && prm.HasValue)
+        if (prm != null && prm.HasValue)
+        {
+            if (prm.StorageType == StorageType.Double)
             {
-                if (prm.StorageType == StorageType.Double)
-                {
-                    return prm.AsDouble();
-                }
+                return prm.AsDouble();
             }
-            return 0;
+        }
+        return 0;
+    }
+
+    /// <summary>
+    /// Получает значение числового параметра типа double
+    /// </summary>
+    public static double GetParamValueDouble(Element element, BuiltInParameter parameter)
+    {
+        Parameter param = element.get_Parameter(parameter);
+
+        if (param != null && param.HasValue)
+        {
+            if (param.StorageType == StorageType.Double)
+            {
+                return param.AsDouble();
+            }
+        }
+        return 0;
+    }
+
+    /// <summary>
+    /// Получает значение строкового параметра
+    /// </summary>
+    public static string GetParamValueString(Element element, string paramName)
+    {
+        Parameter param = element.LookupParameter(paramName);
+
+        if (param != null && param.HasValue)
+        {
+            if (param.StorageType == StorageType.String)
+            {
+                return param.AsString();
+            }
         }
 
-        /// <summary>
-        /// Получает значение числового параметра типа double
-        /// </summary>
-        public static double GetParamValueDouble(Element element, BuiltInParameter parameter)
+        return null;
+    }
+
+    /// <summary>
+    /// Получает значение целочисленного параметра
+    /// </summary>
+    public static int GetParamValueInteger(Element element, string paramName)
+    {
+        Parameter param = element.LookupParameter(paramName);
+
+        if (param != null && param.HasValue)
         {
-            Parameter param = element.get_Parameter(parameter);
-            if (param != null && param.HasValue)
+            if (param.StorageType == StorageType.Integer)
             {
-                if (param.StorageType == StorageType.Double)
-                {
-                    return param.AsDouble();
-                }
+                return param.AsInteger();
             }
-            return 0;
         }
 
-        /// <summary>
-        /// Получает значение строкового параметра
-        /// </summary>
-        public static string GetParamValueString(Element element, string paramName)
-        {
-            Parameter prm = element.LookupParameter(paramName);
+        return 0;
+    }
 
-            if (prm != null && prm.HasValue)
+    /// <summary>
+    /// Получает значение целочисленного параметра
+    /// </summary>
+    public static int GetParamValueInteger(Element element, BuiltInParameter parameter)
+    {
+        Parameter param = element.get_Parameter(parameter);
+
+        if (param != null && param.HasValue)
+        {
+            if (param.StorageType == StorageType.Integer)
             {
-                if (prm.StorageType == StorageType.String)
-                {
-                    return prm.AsString();
-                }
+                return param.AsInteger();
             }
-            return string.Empty;
         }
 
-        /// <summary>
-        /// Получает значение целочисленного параметра
-        /// </summary>
-        public static int GetParamValueInteger(Element element, string paramName)
+        return 0;
+    }
+
+    /// <summary>
+    /// Получает значение ElementId параметра
+    /// </summary>
+    public static ElementId GetParamValueElementId(Element element, string paramName)
+    {
+        Parameter prm = element.LookupParameter(paramName);
+
+        if (prm != null && prm.HasValue)
         {
-            Parameter prm = element.LookupParameter(paramName);
-            if (prm != null && prm.HasValue)
+            if (prm.StorageType == StorageType.ElementId)
             {
-                if (prm.StorageType == StorageType.Integer)
-                {
-                    return prm.AsInteger();
-                }
+                return prm.AsElementId();
             }
-            return 0;
         }
 
-        /// <summary>
-        /// Получает значение целочисленного параметра
-        /// </summary>
-        public static int GetParamValueInteger(Element element, BuiltInParameter parameter)
+        return ElementId.InvalidElementId;
+    }
+
+
+    public static bool SetParameterValue(Element element, string paramName, object value)
+    {
+        Parameter parameter = element?.LookupParameter(paramName);
+
+        if (parameter is null || parameter.IsReadOnly)
         {
-            Parameter param = element.get_Parameter(parameter);
-            if (param != null && param.HasValue)
-            {
-                if (param.StorageType == StorageType.Integer)
-                {
-                    return param.AsInteger();
-                }
-            }
-            return 0;
+            throw new Exception($"Параметр не доступен!");
         }
 
-        /// <summary>
-        /// Получает значение ElementId параметра
-        /// </summary>
-        public static ElementId GetParamValueElementId(Element element, string paramName)
+        switch (parameter.StorageType)
         {
-            Parameter prm = element.LookupParameter(paramName);
+            case StorageType.Double:
 
-            if (prm != null && prm.HasValue)
-            {
-                if (prm.StorageType == StorageType.ElementId)
+                if (value is double doubleVal)
                 {
-                    return prm.AsElementId();
+                    return parameter.Set(doubleVal);
                 }
-            }
+                return parameter.Set(Convert.ToDouble(value));
 
-            return ElementId.InvalidElementId;
-        }
+            case StorageType.Integer:
 
-        /// <summary>
-        /// Устанавливает значение параметра с автоматическим определением типа хранения
-        /// </summary>
-        public static bool SetParameterValue(Element element, string paramName, object value)
-        {
-            Parameter prm = element.LookupParameter(paramName);
-
-            if (prm != null && !prm.IsReadOnly)
-            {
-                StorageType storageType = prm.StorageType;
-
-                switch (storageType)
+                if (value is int intVal)
                 {
-                    case StorageType.Double:
-                        if (value is double dblVal)
-                        {
-                            return prm.Set(dblVal);
-                        }
-                        else if (value != null && double.TryParse(value.ToString(), out double parsedDbl))
-                        {
-                            return prm.Set(parsedDbl);
-                        }
-                        break;
-
-                    case StorageType.Integer:
-                        if (value is int intVal)
-                        {
-                            return prm.Set(intVal);
-                        }
-                        else if (value != null && int.TryParse(value.ToString(), out int parsedInt))
-                        {
-                            return prm.Set(parsedInt);
-                        }
-                        break;
-
-                    case StorageType.String:
-                        if (value is string strVal)
-                        {
-                            return prm.Set(strVal);
-                        }
-                        else if (value != null)
-                        {
-                            return prm.Set(value.ToString());
-                        }
-                        break;
-
-                    case StorageType.ElementId:
-                        if (value is ElementId idVal)
-                        {
-                            return prm.Set(idVal);
-                        }
-                        break;
+                    return parameter.Set(intVal);
                 }
-            }
+                return parameter.Set(Convert.ToInt32(value));
 
-            return false;
+            case StorageType.String:
+
+                if (value is string strVal)
+                {
+                    return parameter.Set(strVal);
+                }
+                return parameter.Set(Convert.ToString(value));
+
+            case StorageType.ElementId:
+
+                if (value is ElementId idVal)
+                {
+                    return parameter.Set(idVal);
+                }
+                return parameter.Set(new ElementId(Convert.ToInt32(value)));
+
+            default:
+                throw new Exception($"Тип параметра {parameter.StorageType}");
         }
-
     }
 }
