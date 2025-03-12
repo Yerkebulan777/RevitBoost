@@ -8,9 +8,9 @@ namespace LintelMaster;
 /// </summary>
 public sealed class LintelManager(GroupingConfig config)
 {
-    private readonly string _thickParam = config.ThickParameterName;
-    private readonly string _widthParam = config.WidthParameterName;
-    private readonly string _heightParam = config.HeightParameterName;
+    //private readonly string _thickParam = config.ThickParameterName;
+    //private readonly string _widthParam = config.WidthParameterName;
+    //private readonly string _heightParam = config.HeightParameterName;
 
     /// <summary>
     /// Категоризирует перемычки по их размерам
@@ -25,9 +25,7 @@ public sealed class LintelManager(GroupingConfig config)
 
         foreach (FamilyInstance instance in CollectorHelper.GetInstancesByFamilyName(doc, bic, familyName))
         {
-            int thickRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(LintelUtils.GetParamValueDouble(instance, _thickParam)));
-            int widthRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(LintelUtils.GetParamValueDouble(instance, _widthParam), 50));
-            int heightRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(LintelUtils.GetParamValueDouble(instance, _heightParam), 100));
+            (int thickRoundMm, int widthRoundMm, int heightRoundMm) = ExtractOpeningSize(instance);
 
             Debug.WriteLine($"Толщина: {thickRoundMm}, Ширина: {widthRoundMm}, Высота: {heightRoundMm}");
 
@@ -62,13 +60,12 @@ public sealed class LintelManager(GroupingConfig config)
     /// <returns>Словарь, где ключ - ID элемента, значение - размеры проема</returns>
     public (int Thick, int Width, int Height) ExtractOpeningSize(Element element)
     {
-        double thick = 0;
         double width = 0;
         double height = 0;
 
         if (element is FamilyInstance instance)
         {
-            thick = GetHostWallThickness(instance);
+            double thick = GetHostWallThickness(instance);
 
             int categoryId = instance.Category.Id.IntegerValue;
 
@@ -104,12 +101,7 @@ public sealed class LintelManager(GroupingConfig config)
     /// <returns>Толщина стены в миллиметрах или 0, если стена не найдена.</returns>
     public double GetHostWallThickness(FamilyInstance instance)
     {
-        if (instance?.Host is Wall hostWall)
-        {
-            return hostWall.Width;
-        }
-
-        return 0;
+        return instance?.Host is Wall hostWall ? hostWall.Width : 0;
     }
 
 
