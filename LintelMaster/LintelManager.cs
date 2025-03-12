@@ -79,28 +79,27 @@ public sealed class LintelManager(GroupingConfig config)
                 height = ParameterHelper.GetParamValueAsDouble(windowSymbol, BuiltInParameter.WINDOW_HEIGHT);
             }
 
-            if (width == 0)
+            int widthRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(width, 50));
+            int heightRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(height, 100));
+            int thickRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(thick));
+
+            if (widthRoundMm == 0)
             {
                 Debug.Write($"{instance.Category.Name} width is null!");
                 StringHelper.CopyToClipboard(element.UniqueId);
             }
 
-            if (height == 0)
+            if (heightRoundMm == 0)
             {
-                
                 Debug.Write($"{instance.Category.Name} height is null!");
                 StringHelper.CopyToClipboard(element.UniqueId);
             }
 
-            if (thick == 0)
+            if (thickRoundMm == 0)
             {
                 Debug.Write($"{instance.Category.Name} wall thickness is null!");
                 StringHelper.CopyToClipboard(element.UniqueId);
             }
-
-            int thickRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(thick));
-            int widthRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(width, 50));
-            int heightRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(height, 100));
 
             return (thickRoundMm, widthRoundMm, heightRoundMm);
         }
