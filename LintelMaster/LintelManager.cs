@@ -60,46 +60,41 @@ public sealed class LintelManager(GroupingConfig config)
     /// </summary>
     /// <param name="elements">Список элементов проемов (двери, окна)</param>
     /// <returns>Словарь, где ключ - ID элемента, значение - размеры проема</returns>
-    public Dictionary<ElementId, (int Thick, int Width, int Height)> ExtractOpeningSizes(List<Element> elements)
+    public (int Thick, int Width, int Height) ExtractOpeningSize(Element element)
     {
-        Dictionary<ElementId, (int Thick, int Width, int Height)> openingSizes = [];
+        double thick = 0;
+        double width = 0;
+        double height = 0;
 
-        foreach (Element element in elements)
+        if (element is FamilyInstance instance)
         {
-            double thick = 0;
-            double width = 0;
-            double height = 0;
+            thick = GetHostWallThickness(instance);
 
-            if (element is FamilyInstance instance)
+            int categoryId = instance.Category.Id.IntegerValue;
+
+            if (categoryId == (int)BuiltInCategory.OST_Doors)
             {
-                thick = GetHostWallThickness(instance);
+                FamilySymbol doorSymbol = instance.Symbol;
+                width = LintelUtils.GetParamValueDouble(doorSymbol, BuiltInParameter.DOOR_WIDTH);
+                height = LintelUtils.GetParamValueDouble(doorSymbol, BuiltInParameter.DOOR_HEIGHT);
+            }
 
-                int categoryId = instance.Category.Id.IntegerValue;
-
-                if (categoryId == (int)BuiltInCategory.OST_Doors)
-                {
-                    FamilySymbol doorSymbol = instance.Symbol;
-                    width = LintelUtils.GetParamValueDouble(doorSymbol, BuiltInParameter.DOOR_WIDTH);
-                    height = LintelUtils.GetParamValueDouble(doorSymbol, BuiltInParameter.DOOR_HEIGHT);
-                }
-                else if (categoryId == (int)BuiltInCategory.OST_Windows)
-                {
-                    FamilySymbol windowSymbol = instance.Symbol;
-                    width = LintelUtils.GetParamValueDouble(windowSymbol, BuiltInParameter.WINDOW_WIDTH);
-                    height = LintelUtils.GetParamValueDouble(windowSymbol, BuiltInParameter.WINDOW_HEIGHT);
-                    
-                }
-
-                int thickRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(thick));
-                int widthRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(width, 50));
-                int heightRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(height, 100));
-
-                openingSizes[element.Id] = (thickRoundMm, widthRoundMm, heightRoundMm);
+            if (categoryId == (int)BuiltInCategory.OST_Windows)
+            {
+                FamilySymbol windowSymbol = instance.Symbol;
+                width = LintelUtils.GetParamValueDouble(windowSymbol, BuiltInParameter.WINDOW_WIDTH);
+                height = LintelUtils.GetParamValueDouble(windowSymbol, BuiltInParameter.WINDOW_HEIGHT);
 
             }
+
+            int thickRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(thick));
+            int widthRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(width, 50));
+            int heightRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(height, 100));
+
+            return (thickRoundMm, widthRoundMm, heightRoundMm);
         }
 
-        return openingSizes;
+        throw new ArgumentException("Element is not a FamilyInstance");
     }
 
     /// <summary>
