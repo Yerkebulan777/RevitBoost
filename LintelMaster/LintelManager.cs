@@ -47,8 +47,6 @@ public sealed class LintelManager(GroupingConfig config)
 
         }
 
-        Debug.WriteLine($"Host families: {string.Join(", ", hostFamilies)}");
-
         return result;
     }
 
@@ -56,8 +54,6 @@ public sealed class LintelManager(GroupingConfig config)
     /// <summary>
     /// Извлекает размеры проемов из списка элементов (дверей и окон)
     /// </summary>
-    /// <param name="elements">Список элементов проемов (двери, окна)</param>
-    /// <returns>Словарь, где ключ - ID элемента, значение - размеры проема</returns>
     public (int Thick, int Width, int Height) ExtractOpeningSize(Element element)
     {
         double width = 0;
