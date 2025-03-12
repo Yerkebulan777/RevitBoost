@@ -22,9 +22,9 @@ public static class ParameterHelper
     /// <summary>
     /// Получает значение числового параметра типа double
     /// </summary>
-    public static double GetParamValueDouble(Element element, BuiltInParameter parameter)
+    public static double GetParamValueDouble(Element element, BuiltInParameter builtInParam)
     {
-        Parameter param = element.get_Parameter(parameter);
+        Parameter param = element.get_Parameter(builtInParam);
 
         if (param != null && param.HasValue)
         {
@@ -42,6 +42,24 @@ public static class ParameterHelper
     public static string GetParamValueString(Element element, string paramName)
     {
         Parameter param = element.LookupParameter(paramName);
+
+        if (param != null && param.HasValue)
+        {
+            if (param.StorageType == StorageType.String)
+            {
+                return param.AsString();
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Получает значение строкового параметра
+    /// </summary>
+    public static string GetParamValueString(Element element, BuiltInParameter builtInParam)
+    {
+        Parameter param = element.get_Parameter(builtInParam);
 
         if (param != null && param.HasValue)
         {
@@ -75,9 +93,9 @@ public static class ParameterHelper
     /// <summary>
     /// Получает значение целочисленного параметра
     /// </summary>
-    public static int GetParamValueInteger(Element element, BuiltInParameter parameter)
+    public static int GetParamValueInteger(Element element, BuiltInParameter builtInParam)
     {
-        Parameter param = element.get_Parameter(parameter);
+        Parameter param = element.get_Parameter(builtInParam);
 
         if (param != null && param.HasValue)
         {
