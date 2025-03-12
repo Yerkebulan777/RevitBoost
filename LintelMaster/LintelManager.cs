@@ -1,5 +1,4 @@
-﻿using CommonUtils;
-using RevitUtils;
+﻿using RevitUtils;
 using System.Diagnostics;
 
 namespace LintelMaster;
@@ -114,6 +113,7 @@ public sealed class LintelManager(GroupingConfig config)
             ? (double)hostWall.Width
             : throw new ArgumentException("Family instance does not have a valid host!");
     }
+
 
 
 }
