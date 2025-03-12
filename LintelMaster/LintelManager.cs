@@ -42,7 +42,7 @@ public sealed class LintelManager(GroupingConfig config)
 
             if (parentInstance != null)
             {
-                hostFamilies.Add(parentInstance.Symbol.FamilyName);
+                _ = hostFamilies.Add(parentInstance.Symbol.FamilyName);
             }
 
             group.Add(lintelData);
@@ -55,28 +55,68 @@ public sealed class LintelManager(GroupingConfig config)
     }
 
 
-
-
-    public void ExtractOpeningSizes(List<Element> elements)
+    /// <summary>
+    /// Извлекает размеры проемов из списка элементов (дверей и окон)
+    /// </summary>
+    /// <param name="elements">Список элементов проемов (двери, окна)</param>
+    /// <returns>Словарь, где ключ - ID элемента, значение - размеры проема</returns>
+    public Dictionary<ElementId, (int Thick, int Width, int Height)> ExtractOpeningSizes(List<Element> elements)
     {
+        Dictionary<ElementId, (int Thick, int Width, int Height)> openingSizes = [];
 
-        foreach (var opening in elements)
-
+        foreach (Element element in elements)
         {
-            // Обработка дверей
-            var doorTypeSymbol = door.Symbol;
-            double width = ParameterHelper.GetParamValueAsDouble(doorTypeSymbol, BuiltInParameter.DOOR_WIDTH);
-            double height = ParameterHelper.GetParamValueAsDouble(doorTypeSymbol, BuiltInParameter.DOOR_HEIGHT);
+            double thick = 0;
+            double width = 0;
+            double height = 0;
 
-            // Обработка окон
+            if (element is FamilyInstance instance)
+            {
+                thick = GetHostWallThickness(instance);
 
-            var windowTypeSymbol = wind.Symbol;
-            double width = ParameterHelper.GetParamValueAsDouble(windowTypeSymbol, BuiltInParameter.WINDOW_WIDTH);
-            double height = ParameterHelper.GetParamValueAsDouble(windowTypeSymbol, BuiltInParameter.WINDOW_HEIGHT);
+                int categoryId = instance.Category.Id.IntegerValue;
+
+                if (categoryId == (int)BuiltInCategory.OST_Doors)
+                {
+                    FamilySymbol doorSymbol = instance.Symbol;
+                    width = LintelUtils.GetParamValueDouble(doorSymbol, BuiltInParameter.DOOR_WIDTH);
+                    height = LintelUtils.GetParamValueDouble(doorSymbol, BuiltInParameter.DOOR_HEIGHT);
+                }
+                else if (categoryId == (int)BuiltInCategory.OST_Windows)
+                {
+                    FamilySymbol windowSymbol = instance.Symbol;
+                    width = LintelUtils.GetParamValueDouble(windowSymbol, BuiltInParameter.WINDOW_WIDTH);
+                    height = LintelUtils.GetParamValueDouble(windowSymbol, BuiltInParameter.WINDOW_HEIGHT);
+                    
+                }
+
+                int thickRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(thick));
+                int widthRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(width, 50));
+                int heightRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(height, 100));
+
+                openingSizes[element.Id] = (thickRoundMm, widthRoundMm, heightRoundMm);
+
+            }
         }
+
+        return openingSizes;
     }
 
 
+    /// <summary>
+    /// Получает толщину стены-основы для элемента.
+    /// </summary>
+    /// <param name="instance">Экземпляр семейства (двери, окна и т.д.).</param>
+    /// <returns>Толщина стены в миллиметрах или 0, если стена не найдена.</returns>
+    public double GetHostWallThickness(FamilyInstance instance)
+    {
+        if (instance?.Host is Wall hostWall)
+        {
+            return hostWall.Width;
+        }
+
+        return 0;
+    }
 
 
 

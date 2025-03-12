@@ -1,4 +1,6 @@
-﻿namespace RevitUtils;
+﻿using System.Diagnostics;
+
+namespace RevitUtils;
 
 /// <summary>
 /// Статический класс для работы с вложенными семействами в редакторе семейств
@@ -6,13 +8,37 @@
 public static class FamilyHelper
 {
     /// <summary>
+    /// Получает элемент-основу, в котором размещен экземпляр семейства
+    /// </summary>
+    /// <param name="instance">Экземпляр семейства</param>
+    /// <returns>Элемент-основа или null, если основа отсутствует</returns>
+    public static Element GetHost(FamilyInstance instance)
+    {
+        Element host = instance?.Host;
+
+        if (host is null || !host.IsValidObject)
+        {
+            Debug.WriteLine("Family instance does not have a valid host!");
+            throw new ArgumentException("Family instance does not have a valid host!");
+        }
+
+        return host;
+    }
+
+    /// <summary>
     /// Находит родительское семейство по экземпляру вложенного семейства
     /// </summary>
     public static FamilyInstance GetParentFamily(Document doc, FamilyInstance nestedInstance)
     {
         Element parent = nestedInstance.SuperComponent;
 
-        return parent is FamilyInstance instance ? instance : throw new Exception("Family does not have a super component!");
+        if (parent is FamilyInstance instance)
+        {
+            return instance;
+        }
+
+        Debug.WriteLine($"Family does not have a valid super component");
+        throw new ArgumentException("Family does not have a super component!");
     }
 
     /// <summary>
