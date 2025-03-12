@@ -86,19 +86,19 @@ public sealed class LintelManager(GroupingConfig config)
             if (widthRoundMm == 0)
             {
                 Debug.Write($"{instance.Category.Name} width is null!");
-                StringHelper.CopyToClipboard(element.UniqueId);
+                StringHelper.CopyToClipboard(element.Id.ToString());
             }
 
             if (heightRoundMm == 0)
             {
                 Debug.Write($"{instance.Category.Name} height is null!");
-                StringHelper.CopyToClipboard(element.UniqueId);
+                StringHelper.CopyToClipboard(element.Id.ToString());
             }
 
             if (thickRoundMm == 0)
             {
                 Debug.Write($"{instance.Category.Name} wall thickness is null!");
-                StringHelper.CopyToClipboard(element.UniqueId);
+                StringHelper.CopyToClipboard(element.Id.ToString());
             }
 
             return (thickRoundMm, widthRoundMm, heightRoundMm);
