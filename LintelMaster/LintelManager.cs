@@ -57,48 +57,27 @@ public sealed class LintelManager(GroupingConfig config)
 
 
 
-    public void GetDoorWindowDimensions(Document doc)
+    public void ExtractOpeningSizes(List<Element> elements)
     {
-        // Сбор всех дверей
-        var doors = new FilteredElementCollector(doc)
-            .OfCategory(BuiltInCategory.OST_Doors)
-            .WhereElementIsNotElementType()
-            .Cast<FamilyInstance>();
 
-        // Сбор всех окон
-        var windows = new FilteredElementCollector(doc)
-            .OfCategory(BuiltInCategory.OST_Windows)
-            .WhereElementIsNotElementType()
-            .Cast<FamilyInstance>();
+        foreach (var opening in elements)
 
-        // Обработка дверей
-        foreach (var door in doors)
         {
-            double width = GetParameterValueDouble(door, BuiltInParameter.DOOR_WIDTH);
-            double height = GetParameterValueDouble(door, BuiltInParameter.DOOR_HEIGHT);
+            // Обработка дверей
+            var doorTypeSymbol = door.Symbol;
+            double width = ParameterHelper.GetParamValueAsDouble(doorTypeSymbol, BuiltInParameter.DOOR_WIDTH);
+            double height = ParameterHelper.GetParamValueAsDouble(doorTypeSymbol, BuiltInParameter.DOOR_HEIGHT);
 
-            string sizeInfo = $"{door.Name}: Ширина={ConvertToMillimeters(width)} мм, Высота={ConvertToMillimeters(height)} мм";
-            TaskDialog.Show("Размеры", sizeInfo);
-        }
+            // Обработка окон
 
-        // Обработка окон
-        foreach (var window in windows)
-        {
-            var symbol = window.Symbol;
-            double width = GetParameterValueDouble(symbol, BuiltInParameter.WINDOW_WIDTH);
-            double height = GetParameterValueDouble(symbol, BuiltInParameter.WINDOW_HEIGHT);
-
-            string sizeInfo = $"{window.Name}: Ширина={ConvertToMillimeters(width)} мм, Высота={ConvertToMillimeters(height)} мм";
-            TaskDialog.Show("Размеры", sizeInfo);
+            var windowTypeSymbol = wind.Symbol;
+            double width = ParameterHelper.GetParamValueAsDouble(windowTypeSymbol, BuiltInParameter.WINDOW_WIDTH);
+            double height = ParameterHelper.GetParamValueAsDouble(windowTypeSymbol, BuiltInParameter.WINDOW_HEIGHT);
         }
     }
 
 
-    // Конвертация из футов в миллиметры
-    private string ConvertToMillimeters(double feetValue)
-    {
-        return UnitUtils.ConvertFromInternalUnits(feetValue, UnitTypeId.Millimeters).ToString("F0");
-    }
+
 
 
 }

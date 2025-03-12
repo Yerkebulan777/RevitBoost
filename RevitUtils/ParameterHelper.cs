@@ -5,7 +5,7 @@ public static class ParameterHelper
     /// <summary>
     /// Получает значение числового параметра типа double
     /// </summary>
-    public static double GetParamValueDouble(FamilyInstance instance, string paramName)
+    public static double GetParamValueAsDouble(FamilyInstance instance, string paramName)
     {
         Parameter prm = instance.LookupParameter(paramName);
 
@@ -16,13 +16,14 @@ public static class ParameterHelper
                 return prm.AsDouble();
             }
         }
+
         return 0;
     }
 
     /// <summary>
     /// Получает значение числового параметра типа double
     /// </summary>
-    public static double GetParamValueDouble(Element element, BuiltInParameter builtInParam)
+    public static double GetParamValueAsDouble(Element element, BuiltInParameter builtInParam)
     {
         Parameter param = element.get_Parameter(builtInParam);
 
@@ -39,7 +40,7 @@ public static class ParameterHelper
     /// <summary>
     /// Получает значение строкового параметра
     /// </summary>
-    public static string GetParamValueString(Element element, string paramName)
+    public static string GetParamValueAsString(Element element, string paramName)
     {
         Parameter param = element.LookupParameter(paramName);
 
@@ -57,7 +58,7 @@ public static class ParameterHelper
     /// <summary>
     /// Получает значение строкового параметра
     /// </summary>
-    public static string GetParamValueString(Element element, BuiltInParameter builtInParam)
+    public static string GetParamValueAsString(Element element, BuiltInParameter builtInParam)
     {
         Parameter param = element.get_Parameter(builtInParam);
 
@@ -75,7 +76,7 @@ public static class ParameterHelper
     /// <summary>
     /// Получает значение целочисленного параметра
     /// </summary>
-    public static int GetParamValueInteger(Element element, string paramName)
+    public static int GetParamValueAsInteger(Element element, string paramName)
     {
         Parameter param = element.LookupParameter(paramName);
 
@@ -93,7 +94,7 @@ public static class ParameterHelper
     /// <summary>
     /// Получает значение целочисленного параметра
     /// </summary>
-    public static int GetParamValueInteger(Element element, BuiltInParameter builtInParam)
+    public static int GetParamValueAsInteger(Element element, BuiltInParameter builtInParam)
     {
         Parameter param = element.get_Parameter(builtInParam);
 
@@ -109,24 +110,8 @@ public static class ParameterHelper
     }
 
     /// <summary>
-    /// Получает значение ElementId параметра
+    /// Задает значение параметра
     /// </summary>
-    public static ElementId GetParamValueElementId(Element element, string paramName)
-    {
-        Parameter prm = element.LookupParameter(paramName);
-
-        if (prm != null && prm.HasValue)
-        {
-            if (prm.StorageType == StorageType.ElementId)
-            {
-                return prm.AsElementId();
-            }
-        }
-
-        return ElementId.InvalidElementId;
-    }
-
-
     public static bool SetParameterValue(Element element, string paramName, object value)
     {
         Parameter parameter = element?.LookupParameter(paramName);
@@ -136,42 +121,47 @@ public static class ParameterHelper
             throw new Exception($"Параметр не доступен!");
         }
 
-        switch (parameter.StorageType)
+        if (value is not null)
         {
-            case StorageType.Double:
+            switch (parameter.StorageType)
+            {
+                case StorageType.Double:
 
-                if (value is double doubleVal)
-                {
-                    return parameter.Set(doubleVal);
-                }
-                return parameter.Set(Convert.ToDouble(value));
+                    if (value is double doubleVal)
+                    {
+                        return parameter.Set(doubleVal);
+                    }
+                    return parameter.Set(Convert.ToDouble(value));
 
-            case StorageType.Integer:
+                case StorageType.Integer:
 
-                if (value is int intVal)
-                {
-                    return parameter.Set(intVal);
-                }
-                return parameter.Set(Convert.ToInt32(value));
+                    if (value is int intVal)
+                    {
+                        return parameter.Set(intVal);
+                    }
+                    return parameter.Set(Convert.ToInt32(value));
 
-            case StorageType.String:
+                case StorageType.String:
 
-                if (value is string strVal)
-                {
-                    return parameter.Set(strVal);
-                }
-                return parameter.Set(Convert.ToString(value));
+                    if (value is string strVal)
+                    {
+                        return parameter.Set(strVal);
+                    }
+                    return parameter.Set(Convert.ToString(value));
 
-            case StorageType.ElementId:
+                case StorageType.ElementId:
 
-                if (value is ElementId idVal)
-                {
-                    return parameter.Set(idVal);
-                }
-                return parameter.Set(new ElementId(Convert.ToInt32(value)));
+                    if (value is ElementId idVal)
+                    {
+                        return parameter.Set(idVal);
+                    }
+                    return parameter.Set(new ElementId(Convert.ToInt32(value)));
 
-            default:
-                throw new Exception($"Тип параметра {parameter.StorageType}");
+                default:
+                    throw new Exception($"Тип параметра {parameter.StorageType}");
+            }
         }
+
+        return false;
     }
 }
