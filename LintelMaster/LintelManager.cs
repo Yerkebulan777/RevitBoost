@@ -67,39 +67,39 @@ public sealed class LintelManager(GroupingConfig config)
 
             if (categoryId == (int)BuiltInCategory.OST_Doors)
             {
-                //FamilySymbol doorSymbol = instance.Symbol;
-                width = ParameterHelper.GetParamValueAsDouble(instance, BuiltInParameter.DOOR_WIDTH);
-                height = ParameterHelper.GetParamValueAsDouble(instance, BuiltInParameter.DOOR_HEIGHT);
+                width = ParameterHelper.GetParamValueAsDouble(instance.Symbol, BuiltInParameter.DOOR_WIDTH);
+
+                if (width == 0)
+                {
+                    width = ParameterHelper.GetParamValueAsDouble(instance, BuiltInParameter.DOOR_WIDTH);
+                }
+
+                height = ParameterHelper.GetParamValueAsDouble(instance.Symbol, BuiltInParameter.DOOR_HEIGHT);
+
+                if (height == 0)
+                {
+                    height = ParameterHelper.GetParamValueAsDouble(instance, BuiltInParameter.DOOR_HEIGHT);
+                }
             }
 
             if (categoryId == (int)BuiltInCategory.OST_Windows)
             {
-                //FamilySymbol windowSymbol = instance.Symbol;
-                width = ParameterHelper.GetParamValueAsDouble(instance, BuiltInParameter.WINDOW_WIDTH);
-                height = ParameterHelper.GetParamValueAsDouble(instance, BuiltInParameter.WINDOW_HEIGHT);
+                width = ParameterHelper.GetParamValueAsDouble(instance.Symbol, BuiltInParameter.WINDOW_WIDTH);
+                if (width == 0)
+                {
+                    width = ParameterHelper.GetParamValueAsDouble(instance, BuiltInParameter.WINDOW_WIDTH);
+                }
+
+                height = ParameterHelper.GetParamValueAsDouble(instance.Symbol, BuiltInParameter.WINDOW_HEIGHT);
+                if (height == 0)
+                {
+                    height = ParameterHelper.GetParamValueAsDouble(instance, BuiltInParameter.WINDOW_HEIGHT);
+                }
             }
 
             int thickRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(thick));
             int widthRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(width, 50));
             int heightRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(height, 100));
-
-            if (widthRoundMm == 0)
-            {
-                Debug.Write($"{instance.Category.Name} width is null!");
-                StringHelper.CopyToClipboard(element.Id.ToString());
-            }
-
-            if (heightRoundMm == 0)
-            {
-                Debug.Write($"{instance.Category.Name} height is null!");
-                StringHelper.CopyToClipboard(element.Id.ToString());
-            }
-
-            if (thickRoundMm == 0)
-            {
-                Debug.Write($"{instance.Category.Name} wall thickness is null!");
-                StringHelper.CopyToClipboard(element.Id.ToString());
-            }
 
             return (thickRoundMm, widthRoundMm, heightRoundMm);
         }
@@ -112,12 +112,9 @@ public sealed class LintelManager(GroupingConfig config)
     /// </summary>
     public double GetHostWallThickness(FamilyInstance instance)
     {
-        if (instance?.Host is Wall hostWall)
-        {
-            return (double)hostWall.Width;
-        }
-
-        throw new ArgumentException("Family instance does not have a valid host!");
+        return instance?.Host is Wall hostWall
+            ? (double)hostWall.Width
+            : throw new ArgumentException("Family instance does not have a valid host!");
     }
 
 

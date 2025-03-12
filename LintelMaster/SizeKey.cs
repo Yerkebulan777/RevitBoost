@@ -1,4 +1,7 @@
-﻿namespace LintelMaster;
+﻿using Autodesk.Revit.DB;
+using CommonUtils;
+
+namespace LintelMaster;
 
 /// <summary>
 /// Структура для хранения и сравнения ключевых размеров перемычки
