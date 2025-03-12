@@ -102,7 +102,6 @@ public sealed class LintelManager(GroupingConfig config)
         return openingSizes;
     }
 
-
     /// <summary>
     /// Получает толщину стены-основы для элемента.
     /// </summary>
