@@ -36,7 +36,6 @@ namespace RevitBoost.Commands
                 stringBuilder.AppendLine($"Группа: {group.Key} ({group.Value.Count})");
             }
 
-
             TaskDialog.Show("УРА!",  stringBuilder.ToString());
         }
     }

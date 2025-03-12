@@ -1,9 +1,10 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.IO;
 using System.Text;
-
+using System.Windows;
 
 namespace CommonUtils;
-internal static class StringHelper
+public static class StringHelper
 {
     public static string ReplaceInvalidChars(string textLine)
     {
@@ -42,6 +43,22 @@ internal static class StringHelper
         }
 
         return textLine;
+    }
+
+
+    public static void CopyToClipboard(string text)
+    {
+        if (!string.IsNullOrEmpty(text))
+        {
+            try
+            {
+                Clipboard.SetText(text);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Ошибка при копировании в буфер обмена: {ex.Message}");
+            }
+        }
     }
 }
 

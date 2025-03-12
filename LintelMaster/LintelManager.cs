@@ -1,4 +1,5 @@
-﻿using RevitUtils;
+﻿using CommonUtils;
+using RevitUtils;
 using System.Diagnostics;
 
 namespace LintelMaster;
@@ -78,7 +79,24 @@ public sealed class LintelManager(GroupingConfig config)
                 height = ParameterHelper.GetParamValueAsDouble(windowSymbol, BuiltInParameter.WINDOW_HEIGHT);
             }
 
-            Debug.WriteLine($"Категория: {instance.Category.Name}");
+            if (width == 0)
+            {
+                Debug.Write($"{instance.Category.Name} width is null!");
+                StringHelper.CopyToClipboard(element.UniqueId);
+            }
+
+            if (height == 0)
+            {
+                
+                Debug.Write($"{instance.Category.Name} height is null!");
+                StringHelper.CopyToClipboard(element.UniqueId);
+            }
+
+            if (thick == 0)
+            {
+                Debug.Write($"{instance.Category.Name} wall thickness is null!");
+                StringHelper.CopyToClipboard(element.UniqueId);
+            }
 
             int thickRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(thick));
             int widthRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(width, 50));
