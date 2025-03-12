@@ -28,7 +28,7 @@ public static class FamilyHelper
     /// <summary>
     /// Находит родительское семейство по экземпляру вложенного семейства
     /// </summary>
-    public static FamilyInstance GetParentFamily(Document doc, FamilyInstance nestedInstance)
+    public static FamilyInstance GetParentFamily(FamilyInstance nestedInstance)
     {
         Element parent = nestedInstance.SuperComponent;
 

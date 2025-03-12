@@ -17,15 +17,21 @@ public sealed class LintelManager(GroupingConfig config)
     /// </summary>
     public IDictionary<SizeKey, List<LintelData>> RetrieveLintelData(Document doc, string familyName)
     {
-        HashSet<string> hostFamilies = [];
-
         SortedDictionary<SizeKey, List<LintelData>> result = [];
 
         BuiltInCategory bic = BuiltInCategory.OST_StructuralFraming;
 
         foreach (FamilyInstance instance in CollectorHelper.GetInstancesByFamilyName(doc, bic, familyName))
         {
-            (int thickRoundMm, int widthRoundMm, int heightRoundMm) = ExtractOpeningSize(instance);
+            FamilyInstance parentInstance = FamilyHelper.GetParentFamily(instance);
+
+            if (parentInstance is null)
+            {
+                Debug.WriteLine($"Family {instance.Name} instance does not have a valid host!");
+                throw new ArgumentException("Family instance does not have a valid host!");
+            }
+
+            (int thickRoundMm, int widthRoundMm, int heightRoundMm) = ExtractOpeningSize(parentInstance);
 
             Debug.WriteLine($"Толщина: {thickRoundMm}, Ширина: {widthRoundMm}, Высота: {heightRoundMm}");
 
@@ -34,13 +40,6 @@ public sealed class LintelManager(GroupingConfig config)
             if (!result.TryGetValue(lintelData.GroupKey, out List<LintelData> group))
             {
                 result[lintelData.GroupKey] = group = [];
-            }
-
-            FamilyInstance parentInstance = FamilyHelper.GetParentFamily(doc, instance);
-
-            if (parentInstance != null)
-            {
-                _ = hostFamilies.Add(parentInstance.Symbol.FamilyName);
             }
 
             group.Add(lintelData);
@@ -68,17 +67,18 @@ public sealed class LintelManager(GroupingConfig config)
             if (categoryId == (int)BuiltInCategory.OST_Doors)
             {
                 FamilySymbol doorSymbol = instance.Symbol;
-                width = LintelUtils.GetParamValueDouble(doorSymbol, BuiltInParameter.DOOR_WIDTH);
-                height = LintelUtils.GetParamValueDouble(doorSymbol, BuiltInParameter.DOOR_HEIGHT);
+                width = ParameterHelper.GetParamValueAsDouble(doorSymbol, BuiltInParameter.DOOR_WIDTH);
+                height = ParameterHelper.GetParamValueAsDouble(doorSymbol, BuiltInParameter.DOOR_HEIGHT);
             }
 
             if (categoryId == (int)BuiltInCategory.OST_Windows)
             {
                 FamilySymbol windowSymbol = instance.Symbol;
-                width = LintelUtils.GetParamValueDouble(windowSymbol, BuiltInParameter.WINDOW_WIDTH);
-                height = LintelUtils.GetParamValueDouble(windowSymbol, BuiltInParameter.WINDOW_HEIGHT);
-
+                width = ParameterHelper.GetParamValueAsDouble(windowSymbol, BuiltInParameter.WINDOW_WIDTH);
+                height = ParameterHelper.GetParamValueAsDouble(windowSymbol, BuiltInParameter.WINDOW_HEIGHT);
             }
+
+            Debug.WriteLine($"Категория: {instance.Category.Name}");
 
             int thickRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(thick));
             int widthRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(width, 50));
