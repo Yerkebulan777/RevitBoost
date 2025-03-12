@@ -68,14 +68,12 @@ public sealed class LintelManager(GroupingConfig config)
             if (categoryId == (int)BuiltInCategory.OST_Doors)
             {
                 width = ParameterHelper.GetParamValueAsDouble(instance.Symbol, BuiltInParameter.DOOR_WIDTH);
-
                 if (width == 0)
                 {
                     width = ParameterHelper.GetParamValueAsDouble(instance, BuiltInParameter.DOOR_WIDTH);
                 }
 
                 height = ParameterHelper.GetParamValueAsDouble(instance.Symbol, BuiltInParameter.DOOR_HEIGHT);
-
                 if (height == 0)
                 {
                     height = ParameterHelper.GetParamValueAsDouble(instance, BuiltInParameter.DOOR_HEIGHT);
