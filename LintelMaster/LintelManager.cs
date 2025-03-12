@@ -67,16 +67,16 @@ public sealed class LintelManager(GroupingConfig config)
 
             if (categoryId == (int)BuiltInCategory.OST_Doors)
             {
-                FamilySymbol doorSymbol = instance.Symbol;
-                width = ParameterHelper.GetParamValueAsDouble(doorSymbol, BuiltInParameter.DOOR_WIDTH);
-                height = ParameterHelper.GetParamValueAsDouble(doorSymbol, BuiltInParameter.DOOR_HEIGHT);
+                //FamilySymbol doorSymbol = instance.Symbol;
+                width = ParameterHelper.GetParamValueAsDouble(instance, BuiltInParameter.DOOR_WIDTH);
+                height = ParameterHelper.GetParamValueAsDouble(instance, BuiltInParameter.DOOR_HEIGHT);
             }
 
             if (categoryId == (int)BuiltInCategory.OST_Windows)
             {
-                FamilySymbol windowSymbol = instance.Symbol;
-                width = ParameterHelper.GetParamValueAsDouble(windowSymbol, BuiltInParameter.WINDOW_WIDTH);
-                height = ParameterHelper.GetParamValueAsDouble(windowSymbol, BuiltInParameter.WINDOW_HEIGHT);
+                //FamilySymbol windowSymbol = instance.Symbol;
+                width = ParameterHelper.GetParamValueAsDouble(instance, BuiltInParameter.WINDOW_WIDTH);
+                height = ParameterHelper.GetParamValueAsDouble(instance, BuiltInParameter.WINDOW_HEIGHT);
             }
 
             int thickRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(thick));
