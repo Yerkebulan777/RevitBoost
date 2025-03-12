@@ -25,9 +25,9 @@ public sealed class LintelManager(GroupingConfig config)
 
         foreach (FamilyInstance instance in CollectorHelper.GetInstancesByFamilyName(doc, bic, familyName))
         {
-            int thickRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(instance, _thickParam)));
-            int widthRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(instance, _widthParam), 50));
-            int heightRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(LintelUtils.GetParamValue(instance, _heightParam), 100));
+            int thickRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(LintelUtils.GetParamValueDouble(instance, _thickParam)));
+            int widthRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(LintelUtils.GetParamValueDouble(instance, _widthParam), 50));
+            int heightRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(LintelUtils.GetParamValueDouble(instance, _heightParam), 100));
 
             Debug.WriteLine($"Толщина: {thickRoundMm}, Ширина: {widthRoundMm}, Высота: {heightRoundMm}");
 
@@ -54,6 +54,51 @@ public sealed class LintelManager(GroupingConfig config)
         return result;
     }
 
+
+
+
+    public void GetDoorWindowDimensions(Document doc)
+    {
+        // Сбор всех дверей
+        var doors = new FilteredElementCollector(doc)
+            .OfCategory(BuiltInCategory.OST_Doors)
+            .WhereElementIsNotElementType()
+            .Cast<FamilyInstance>();
+
+        // Сбор всех окон
+        var windows = new FilteredElementCollector(doc)
+            .OfCategory(BuiltInCategory.OST_Windows)
+            .WhereElementIsNotElementType()
+            .Cast<FamilyInstance>();
+
+        // Обработка дверей
+        foreach (var door in doors)
+        {
+            double width = GetParameterValueDouble(door, BuiltInParameter.DOOR_WIDTH);
+            double height = GetParameterValueDouble(door, BuiltInParameter.DOOR_HEIGHT);
+
+            string sizeInfo = $"{door.Name}: Ширина={ConvertToMillimeters(width)} мм, Высота={ConvertToMillimeters(height)} мм";
+            TaskDialog.Show("Размеры", sizeInfo);
+        }
+
+        // Обработка окон
+        foreach (var window in windows)
+        {
+            var symbol = window.Symbol;
+            double width = GetParameterValueDouble(symbol, BuiltInParameter.WINDOW_WIDTH);
+            double height = GetParameterValueDouble(symbol, BuiltInParameter.WINDOW_HEIGHT);
+
+            string sizeInfo = $"{window.Name}: Ширина={ConvertToMillimeters(width)} мм, Высота={ConvertToMillimeters(height)} мм";
+            TaskDialog.Show("Размеры", sizeInfo);
+        }
+    }
+
+
+    // Конвертация из футов в миллиметры
+    private string ConvertToMillimeters(double feetValue)
+    {
+        return UnitUtils.ConvertFromInternalUnits(feetValue, UnitTypeId.Millimeters).ToString("F0");
+    }
 
 
 }

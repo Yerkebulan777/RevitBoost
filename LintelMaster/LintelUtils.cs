@@ -35,9 +35,9 @@ public static class LintelUtils
     }
 
     /// <summary>
-    /// Получает значение числового параметра
+    /// Получает значение числового параметра типа double
     /// </summary>
-    public static double GetParamValue(FamilyInstance instance, string paramName)
+    public static double GetParamValueDouble(FamilyInstance instance, string paramName)
     {
         Parameter prm = instance.LookupParameter(paramName);
 
@@ -51,4 +51,24 @@ public static class LintelUtils
 
         return 0;
     }
+
+    /// <summary>
+    /// Получает значение числового параметра типа double
+    /// </summary>
+    public static double GetParamValueDouble(Element element, BuiltInParameter parameter)
+    {
+        Parameter param = element.get_Parameter(parameter);
+
+        if (param != null && param.HasValue)
+        {
+            if (param.StorageType == StorageType.Double)
+            {
+                return param.AsDouble();
+            }
+        }
+
+        return 0;
+    }
+
+
 }
