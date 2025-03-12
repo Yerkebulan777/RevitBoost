@@ -31,6 +31,12 @@ public readonly struct SizeKey : IEquatable<SizeKey>, IComparable<SizeKey>
         ThickInMm = thick;
         WidthInMm = width;
         HeightInMm = height;
+
+        if (thick == 0 || width == 0 || height == 0)
+        {
+            throw new ArgumentException("Invalid lintel dimensions");
+        }
+
     }
 
     /// <summary>

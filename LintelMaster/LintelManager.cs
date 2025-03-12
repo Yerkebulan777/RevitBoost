@@ -110,8 +110,6 @@ public sealed class LintelManager(GroupingConfig config)
     /// <summary>
     /// Получает толщину стены-основы для элемента.
     /// </summary>
-    /// <param name="instance">Экземпляр семейства (двери, окна и т.д.).</param>
-    /// <returns>Толщина стены в миллиметрах или 0, если стена не найдена.</returns>
     public double GetHostWallThickness(FamilyInstance instance)
     {
         if (instance?.Host is Wall hostWall)
