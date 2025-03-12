@@ -79,9 +79,9 @@ public sealed class LintelManager(GroupingConfig config)
                 height = ParameterHelper.GetParamValueAsDouble(windowSymbol, BuiltInParameter.WINDOW_HEIGHT);
             }
 
+            int thickRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(thick));
             int widthRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(width, 50));
             int heightRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(height, 100));
-            int thickRoundMm = Convert.ToInt32(UnitManager.FootToRoundedMm(thick));
 
             if (widthRoundMm == 0)
             {
@@ -114,9 +114,13 @@ public sealed class LintelManager(GroupingConfig config)
     /// <returns>Толщина стены в миллиметрах или 0, если стена не найдена.</returns>
     public double GetHostWallThickness(FamilyInstance instance)
     {
-        return instance?.Host is Wall hostWall ? hostWall.Width : 0;
-    }
+        if (instance?.Host is Wall hostWall)
+        {
+            return (double)hostWall.Width;
+        }
 
+        throw new ArgumentException("Family instance does not have a valid host!");
+    }
 
 
 }
