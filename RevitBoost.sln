@@ -14,6 +14,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RevitUtils", "RevitUtils\Re
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LintelMaster", "LintelMaster\LintelMaster.csproj", "{FBF8B387-586C-4F0F-B17C-64A20E94AFA2}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{36D591C7-65C7-A0D1-1CBC-10CDE441BDC8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug R19|Any CPU = Debug R19|Any CPU
@@ -147,6 +149,12 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{AD10656A-EF44-4727-A6A2-04515F49D3DF} = {36D591C7-65C7-A0D1-1CBC-10CDE441BDC8}
+		{F9AF90B7-F310-49B2-BC7C-32EE361B271E} = {36D591C7-65C7-A0D1-1CBC-10CDE441BDC8}
+		{FE465A14-D771-432A-A3D9-447617AA7B9A} = {36D591C7-65C7-A0D1-1CBC-10CDE441BDC8}
+		{FBF8B387-586C-4F0F-B17C-64A20E94AFA2} = {36D591C7-65C7-A0D1-1CBC-10CDE441BDC8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2BF4CDD4-077C-41E1-84D4-E4C4309ED23B}
