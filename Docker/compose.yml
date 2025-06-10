@@ -11,7 +11,7 @@ services:
       # Основные переменные окружения
       POSTGRES_DB: sync_db
       POSTGRES_USER: admin
-      POSTGRES_PASSWORD: password!
+      POSTGRES_PASSWORD: Password123!
       
       # Дополнительные настройки PostgreSQL
       POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --locale=C"
@@ -64,7 +64,7 @@ services:
     
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@company.local
-      PGADMIN_DEFAULT_PASSWORD: AdminPassword123!
+      PGADMIN_DEFAULT_PASSWORD: Password123!
       PGADMIN_CONFIG_SERVER_MODE: 'False'
     
     ports:
