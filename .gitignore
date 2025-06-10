@@ -361,3 +361,12 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Docker volumes и logs
+docker/data/
+docker/logs/
+*.log
+
+# Временные файлы
+.env.local
+docker-compose.override.yml
