@@ -69,6 +69,15 @@
 		
 	</ItemGroup>
 
+	<!-- Import and configure the SonarC# analyzer -->
+	<PropertyGroup>
+		<SonarAnalyzerVersion>8.2.0.14119</SonarAnalyzerVersion>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="SonarAnalyzer.CSharp" Version="$(SonarAnalyzerVersion)" />
+		<Analyzer Include="$(NuGetPackageRoot)SonarAnalyzer.CSharp/$(SonarAnalyzerVersion)/analyzers/*.dll" Visible="false" />
+	</ItemGroup>
+	
 	<ItemGroup>
 	  <ProjectReference Include="..\CommonUtils\CommonUtils.csproj" />
 	  <ProjectReference Include="..\LintelMaster\LintelMaster.csproj" />
