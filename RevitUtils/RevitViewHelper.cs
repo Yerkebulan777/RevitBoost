@@ -466,14 +466,11 @@ internal sealed class RevitViewHelper
 
             if (TransactionStatus.Started == trx.Start())
             {
-                foreach (Element instance in elements)
+                foreach (Element instance in elements.Where(e => e.CanBeHidden(activeView)))
                 {
-                    if (instance.CanBeHidden(activeView))
+                    if (!instance.IsHidden(activeView))
                     {
-                        if (!instance.IsHidden(activeView))
-                        {
-                            hideIds.Add(instance.Id);
-                        }
+                        hideIds.Add(instance.Id);
                     }
                 }
 
