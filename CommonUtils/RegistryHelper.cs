@@ -1,168 +1,163 @@
 ﻿using Microsoft.Win32;
+using Serilog;
 using System.Runtime.InteropServices;
 
-namespace CommonUtils;
-internal static class RegistryHelper
+namespace CommonUtils
 {
-    private const int maxRetries = 10;
-    private static readonly uint WM_SETTINGCHANGE = 26;
-    private static readonly IntPtr HWND_BROADCAST = new(0xFFFF);
-    private static readonly ILogger log = LogManager.Current;
-
-
-    public static bool IsKeyExists(RegistryKey rootKey, string path)
+    internal static class RegistryHelper
     {
-        using RegistryKey registryKey = rootKey.OpenSubKey(path);
+        private const int maxRetries = 10;
+        private static readonly uint WM_SETTINGCHANGE = 26;
+        private static readonly IntPtr HWND_BROADCAST = new(0xFFFF);
 
-        if (registryKey is null)
+        private static readonly object registryLock = new();
+
+        public static bool IsKeyExists(RegistryKey rootKey, string path)
         {
-            return false;
-        }
+            using RegistryKey registryKey = rootKey.OpenSubKey(path);
 
-        return true;
-    }
-
-
-    public static bool IsValueExists(RegistryKey rootKey, string path, string name)
-    {
-        using RegistryKey registryKey = rootKey.OpenSubKey(path);
-        object value = registryKey?.GetValue(name);
-
-        if (value is null)
-        {
-            return false;
-        }
-
-        return true;
-    }
-
-
-    public static object GetValue(RegistryKey rootKey, string path, string name)
-    {
-        try
-        {
-            using RegistryKey regKey = rootKey.OpenSubKey(path);
-
-            if (regKey is not null)
+            if (registryKey is null)
             {
-                return regKey.GetValue(name);
-            }
-        }
-        catch (Exception ex)
-        {
-            log.Error($"GetValue failed: {ex.Message}");
-        }
-
-        return null;
-    }
-
-
-    public static void SetValue(RegistryKey rootKey, string path, string name, object value)
-    {
-        lock (rootKey)
-        {
-            int retryCount = 0;
-
-            while (retryCount < maxRetries)
-            {
-                Thread.Sleep(100); retryCount++;
-
-                if (IsValueExists(rootKey, path, name))
-                {
-                    using RegistryKey regKey = rootKey.OpenSubKey(path, true);
-
-                    if (regKey != null)
-                    {
-                        SetRegistryValue(regKey, name, value);
-                        regKey.Flush();
-                        return;
-                    }
-                }
+                return false;
             }
 
-            throw new InvalidOperationException($"Failed to set registry value: {name}");
-
+            return true;
         }
-    }
 
-
-    private static void SetRegistryValue(RegistryKey regKey, string name, object value)
-    {
-        try
+        public static bool IsValueExists(RegistryKey rootKey, string path, string name)
         {
-            if (value is int intValue)
-            {
-                regKey.SetValue(name, intValue, RegistryValueKind.DWord);
-            }
-            else if (value is string strValue)
-            {
-                regKey.SetValue(name, strValue, RegistryValueKind.String);
-            }
-            else
-            {
-                throw new ArgumentException($"Unsupported type: {value.GetType()}");
-            }
-        }
-        catch (Exception ex)
-        {
-            log.Error($"Failed to set registry value: {name}, {ex.Message}");
-        }
-        finally
-        {
-            if (ApplyRegistryChanges())
-            {
-                Thread.Sleep(100);
-            }
-        }
-    }
+            using RegistryKey registryKey = rootKey.OpenSubKey(path);
+            object value = registryKey?.GetValue(name);
 
+            if (value is null)
+            {
+                return false;
+            }
 
-    public static bool CreateValue(RegistryKey rootKey, string path, string name, object value)
-    {
-        lock (rootKey)
+            return true;
+        }
+
+        public static object GetValue(RegistryKey rootKey, string path, string name)
         {
             try
             {
-                using RegistryKey regKey = rootKey.CreateSubKey(path);
+                using RegistryKey regKey = rootKey.OpenSubKey(path);
 
                 if (regKey is not null)
                 {
-                    object currentValue = regKey.GetValue(name);
-
-                    if (currentValue is null)
-                    {
-                        if (value is int intValue)
-                        {
-                            regKey.SetValue(name, intValue, RegistryValueKind.DWord);
-                        }
-                        else if (value is string strValue)
-                        {
-                            regKey.SetValue(name, strValue, RegistryValueKind.String);
-                        }
-                    }
-
-                    regKey.Flush();
-
-                    return ApplyRegistryChanges();
+                    return regKey.GetValue(name);
                 }
             }
             catch (Exception ex)
             {
-                throw new Exception($"Failed to create registry parameter {path}: {ex.Message}");
+                Log.Error($"GetValue failed: {ex.Message}");
             }
 
-            return false;
+            return null;
+        }
+
+        public static void SetValue(RegistryKey rootKey, string path, string name, object value)
+        {
+            lock (registryLock) // Use the dedicated lock object
+            {
+                int retryCount = 0;
+
+                while (retryCount < maxRetries)
+                {
+                    Thread.Sleep(100); retryCount++;
+
+                    if (IsValueExists(rootKey, path, name))
+                    {
+                        using RegistryKey regKey = rootKey.OpenSubKey(path, true);
+
+                        if (regKey != null)
+                        {
+                            SetRegistryValue(regKey, name, value);
+                            regKey.Flush();
+                            return;
+                        }
+                    }
+                }
+
+                throw new InvalidOperationException($"Failed to set registry value: {name}");
+            }
+        }
+
+        private static void SetRegistryValue(RegistryKey regKey, string name, object value)
+        {
+            try
+            {
+                if (value is int intValue)
+                {
+                    regKey.SetValue(name, intValue, RegistryValueKind.DWord);
+                }
+                else if (value is string strValue)
+                {
+                    regKey.SetValue(name, strValue, RegistryValueKind.String);
+                }
+                else
+                {
+                    throw new ArgumentException($"Unsupported type: {value.GetType()}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Failed to set registry value: {name}, {ex.Message}");
+            }
+            finally
+            {
+                if (ApplyRegistryChanges())
+                {
+                    Thread.Sleep(100);
+                }
+            }
+        }
+
+        public static bool CreateValue(RegistryKey rootKey, string path, string name, object value)
+        {
+            lock (registryLock) // Use the dedicated lock object
+            {
+                try
+                {
+                    using RegistryKey regKey = rootKey.CreateSubKey(path);
+
+                    if (regKey is not null)
+                    {
+                        object currentValue = regKey.GetValue(name);
+
+                        if (currentValue is null)
+                        {
+                            if (value is int intValue)
+                            {
+                                regKey.SetValue(name, intValue, RegistryValueKind.DWord);
+                            }
+                            else if (value is string strValue)
+                            {
+                                regKey.SetValue(name, strValue, RegistryValueKind.String);
+                            }
+                        }
+
+                        regKey.Flush();
+
+                        return ApplyRegistryChanges();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Error($"Failed to create registry parameter {path}: {ex.Message}");
+                    throw new InvalidOperationException($"Failed to create registry parameter {path}", ex);
+                }
+
+                return false;
+            }
+        }
+
+        [DllImport("user32.DLL")]
+        public static extern bool SendNotifyMessageA(IntPtr hWnd, uint msg, int wParam, int lParam);
+
+        private static bool ApplyRegistryChanges()
+        {
+            return SendNotifyMessageA(HWND_BROADCAST, WM_SETTINGCHANGE, 0, 0);
         }
     }
-
-
-    [DllImport("user32.DLL")]
-    public static extern bool SendNotifyMessageA(IntPtr hWnd, uint msg, int wParam, int lParam);
-
-
-    private static bool ApplyRegistryChanges()
-    {
-        return SendNotifyMessageA(HWND_BROADCAST, WM_SETTINGCHANGE, 0, 0);
-    }
-
 }
