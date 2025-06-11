@@ -7,6 +7,7 @@ namespace RevitUtils
     {
         private IList<FailureResolutionType> resolutionList;
         private readonly StringBuilder warningText = new();
+
         public FailureProcessingResult PreprocessFailures(FailuresAccessor failuresAccessor)
         {
             foreach (FailureMessageAccessor failure in failuresAccessor.GetFailureMessages())
