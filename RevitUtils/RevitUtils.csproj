@@ -73,5 +73,8 @@
 		<PackageReference Include="SonarAnalyzer.CSharp" Version="$(SonarAnalyzerVersion)" />
 		<Analyzer Include="$(NuGetPackageRoot)SonarAnalyzer.CSharp/$(SonarAnalyzerVersion)/analyzers/*.dll" Visible="false" />
 	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Logging\" />
+	</ItemGroup>
 
 </Project>

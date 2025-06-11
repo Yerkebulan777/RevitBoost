@@ -1,5 +1,4 @@
-﻿using CommonUtils.Logging;
-using Microsoft.Win32;
+﻿using Microsoft.Win32;
 using System.Runtime.InteropServices;
 
 namespace CommonUtils;
