@@ -82,6 +82,7 @@ namespace CommonUtils
             }
         }
 
+
         private static void SetRegistryValue(RegistryKey regKey, string name, object value)
         {
             try
