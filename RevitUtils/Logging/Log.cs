@@ -25,7 +25,7 @@ namespace RevitUtils.Logging
             _logger.Error(message);
         }
 
-        public static void Fatal(string message)
+        public static void Fatal(Exception ex, string message)
         {
             _logger.Fatal(message);
         }
