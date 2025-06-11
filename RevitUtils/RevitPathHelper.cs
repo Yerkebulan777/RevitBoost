@@ -1,5 +1,6 @@
 ﻿using Microsoft.Win32;
 using System.Diagnostics;
+using RevitUtils.Logging;
 using Directory = System.IO.Directory;
 using DirectoryInfo = System.IO.DirectoryInfo;
 using File = System.IO.File;
