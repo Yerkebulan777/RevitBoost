@@ -11,6 +11,7 @@ namespace CommonUtils
         private static readonly IntPtr HWND_BROADCAST = new(0xFFFF);
         private static readonly object registryLock = new();
 
+
         public static bool IsKeyExists(RegistryKey rootKey, string path)
         {
             using RegistryKey registryKey = rootKey.OpenSubKey(path);
@@ -22,6 +23,7 @@ namespace CommonUtils
 
             return true;
         }
+
 
         public static bool IsValueExists(RegistryKey rootKey, string path, string name)
         {
@@ -35,6 +37,7 @@ namespace CommonUtils
 
             return true;
         }
+
 
         public static object GetValue(RegistryKey rootKey, string path, string name)
         {
@@ -54,6 +57,7 @@ namespace CommonUtils
 
             return null;
         }
+
 
         public static void SetValue(RegistryKey rootKey, string path, string name, object value)
         {
@@ -113,6 +117,7 @@ namespace CommonUtils
             }
         }
 
+
         public static bool CreateValue(RegistryKey rootKey, string path, string name, object value)
         {
             lock (registryLock) // Use the dedicated lock object
@@ -152,12 +157,16 @@ namespace CommonUtils
             }
         }
 
+
         [DllImport("user32.DLL")]
         public static extern bool SendNotifyMessageA(IntPtr hWnd, uint msg, int wParam, int lParam);
+
 
         private static bool ApplyRegistryChanges()
         {
             return SendNotifyMessageA(HWND_BROADCAST, WM_SETTINGCHANGE, 0, 0);
         }
+
+
     }
 }

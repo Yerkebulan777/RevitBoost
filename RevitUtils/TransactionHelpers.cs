@@ -1,17 +1,16 @@
 ﻿using System.Diagnostics;
 
-namespace RevitUtils;
-
-public static class TransactionHelpers
+namespace RevitUtils
 {
-    private static readonly object singleLocker = new object();
-
-    public static void CreateTransaction(Document doc, string name, Action action)
+    public static class TransactionHelpers
     {
-        lock (singleLocker)
+        private static readonly object singleLocker = new();
+
+        public static void CreateTransaction(Document doc, string name, Action action)
         {
-            using (Transaction trx = new Transaction(doc))
+            lock (singleLocker)
             {
+                using Transaction trx = new(doc);
                 TransactionStatus status = trx.Start(name);
                 if (status == TransactionStatus.Started)
                 {
@@ -31,33 +30,29 @@ public static class TransactionHelpers
                 }
             }
         }
-    }
 
 
-    public static void DeleteElements(Document doc, ICollection<ElementId> elemtIds)
-    {
-        lock (singleLocker)
+        public static void DeleteElements(Document doc, ICollection<ElementId> elemtIds)
         {
-            using (Transaction trx = new Transaction(doc, "DeleteElements"))
+            lock (singleLocker)
             {
+                using Transaction trx = new(doc, "DeleteElements");
                 IEnumerator<ElementId> enm = elemtIds.GetEnumerator();
                 TransactionStatus status = trx.Start();
                 if (status == TransactionStatus.Started)
                 {
                     while (enm.MoveNext())
                     {
-                        using (SubTransaction subtrx = new SubTransaction(doc))
+                        using SubTransaction subtrx = new(doc);
+                        try
                         {
-                            try
-                            {
-                                status = subtrx.Start();
-                                doc.Delete(enm.Current);
-                                status = subtrx.Commit();
-                            }
-                            catch
-                            {
-                                status = subtrx.RollBack();
-                            }
+                            status = subtrx.Start();
+                            _ = doc.Delete(enm.Current);
+                            status = subtrx.Commit();
+                        }
+                        catch
+                        {
+                            status = subtrx.RollBack();
                         }
                     }
 
@@ -67,8 +62,8 @@ public static class TransactionHelpers
                 }
             }
         }
+
+
+
     }
-
-
-
 }
