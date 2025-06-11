@@ -1,4 +1,6 @@
-﻿namespace RevitUtils
+﻿using RevitUtils.Logging;
+
+namespace RevitUtils
 {
     public static class ParameterHelper
     {
@@ -57,5 +59,56 @@
 
             return false;
         }
+
+
+        /// <summary>
+        /// Получает числовое значение параметра по BuiltInParameter
+        /// </summary>
+        /// <returns>Значение параметра в внутренних единицах Revit или 0 если параметр не найден</returns>
+        public static double GetParamValueAsDouble(Element element, BuiltInParameter paramId)
+        {
+            if (element is null || !element.IsValidObject)
+            {
+                Log.Error("Element is null or invalid");
+                throw new ArgumentNullException(nameof(element), "Element cannot be null or invalid.");
+            }
+
+            if (paramId == BuiltInParameter.INVALID)
+            {
+                Log.Error("Invalid BuiltInParameter");
+                throw new ArgumentException("BuiltInParameter cannot be INVALID.", nameof(paramId));
+            }
+
+            Parameter parameter = element.get_Parameter(paramId);
+
+            return parameter?.HasValue == true && parameter.StorageType == StorageType.Double ? parameter.AsDouble() : 0;
+        }
+
+
+        /// <summary>
+        /// Получает числовое значение параметра по имени
+        /// </summary>
+        /// <returns>Значение параметра в внутренних единицах Revit или 0 если параметр не найден</returns>
+        public static double GetParamValueAsDouble(Element element, string paramName)
+        {
+            if (element is null || !element.IsValidObject)
+            {
+                Log.Error("Element is null or invalid");
+                throw new ArgumentNullException(nameof(element), "Element cannot be null or invalid.");
+            }
+
+            if (string.IsNullOrWhiteSpace(paramName))
+            {
+                Log.Error("Parameter name is null or empty");
+                throw new ArgumentException("Parameter name cannot be null or empty.", nameof(paramName));
+            }
+
+            Parameter parameter = element.LookupParameter(paramName);
+
+            return parameter?.HasValue == true && parameter.StorageType == StorageType.Double ? parameter.AsDouble() : 0;
+        }
+
+
+
     }
 }

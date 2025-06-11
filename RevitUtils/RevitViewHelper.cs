@@ -33,7 +33,7 @@ internal sealed class RevitViewHelper
                 }
                 catch (Exception ex)
                 {
-                    log.Error(ex.Message);
+                    Log.Error(ex.Message);
 
                     if (!trx.HasEnded())
                     {
@@ -131,7 +131,7 @@ internal sealed class RevitViewHelper
             }
             finally
             {
-                log.Debug("Set View settings");
+                Log.Debug("Set View settings");
             }
 
         }
@@ -217,7 +217,7 @@ internal sealed class RevitViewHelper
         }
         finally
         {
-            log.Debug("Set categories to visible");
+            Log.Debug("Set categories to visible");
 
             if (!trx.HasEnded())
             {
@@ -398,7 +398,7 @@ internal sealed class RevitViewHelper
                 }
                 catch (Exception ex)
                 {
-                    log.Error(ex.Message);
+                    Log.Error(ex.Message);
                 }
             }
         }
@@ -416,11 +416,11 @@ internal sealed class RevitViewHelper
             }
             catch (Exception ex)
             {
-                log.Error(ex.Message);
+                Log.Error(ex.Message);
             }
             finally
             {
-                log.Debug($"Activated view: {view.Name}");
+                Log.Debug($"Activated view: {view.Name}");
             }
         }
     }
@@ -486,7 +486,7 @@ internal sealed class RevitViewHelper
         }
         finally
         {
-            log.Debug("Hided elements");
+            Log.Debug("Hided elements");
 
             if (!trx.HasEnded())
             {

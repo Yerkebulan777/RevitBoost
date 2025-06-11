@@ -71,7 +71,7 @@ namespace RevitUtils
             }
             catch (Exception ex)
             {
-                log.Debug("Failed Reload: " + ex.Message);
+                Log.Debug("Failed Reload: " + ex.Message);
             }
         }
 
@@ -84,7 +84,7 @@ namespace RevitUtils
             }
             catch (Exception ex)
             {
-                log.Debug("Failed Delete: " + ex.Message);
+                Log.Debug("Failed Delete: " + ex.Message);
             }
         }
 
