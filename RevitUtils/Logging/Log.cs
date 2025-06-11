@@ -27,7 +27,7 @@ namespace RevitUtils.Logging
 
         public static void Fatal(Exception ex, string message)
         {
-            _logger.Fatal(message);
+            _logger.Fatal(ex, message);
         }
 
         public static void CloseAndFlush()
