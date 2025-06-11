@@ -7,8 +7,7 @@ namespace RevitUtils.Logging
         private static readonly string _logFilePath = @"%APPDATA%\RevitBoost\Logs\CommonUtils-.log";
 
         private static readonly ILogger _logger = new LoggerConfiguration()
-            .WriteTo.File(path: _logFilePath, 
-            rollingInterval: RollingInterval.Day, 
+            .WriteTo.File(path: _logFilePath, rollingInterval: RollingInterval.Day, 
             retainedFileCountLimit: 5)
            .CreateLogger();
 
@@ -36,5 +35,6 @@ namespace RevitUtils.Logging
         {
             Serilog.Log.CloseAndFlush();
         }
+
     }
 }
