@@ -6,13 +6,15 @@ namespace RevitUtils
     public sealed class WarningSwallower : IFailuresPreprocessor
     {
         private IList<FailureResolutionType> resolutionList;
-        private readonly StringBuilder warningText = new StringBuilder();
+        private readonly StringBuilder warningText = new();
         public FailureProcessingResult PreprocessFailures(FailuresAccessor failuresAccessor)
         {
             foreach (FailureMessageAccessor failure in failuresAccessor.GetFailureMessages())
             {
-                if (failure.GetSeverity() == FailureSeverity.None) { continue; }
+                if (failure.GetSeverity() == FailureSeverity.None) continue;
+
                 resolutionList = failuresAccessor.GetAttemptedResolutionTypes(failure);
+
                 if (resolutionList.Count > 1)
                 {
                     warningText.AppendLine("Cannot resolve failures");
@@ -22,6 +24,7 @@ namespace RevitUtils
                 {
                     FailureResolutionType resolution = resolutionList.FirstOrDefault();
                     warningText.AppendLine($"Fail: {failure.GetDescriptionText()} {resolution}");
+
                     if (resolution == FailureResolutionType.Invalid)
                     {
                         return FailureProcessingResult.ProceedWithRollBack;
@@ -35,7 +38,10 @@ namespace RevitUtils
                     {
                         failuresAccessor.DeleteWarning(failure);
                     }
-                    else { failuresAccessor.ResolveFailure(failure); }
+                    else 
+                    { 
+                        failuresAccessor.ResolveFailure(failure); 
+                    }
 
                     return FailureProcessingResult.ProceedWithCommit;
                 }
