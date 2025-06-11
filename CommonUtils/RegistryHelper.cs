@@ -9,8 +9,8 @@ namespace CommonUtils
         private const int maxRetries = 10;
         private static readonly uint WM_SETTINGCHANGE = 26;
         private static readonly IntPtr HWND_BROADCAST = new(0xFFFF);
-        //private readonly Lock _balanceLock = new();
         private static readonly object registryLock = new();
+
 
         public static bool IsKeyExists(RegistryKey rootKey, string path)
         {
@@ -24,6 +24,7 @@ namespace CommonUtils
             return true;
         }
 
+
         public static bool IsValueExists(RegistryKey rootKey, string path, string name)
         {
             using RegistryKey registryKey = rootKey.OpenSubKey(path);
@@ -36,6 +37,7 @@ namespace CommonUtils
 
             return true;
         }
+
 
         public static object GetValue(RegistryKey rootKey, string path, string name)
         {
