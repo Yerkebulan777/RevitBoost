@@ -2,82 +2,80 @@
 using System.Diagnostics;
 
 
-namespace CommonUtils;
-
-public static class FileUnlockHelper
+namespace CommonUtils
 {
-    private static ILogger log = LogManager.Current;
-
-
-    public static bool TryUnlockFile(string filePath)
+    public static class FileUnlockHelper
     {
-        try
+        public static bool TryUnlockFile(string filePath)
         {
-            Process handleProcess = new();
-            handleProcess.StartInfo.FileName = "handle.exe";
-            handleProcess.StartInfo.Arguments = $"-a \"{filePath}\"";
-            handleProcess.StartInfo.RedirectStandardOutput = true;
-            handleProcess.StartInfo.UseShellExecute = false;
-            handleProcess.StartInfo.CreateNoWindow = true;
-
-            if (handleProcess.Start())
+            try
             {
-                string output = handleProcess.StandardOutput.ReadToEnd();
+                Process handleProcess = new();
+                handleProcess.StartInfo.FileName = "handle.exe";
+                handleProcess.StartInfo.Arguments = $"-a \"{filePath}\"";
+                handleProcess.StartInfo.RedirectStandardOutput = true;
+                handleProcess.StartInfo.UseShellExecute = false;
+                handleProcess.StartInfo.CreateNoWindow = true;
 
-                handleProcess.WaitForExit();
-
-                int pid = ParseHandleOutput(output);
-
-                if (pid > 0)
+                if (handleProcess.Start())
                 {
-                    try
+                    string output = handleProcess.StandardOutput.ReadToEnd();
+
+                    handleProcess.WaitForExit();
+
+                    int pid = ParseHandleOutput(output);
+
+                    if (pid > 0)
                     {
-                        Process.GetProcessById(pid).Kill();
-                    }
-                    catch (Exception ex)
-                    {
-                        log.Error($"Ошибка при завершении процесса: {ex.Message}");
-                        return false;
+                        try
+                        {
+                            Process.GetProcessById(pid).Kill();
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error($"Ошибка при завершении процесса: {ex.Message}");
+                            return false;
+                        }
                     }
                 }
             }
-        }
-        catch (Exception ex)
-        {
-            log.Error($"Ошибка при разблокировке файла: {ex.Message}");
-            return false;
-        }
-
-        return true;
-    }
-
-
-    private static int ParseHandleOutput(string output)
-    {
-        try
-        {
-            string[] lines = output.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
-
-            foreach (string line in lines)
+            catch (Exception ex)
             {
-                if (line.Contains("pid:"))
-                {
-                    string pidString = line.Substring(line.IndexOf("pid:") + 4).Trim();
+                Log.Error($"Ошибка при разблокировке файла: {ex.Message}");
+                return false;
+            }
 
-                    if (int.TryParse(pidString, out int pid))
+            return true;
+        }
+
+
+        private static int ParseHandleOutput(string output)
+        {
+            try
+            {
+                string[] lines = output.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+
+                foreach (string line in lines)
+                {
+                    if (line.Contains("pid:"))
                     {
-                        return pid;
+                        string pidString = line.Substring(line.IndexOf("pid:") + 4).Trim();
+
+                        if (int.TryParse(pidString, out int pid))
+                        {
+                            return pid;
+                        }
                     }
                 }
             }
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Ошибка при парсинге вывода handle.exe: {ex.Message}");
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Ошибка при парсинге вывода handle.exe: {ex.Message}");
+            }
+
+            return -1;
         }
 
-        return -1;
+
     }
-
-
 }
