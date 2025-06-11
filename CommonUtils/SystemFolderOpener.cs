@@ -4,46 +4,47 @@ using System.IO;
 using System.Runtime.InteropServices;
 
 
-namespace CommonUtils;
-internal static class SystemFolderOpener
+namespace CommonUtils
 {
-    [DllImport("user32.dll")]
-    private static extern bool SetForegroundWindow(IntPtr hWnd);
-
-
-    public static void CloseDirectory(string inputPath)
+    internal static class SystemFolderOpener
     {
-        string inputName = Path.GetFileName(inputPath);
+        [DllImport("user32.dll")]
+        private static extern bool SetForegroundWindow(IntPtr hWnd);
 
-        StringComparison comparison = StringComparison.OrdinalIgnoreCase;
 
-        foreach (Process proc in Process.GetProcessesByName("explorer"))
+        public static void CloseDirectory(string inputPath)
         {
-            if (inputName.EndsWith(proc.MainWindowTitle, comparison))
+            string inputName = Path.GetFileName(inputPath);
+
+            StringComparison comparison = StringComparison.OrdinalIgnoreCase;
+
+            foreach (Process proc in Process.GetProcessesByName("explorer"))
             {
-                proc?.Kill();
-                proc?.Dispose();
+                if (inputName.EndsWith(proc.MainWindowTitle, comparison))
+                {
+                    proc?.Kill();
+                    proc?.Dispose();
+                }
             }
         }
-    }
 
 
-    public static void OpenFolder(string directoryPath)
-    {
-        if (Directory.Exists(directoryPath))
+        public static void OpenFolder(string directoryPath)
         {
-            CloseDirectory(directoryPath);
-
-            Process proc = Process.Start("explorer.exe", directoryPath);
-
-            if (proc.WaitForExit(1000))
+            if (Directory.Exists(directoryPath))
             {
-                Log.Debug($"Opened: {directoryPath}");
+                CloseDirectory(directoryPath);
+
+                Process proc = Process.Start("explorer.exe", directoryPath);
+
+                if (proc.WaitForExit(1000))
+                {
+                    Log.Debug($"Opened: {directoryPath}");
+                }
             }
-
         }
-    }
 
+
+    }
 
 }
-
