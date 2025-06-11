@@ -2,7 +2,7 @@
 
 namespace CommonUtils.Logging
 {
-    public static class Log
+    internal static class Log
     {
         private static readonly string _logFilePath = @"%APPDATA%\RevitBoost\Logs\CommonUtils-.log";
 

@@ -11,7 +11,6 @@ namespace CommonUtils
         private static readonly IntPtr HWND_BROADCAST = new(0xFFFF);
         private static readonly object registryLock = new();
 
-
         public static bool IsKeyExists(RegistryKey rootKey, string path)
         {
             using RegistryKey registryKey = rootKey.OpenSubKey(path);
@@ -23,7 +22,6 @@ namespace CommonUtils
 
             return true;
         }
-
 
         public static bool IsValueExists(RegistryKey rootKey, string path, string name)
         {
@@ -38,7 +36,6 @@ namespace CommonUtils
             return true;
         }
 
-
         public static object GetValue(RegistryKey rootKey, string path, string name)
         {
             try
@@ -52,7 +49,7 @@ namespace CommonUtils
             }
             catch (Exception ex)
             {
-                Log.Error($"GetValue failed: {ex.Message}");
+                Log.Error("GetValue failed: {Message}", ex.Message);
             }
 
             return null;
@@ -104,7 +101,7 @@ namespace CommonUtils
             }
             catch (Exception ex)
             {
-                Log.Error($"Failed to set registry value: {name}, {ex.Message}");
+                Log.Error("Failed to set registry value: {Name}, {Message}", name, ex.Message);
             }
             finally
             {
@@ -146,7 +143,7 @@ namespace CommonUtils
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"Failed to create registry parameter {path}: {ex.Message}");
+                    Log.Error("Failed to create registry parameter {Path}: {Message}", path, ex.Message);
                     throw new InvalidOperationException($"Failed to create registry parameter {path}", ex);
                 }
 
