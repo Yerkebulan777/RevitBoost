@@ -5,82 +5,84 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 
-namespace RevitBoost;
 
-/// <summary>
-///     Предоставляет хост для сервисов приложения и управляет их жизненным циклом
-/// </summary>
-public static class Host
+namespace RevitBoost
 {
-    private static IHost _host;
-
     /// <summary>
-    ///  Запускает хост и настраивает сервисы приложения
+    ///     Предоставляет хост для сервисов приложения и управляет их жизненным циклом
     /// </summary>
-    public static void Start()
+    public static class Host
     {
-        try
-        {
-            // Создание базового построителя хоста
-            var builder = new HostApplicationBuilder(new HostApplicationBuilderSettings
-            {
-                ContentRootPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly()!.Location),
-                DisableDefaults = true
-            });
+        private static IHost _host;
 
-            // Минимальная настройка логирования
-            builder.Services.AddLogging(config =>
+        /// <summary>
+        ///  Запускает хост и настраивает сервисы приложения
+        /// </summary>
+        public static void Start()
+        {
+            try
             {
-                config.ClearProviders();
-                config.AddSimpleConsole(options =>
+                // Создание базового построителя хоста
+                var builder = new HostApplicationBuilder(new HostApplicationBuilderSettings
                 {
-                    options.SingleLine = true;
+                    ContentRootPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly()!.Location),
+                    DisableDefaults = true
                 });
-            });
 
-            // Построение и запуск хоста
-            _host = builder.Build();
-            _host.Start();
+                // Минимальная настройка логирования
+                builder.Services.AddLogging(config =>
+                {
+                    config.ClearProviders();
+                    config.AddSimpleConsole(options =>
+                    {
+                        options.SingleLine = true;
+                    });
+                });
 
-            // Регистрация обработчика необработанных исключений
-            AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
+                // Построение и запуск хоста
+                _host = builder.Build();
+                _host.Start();
+
+                // Регистрация обработчика необработанных исключений
+                AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
+            }
+            catch (Exception ex)
+            {
+                // Запись в Debug Output в случае ошибки
+                Debug.WriteLine($"Критическая ошибка при запуске хоста: {ex}");
+                throw;
+            }
         }
-        catch (Exception ex)
+
+        /// <summary>
+        ///     Останавливает хост
+        /// </summary>
+        public static void Stop()
         {
-            // Запись в Debug Output в случае ошибки
-            Debug.WriteLine($"Критическая ошибка при запуске хоста: {ex}");
-            throw;
+            try
+            {
+                _host?.StopAsync().GetAwaiter().GetResult();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Ошибка при остановке хоста: {ex}");
+            }
         }
-    }
 
-    /// <summary>
-    ///     Останавливает хост
-    /// </summary>
-    public static void Stop()
-    {
-        try
+        /// <summary>
+        ///     Получить сервис типа <typeparamref name="T"/>
+        /// </summary>
+        /// <typeparam name="T">Тип запрашиваемого сервиса</typeparam>
+        public static T GetService<T>() where T : class
         {
-            _host?.StopAsync().GetAwaiter().GetResult();
+            return _host.Services.GetRequiredService<T>();
         }
-        catch (Exception ex)
+
+        private static void OnUnhandledException(object sender, UnhandledExceptionEventArgs args)
         {
-            Debug.WriteLine($"Ошибка при остановке хоста: {ex}");
+            var exception = (Exception)args.ExceptionObject;
+            Debug.WriteLine($"Необработанное исключение: {exception}");
         }
-    }
 
-    /// <summary>
-    ///     Получить сервис типа <typeparamref name="T"/>
-    /// </summary>
-    /// <typeparam name="T">Тип запрашиваемого сервиса</typeparam>
-    public static T GetService<T>() where T : class
-    {
-        return _host.Services.GetRequiredService<T>();
     }
-
-    private static void OnUnhandledException(object sender, UnhandledExceptionEventArgs args)
-    {
-        var exception = (Exception)args.ExceptionObject;
-        Debug.WriteLine($"Необработанное исключение: {exception}");
-    }
-
 }
