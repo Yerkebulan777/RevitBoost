@@ -7,8 +7,10 @@ namespace RevitUtils.Logging
         private static readonly string _logFilePath = @"%APPDATA%\RevitBoost\Logs\CommonUtils-.log";
 
         private static readonly ILogger _logger = new LoggerConfiguration()
-            .WriteTo.File(path: _logFilePath, rollingInterval: RollingInterval.Day, retainedFileCountLimit: 5)
-            .CreateLogger();
+            .WriteTo.File(path: _logFilePath, 
+            rollingInterval: RollingInterval.Day, 
+            retainedFileCountLimit: 5)
+           .CreateLogger();
 
         public static void Debug(string message)
         {
