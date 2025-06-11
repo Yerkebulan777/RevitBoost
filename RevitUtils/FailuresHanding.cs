@@ -19,7 +19,6 @@ public static class FailuresHanding
 {
     private static string output;
 
-    private static ILogger log = LogManager.Current;
 
     public static string ElementIdsToSemicolonDelimitedText(IEnumerable<ElementId> elementIds)
     {
@@ -169,7 +168,7 @@ public static class FailuresHanding
         catch (Exception ex)
         {
             result = ex.Message;
-            log.Fatal(ex, result);
+            Log.Fatal(ex, result);
         }
         finally
         {

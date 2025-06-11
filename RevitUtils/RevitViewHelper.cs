@@ -9,8 +9,6 @@ namespace RevitUtils;
 
 internal sealed class RevitViewHelper
 {
-    private static ILogger log = LogManager.Current;
-
     #region 3dView
 
     public static View3D Create3DView(Document doc, string viewName)

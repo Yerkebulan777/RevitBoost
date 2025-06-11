@@ -52,6 +52,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
+
+        <PackageReference Include="Serilog" Version="4.2.0" />
+        <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+        <PackageReference Include="Serilog.Sinks.Debug" Version="3.0.0" />
+        
 		<PackageReference Include="Nice3point.Revit.Build.Tasks" Version="2.*" />
 		<PackageReference Include="Nice3point.Revit.Toolkit" Version="$(RevitVersion).*" />
 		<PackageReference Include="Nice3point.Revit.Extensions" Version="$(RevitVersion).*" />
@@ -72,9 +77,6 @@
 	<ItemGroup>
 		<PackageReference Include="SonarAnalyzer.CSharp" Version="$(SonarAnalyzerVersion)" />
 		<Analyzer Include="$(NuGetPackageRoot)SonarAnalyzer.CSharp/$(SonarAnalyzerVersion)/analyzers/*.dll" Visible="false" />
-	</ItemGroup>
-	<ItemGroup>
-	  <Folder Include="Logging\" />
 	</ItemGroup>
 
 </Project>

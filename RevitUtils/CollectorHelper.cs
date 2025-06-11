@@ -6,8 +6,6 @@ namespace RevitUtils;
 
 public static class CollectorHelper
 {
-    private static readonly ILogger log = LogManager.Current;
-
     #region FilteredByFamilylName
 
     public static List<FamilyInstance> GetInstancesByFamilyName(Document doc, BuiltInCategory bic, string familyName)
