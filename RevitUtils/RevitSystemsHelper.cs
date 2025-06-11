@@ -1,11 +1,12 @@
 ﻿using Autodesk.Revit.DB.Mechanical;
 using Autodesk.Revit.DB.Plumbing;
+using RevitUtils.Logging;
 
 namespace RevitUtils
 {
     internal static class RevitSystemsHelper
     {
-        private static List<Element> GetPipesAndDucts(Document doc)
+        public static List<Element> GetPipesAndDucts(Document doc)
         {
             List<Element> elementsList = new(100);
 
@@ -19,7 +20,7 @@ namespace RevitUtils
         }
 
 
-        private static double GetPipeWallThickness(Element elem)
+        public static double GetPipeWallThickness(Element elem)
         {
             if (elem is Pipe pipe)
             {
@@ -42,7 +43,7 @@ namespace RevitUtils
         }
 
 
-        private static double GetDuctWallThickness(Element elem)
+        public static double GetDuctWallThickness(Element elem)
         {
             if (elem is Pipe duct)
             {
@@ -122,7 +123,7 @@ namespace RevitUtils
 
             }
 
-            log.Debug($"Total pipes {result.Count} count");
+            Log.Debug($"Total pipes {result.Count} count");
 
             return result;
         }
