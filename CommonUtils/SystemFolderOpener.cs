@@ -10,7 +10,6 @@ internal static class SystemFolderOpener
     [DllImport("user32.dll")]
     private static extern bool SetForegroundWindow(IntPtr hWnd);
 
-    private static ILogger log = LogManager.Current;
 
     public static void CloseDirectory(string inputPath)
     {
@@ -39,7 +38,7 @@ internal static class SystemFolderOpener
 
             if (proc.WaitForExit(1000))
             {
-                log.Debug($"Opened: {directoryPath}");
+                Log.Debug($"Opened: {directoryPath}");
             }
 
         }
