@@ -197,12 +197,14 @@ namespace LintelMaster
         private DimensionResult ExtractDoorDimensions(FamilyInstance instance)
         {
             double width = ParameterHelper.GetParamValueAsDouble(instance.Symbol, BuiltInParameter.DOOR_WIDTH);
+
             if (width == 0)
             {
                 width = ParameterHelper.GetParamValueAsDouble(instance, BuiltInParameter.DOOR_WIDTH);
             }
 
             double height = ParameterHelper.GetParamValueAsDouble(instance.Symbol, BuiltInParameter.DOOR_HEIGHT);
+
             if (height == 0)
             {
                 height = ParameterHelper.GetParamValueAsDouble(instance, BuiltInParameter.DOOR_HEIGHT);
@@ -222,12 +224,14 @@ namespace LintelMaster
         private DimensionResult ExtractWindowDimensions(FamilyInstance instance)
         {
             double width = ParameterHelper.GetParamValueAsDouble(instance.Symbol, BuiltInParameter.WINDOW_WIDTH);
+
             if (width == 0)
             {
                 width = ParameterHelper.GetParamValueAsDouble(instance, BuiltInParameter.WINDOW_WIDTH);
             }
 
             double height = ParameterHelper.GetParamValueAsDouble(instance.Symbol, BuiltInParameter.WINDOW_HEIGHT);
+
             if (height == 0)
             {
                 height = ParameterHelper.GetParamValueAsDouble(instance, BuiltInParameter.WINDOW_HEIGHT);
@@ -354,11 +358,9 @@ namespace LintelMaster
                 ErrorMessage = errorMessage ?? string.Empty;
             }
 
-            public static DimensionResult Success(double width, double height)
-                => new(true, width, height, null);
+            public static DimensionResult Success(double width, double height) => new(true, width, height, null);
 
-            public static DimensionResult Failed(string errorMessage)
-                => new(false, 0, 0, errorMessage);
+            public static DimensionResult Failed(string errorMessage) => new(false, 0, 0, errorMessage);
         }
 
         private readonly struct ThicknessResult
