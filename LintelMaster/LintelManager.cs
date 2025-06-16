@@ -21,10 +21,14 @@ namespace LintelMaster
         public SortedDictionary<SizeKey, List<LintelData>> RetrieveLintelData(Document doc, string familyName)
         {
             if (doc?.IsValidObject != true)
+            {
                 throw new ArgumentException("Invalid document");
+            }
 
             if (string.IsNullOrWhiteSpace(familyName))
+            {
                 throw new ArgumentException("Family name cannot be empty");
+            }
 
             var result = new SortedDictionary<SizeKey, List<LintelData>>();
             const BuiltInCategory bic = BuiltInCategory.OST_StructuralFraming;
@@ -40,7 +44,7 @@ namespace LintelMaster
                     {
                         if (!result.TryGetValue(lintelData.GroupKey, out List<LintelData> group))
                         {
-                            result[lintelData.GroupKey] = group = new List<LintelData>();
+                            result[lintelData.GroupKey] = group = [];
                         }
                         group.Add(lintelData);
                     }
@@ -61,15 +65,21 @@ namespace LintelMaster
         private LintelData ProcessSingleLintel(FamilyInstance instance)
         {
             if (instance?.IsValidObject != true)
+            {
                 return null;
+            }
 
             FamilyInstance parentInstance = FamilyHelper.GetParentFamily(instance);
             if (parentInstance == null)
+            {
                 return null;
+            }
 
             var dimensions = ExtractOpeningSize(parentInstance);
             if (dimensions == null)
+            {
                 return null;
+            }
 
             var (thickMm, widthMm, heightMm) = dimensions.Value;
             return new LintelData(instance, thickMm, widthMm, heightMm);
@@ -81,13 +91,18 @@ namespace LintelMaster
         public (int thick, int width, int height)? ExtractOpeningSize(Element element)
         {
             if (element is not FamilyInstance instance)
+            {
                 return null;
+            }
 
             try
             {
                 double? thickness = GetHostWallThickness(instance);
+
                 if (!thickness.HasValue)
+                {
                     return null;
+                }
 
                 int categoryId = instance.Category?.Id?.IntegerValue ?? -1;
 
@@ -99,7 +114,9 @@ namespace LintelMaster
                 };
 
                 if (!dimensions.HasValue)
+                {
                     return null;
+                }
 
                 int thickMm = Convert.ToInt32(UnitManager.FootToRoundedMm(thickness.Value));
                 int widthMm = Convert.ToInt32(UnitManager.FootToRoundedMm(dimensions.Value.width, 50));
@@ -120,16 +137,17 @@ namespace LintelMaster
         {
             double width = ParameterHelper.GetParamValueAsDouble(instance.Symbol, BuiltInParameter.DOOR_WIDTH);
             if (width == 0)
+            {
                 width = ParameterHelper.GetParamValueAsDouble(instance, BuiltInParameter.DOOR_WIDTH);
+            }
 
             double height = ParameterHelper.GetParamValueAsDouble(instance.Symbol, BuiltInParameter.DOOR_HEIGHT);
             if (height == 0)
+            {
                 height = ParameterHelper.GetParamValueAsDouble(instance, BuiltInParameter.DOOR_HEIGHT);
+            }
 
-            if (width <= 0 || height <= 0)
-                return null;
-
-            return (width, height);
+            return width <= 0 || height <= 0 ? null : (width, height);
         }
 
         /// <summary>
@@ -138,17 +156,20 @@ namespace LintelMaster
         private (double width, double height)? ExtractWindowDimensions(FamilyInstance instance)
         {
             double width = ParameterHelper.GetParamValueAsDouble(instance.Symbol, BuiltInParameter.WINDOW_WIDTH);
+
             if (width == 0)
+            {
                 width = ParameterHelper.GetParamValueAsDouble(instance, BuiltInParameter.WINDOW_WIDTH);
+            }
 
             double height = ParameterHelper.GetParamValueAsDouble(instance.Symbol, BuiltInParameter.WINDOW_HEIGHT);
+
             if (height == 0)
+            {
                 height = ParameterHelper.GetParamValueAsDouble(instance, BuiltInParameter.WINDOW_HEIGHT);
+            }
 
-            if (width <= 0 || height <= 0)
-                return null;
-
-            return (width, height);
+            return width <= 0 || height <= 0 ? null : (width, height);
         }
 
         /// <summary>
@@ -157,12 +178,11 @@ namespace LintelMaster
         public double? GetHostWallThickness(FamilyInstance instance)
         {
             if (instance?.IsValidObject != true)
+            {
                 return null;
+            }
 
-            if (instance.Host is Wall hostWall && hostWall.Width > 0)
-                return hostWall.Width;
-
-            return null;
+            return instance.Host is Wall hostWall && hostWall.Width > 0 ? hostWall.Width : (double?)null;
         }
     }
 }
