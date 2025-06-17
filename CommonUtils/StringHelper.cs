@@ -23,7 +23,7 @@ namespace CommonUtils
                 {
                     if (!invalidChars.Contains(c))
                     {
-                        _ = result.Append(c);
+                        result.Append(c);
                     }
                 }
             }
@@ -32,11 +32,11 @@ namespace CommonUtils
         }
 
 
-        public static string NormalizeLength(string textLine, int maxLenght = 100)
+        public static string NormalizeLength(string textLine, int lenght = 100)
         {
-            if (!string.IsNullOrEmpty(textLine) && textLine.Length > maxLenght)
+            if (!string.IsNullOrEmpty(textLine) && textLine.Length > lenght)
             {
-                int emptyIndex = textLine.LastIndexOf(string.Empty, maxLenght);
+                int emptyIndex = textLine.LastIndexOf(string.Empty, lenght);
 
                 if (emptyIndex != -1)
                 {
