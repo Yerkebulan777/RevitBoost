@@ -2,13 +2,18 @@
 {
     public static class UnitManager
     {
-        public const double Epsilon = 0.003;
-
+        private const double epsilon = 0.003;
         private const double inchToMm = 25.4;
         private const double footToMm = 12 * inchToMm;
         private const double footToMeter = footToMm * 0.001;
         private const double sqfToSqm = footToMeter * footToMeter;
         private const double cubicFootToCubicMeter = footToMeter * sqfToSqm;
+
+        public static bool IsAlmostEqual(double left, double right, double eps = double.Epsilon)
+        {
+            return Math.Abs(left - right) <= eps;
+        }
+
 
         public static XYZ MmToFoot(XYZ vector)
         {
