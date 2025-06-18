@@ -1,7 +1,20 @@
 ﻿namespace LevelAssignment
 {
-    internal class LevelDeterminator
+    /// <summary>
+    /// Главный класс для определения уровней элементов
+    /// </summary>
+    public class ElementLevelDeterminator
     {
+        private readonly Document doc;
+        private readonly List<Level> _sortedLevels;
+
+        public ElementLevelDeterminator(Document doc)
+        {
+            this.doc = doc;
+            _sortedLevels = GetSortedLevels(doc);
+        }
+
+
         // Получение отсортированных по высоте уровней
         public List<Level> GetSortedLevels(Document doc)
         {
@@ -10,6 +23,7 @@
                 .Cast<Level>()
                 .OrderBy(lev => lev.Elevation).ToList();
         }
+
 
         // Базовый алгоритм фильтрации по уровню
         public ICollection<Element> GetElementsOnLevel(Document doc, ElementId levelId)
@@ -21,22 +35,6 @@
                 .ToElements();
         }
 
-
-    }
-
-    /// <summary>
-    /// Главный класс для определения уровней элементов
-    /// </summary>
-    public class ElementLevelDeterminator
-    {
-        private readonly Document _document;
-        private readonly IOrderedEnumerable<Level> _sortedLevels;
-
-        public ElementLevelDeterminator(Document doc)
-        {
-            _document = doc;
-            _sortedLevels = GetSortedLevels(doc);
-        }
 
         /// <summary>
         /// Основной метод определения уровня элемента
@@ -50,53 +48,46 @@
                 // Этап 1: Проверка назначенного уровня
                 if (element.LevelId != ElementId.InvalidElementId)
                 {
-                    result.AssignedLevel = _document.GetElement(element.LevelId) as Level;
-                    result.Method = LevelDeterminationMethod.AssignedLevel;
+                    result.AssignedLevel = doc.GetElement(element.LevelId) as Level;
+                    result.Method = Determination.AssignedLevel;
                     result.Confidence = 1.0;
                     return result;
                 }
 
                 // Этап 2: Параметрический анализ
                 var parameterLevel = GetLevelFromParameters(element);
+
                 if (parameterLevel != null)
                 {
                     result.AssignedLevel = parameterLevel;
-                    result.Method = LevelDeterminationMethod.ParameterBased;
+                    result.Method = Determination.ParameterBased;
                     result.Confidence = 0.9;
                     return result;
                 }
 
                 // Этап 3: Геометрический анализ
                 var geometricLevel = GetLevelFromGeometry(element);
+
                 if (geometricLevel != null)
                 {
                     result.AssignedLevel = geometricLevel;
-                    result.Method = LevelDeterminationMethod.GeometricAnalysis;
+                    result.Method = Determination.GeometricAnalysis;
                     result.Confidence = 0.8;
                     return result;
                 }
 
-                // Этап 4: Пространственный анализ (через помещения)
-                var spatialLevel = DetermineLevelFromSpatialRelationship(element, _document);
-                if (spatialLevel != null)
-                {
-                    result.AssignedLevel = spatialLevel;
-                    result.Method = LevelDeterminationMethod.SpatialAnalysis;
-                    result.Confidence = 0.7;
-                    return result;
-                }
-
-                result.Method = LevelDeterminationMethod.Failed;
+                result.Method = Determination.Failed;
                 result.Confidence = 0.0;
             }
             catch (Exception ex)
             {
                 result.Error = ex.Message;
-                result.Method = LevelDeterminationMethod.Error;
+                result.Method = Determination.Error;
             }
 
             return result;
         }
+
 
         /// <summary>
         /// Пакетная обработка элементов
@@ -108,6 +99,8 @@
                 elem => DetermineElementLevel(elem)
             );
         }
+
+
     }
 
     /// <summary>
@@ -117,12 +110,13 @@
     {
         public Element Element { get; set; }
         public Level AssignedLevel { get; set; }
-        public LevelDeterminationMethod Method { get; set; }
+        public Determination Method { get; set; }
         public double Confidence { get; set; }
         public string Error { get; set; }
     }
 
-    public enum LevelDeterminationMethod
+
+    public enum Determination
     {
         AssignedLevel,
         ParameterBased,
