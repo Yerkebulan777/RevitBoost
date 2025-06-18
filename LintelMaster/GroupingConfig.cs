@@ -22,7 +22,6 @@
         public required string HeightParameterName { get; set; } = "Высота";
         #endregion
 
-
         #region Свойства весов для группировки
         /// <summary>
         /// Вес для толщины стены (значение от 0 до 1)
@@ -88,5 +87,6 @@
         public string MarkParam { get; set; } = "BI_марка_изделия";
 
         #endregion
+
     }
 }
