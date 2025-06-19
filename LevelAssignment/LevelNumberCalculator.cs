@@ -52,15 +52,6 @@ namespace LevelAssignment
                     {
                         calculatedFloorNumber = numberFromName;
                     }
-                    else if (isLastOrSecondLastLevel && isHeightValid)
-                    {
-                        calculatedFloorNumber = 100;
-
-                        if (calculatedFloorNumber != 100)
-                        {
-                            calculatedFloorNumber += 1;
-                        }
-                    }
                     else if (calculatedFloorNumber <= 0 && elevation <= -LEVEL_MIN_HEIGHT)
                     {
                         calculatedFloorNumber = BASEMENT_NUMBER;
@@ -69,14 +60,20 @@ namespace LevelAssignment
                     {
                         calculatedFloorNumber = GROUND_NUMBER;
                     }
+                    else if (isLastOrSecondLastLevel && isHeightValid)
+                    {
+                        calculatedFloorNumber = 100;
+                    }
                     else if (calculatedFloorNumber > 0 && isHeightValid)
                     {
                         calculatedFloorNumber += 1;
+
+                        if (calculatedFloorNumber > 100)
+                        {
+                            calculatedFloorNumber = 100;
+                        }
                     }
-                    else if (calculatedFloorNumber >= 99)
-                    {
-                        calculatedFloorNumber += 1;
-                    }
+
                 }
 
                 levelDictionary[calculatedFloorNumber] = level;
@@ -86,7 +83,6 @@ namespace LevelAssignment
 
             return levelDictionary;
         }
-
 
 
         /// <summary>
