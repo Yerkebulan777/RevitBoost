@@ -54,13 +54,11 @@ namespace LevelAssignment
                     }
                     else if (isLastOrSecondLastLevel && isHeightValid)
                     {
-                        if (calculatedFloorNumber is >= 99 and <= 100)
+                        calculatedFloorNumber = 100;
+
+                        if (calculatedFloorNumber != 100)
                         {
                             calculatedFloorNumber += 1;
-                        }
-                        else
-                        {
-                            calculatedFloorNumber = 100;
                         }
                     }
                     else if (calculatedFloorNumber <= 0 && elevation <= -LEVEL_MIN_HEIGHT)
