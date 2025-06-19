@@ -6,10 +6,9 @@ namespace LevelAssignment
 {
     public sealed class LevelNumberCalculator
     {
-        private const int FIRST_NUMBER = 1; // Номер первого этажа
+        private const int GROUND_NUMBER = 1; // Номер первого этажа
         private const int BASEMENT_NUMBER = -1; // Номер подземного этажа
-        private const double SLAB_THICKNESS = 0.25; // Номинальная толщина плиты (м)
-        private const double LEVEL_MIN_HEIGHT = 2.0; // Минимальная высота этажа (м)
+        private const double LEVEL_MIN_HEIGHT = 1800; // Минимальная высота этажа (мм)
 
         private readonly int[] specialFloorNumbers = [99, 100, 101]; // Специальные номера этажей
 
@@ -34,13 +33,13 @@ namespace LevelAssignment
                 {
                     calculatedFloorNumber = numberFromName;
                 }
-                else if (elevation > SLAB_THICKNESS)
+                else if (calculatedFloorNumber <= 0 && elevation < -LEVEL_MIN_HEIGHT)
                 {
                     calculatedFloorNumber = BASEMENT_NUMBER;
                 }
-                else if (elevation < LEVEL_MIN_HEIGHT)
+                else if (calculatedFloorNumber <= 0 && elevation < LEVEL_MIN_HEIGHT)
                 {
-                    calculatedFloorNumber = FIRST_NUMBER;
+                    calculatedFloorNumber = GROUND_NUMBER;
                 }
                 else if (calculatedFloorNumber > 0 && validHeight)
                 {
