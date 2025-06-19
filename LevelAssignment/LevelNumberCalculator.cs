@@ -46,6 +46,10 @@ namespace LevelAssignment
                 {
                     calculatedFloorNumber += 1;
                 }
+                else if (calculatedFloorNumber > 99)
+                {
+                    calculatedFloorNumber += 1;
+                }
 
                 levelDictionary[calculatedFloorNumber] = currentLevel;
 
