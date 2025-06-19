@@ -29,15 +29,15 @@ namespace LevelAssignment
                 bool validName = IsValidFloorNumber(numberFromName, levels.Count);
                 bool validHeight = Math.Abs(elevation - previousElevation) > LEVEL_MIN_HEIGHT;
 
-                if (validName && validHeight && calculatedFloorNumber < numberFromName)
+                if (validName && validHeight && calculatedFloorNumber <= numberFromName)
                 {
                     calculatedFloorNumber = numberFromName;
                 }
-                else if (calculatedFloorNumber <= 0 && elevation < -LEVEL_MIN_HEIGHT)
+                else if (calculatedFloorNumber <= 0 && elevation <= -LEVEL_MIN_HEIGHT)
                 {
                     calculatedFloorNumber = BASEMENT_NUMBER;
                 }
-                else if (calculatedFloorNumber <= 0 && elevation < LEVEL_MIN_HEIGHT)
+                else if (calculatedFloorNumber <= 0 && elevation <= LEVEL_MIN_HEIGHT)
                 {
                     calculatedFloorNumber = GROUND_NUMBER;
                 }
@@ -45,7 +45,7 @@ namespace LevelAssignment
                 {
                     calculatedFloorNumber += 1;
                 }
-                else if (calculatedFloorNumber > 99)
+                else if (calculatedFloorNumber >= 99)
                 {
                     calculatedFloorNumber += 1;
                 }
