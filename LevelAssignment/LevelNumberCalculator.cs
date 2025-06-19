@@ -33,8 +33,6 @@ namespace LevelAssignment
 
             Dictionary<int, Level> levelDictionary = [];
 
-            double elevetionLimit = LEVEL_MIN_HEIGHT * levels.Count;
-
             List<Level> sortedLevels = [.. levels.OrderBy(x => x.Elevation)];
 
             for (int levelIndex = 0; levelIndex < sortedLevels.Count; levelIndex++)
@@ -54,7 +52,7 @@ namespace LevelAssignment
                     {
                         calculatedFloorNumber = numberFromName;
                     }
-                    else if (isLastOrSecondLastLevel && isHeightValid && elevation > elevetionLimit)
+                    else if (isLastOrSecondLastLevel && isHeightValid)
                     {
                         if (calculatedFloorNumber is >= 99 and <= 100)
                         {
@@ -91,13 +89,7 @@ namespace LevelAssignment
             return levelDictionary;
         }
 
-        /// <summary>
-        /// Определяет, является ли уровень последним или предпоследним
-        /// </summary>
-        private static bool IsLastOrSecondLastLevel(int currentIndex, int totalCount)
-        {
-            return currentIndex > 5 && currentIndex > totalCount - 3; // Последние два уровня
-        }
+
 
         /// <summary>
         /// Преобразует высоту уровня в метры
@@ -130,6 +122,16 @@ namespace LevelAssignment
 
             return 0;
         }
+
+
+        /// <summary>
+        /// Определяет, является ли уровень последним или предпоследним
+        /// </summary>
+        private static bool IsLastOrSecondLastLevel(int currentIndex, int totalCount)
+        {
+            return currentIndex > 5 && currentIndex > totalCount - 3; // Последние два уровня
+        }
+
 
         /// <summary>
         /// Проверяет валидность номера этажа из имени уровня
