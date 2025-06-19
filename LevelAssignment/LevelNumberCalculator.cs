@@ -94,6 +94,7 @@ namespace LevelAssignment
             return Math.Round(UnitManager.FootToMm(elevationInFeet) / 1000.0, 3);
         }
 
+
         /// <summary>
         /// Проверяет, является ли уровень дублирующим (слишком близким по высоте)
         /// </summary>
@@ -102,6 +103,7 @@ namespace LevelAssignment
         {
             return currentElevation > 0 && Math.Abs(currentElevation - previousElevation) < deviation;
         }
+
 
         /// <summary>
         /// Извлекает число из имени уровня
@@ -134,7 +136,6 @@ namespace LevelAssignment
         {
             return numberFromName != 0 && (numberFromName < totalLevels || specialFloorNumbers.Contains(numberFromName));
         }
-
 
 
     }
