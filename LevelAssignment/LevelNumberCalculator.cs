@@ -14,6 +14,7 @@ namespace LevelAssignment
 
         private static readonly Regex levelNumberRegex = new(@"\d+", RegexOptions.Compiled);
 
+
         public Dictionary<int, Level> CalculateLevelNumberData(List<Level> levels)
         {
             double previousElevation = 0;
@@ -21,36 +22,39 @@ namespace LevelAssignment
 
             Dictionary<int, Level> levelDictionary = [];
 
-            foreach (Level currentLevel in levels.OrderBy(x => x.Elevation))
+            foreach (Level level in levels.OrderBy(x => x.Elevation))
             {
-                double elevation = GetElevationInMeters(currentLevel);
+                double elevation = GetElevationInMeters(level);
 
-                int numberFromName = ExtractNumberFromName(currentLevel.Name);
-                bool validName = IsValidFloorNumber(numberFromName, levels.Count);
-                bool validHeight = Math.Abs(elevation - previousElevation) >= LEVEL_MIN_HEIGHT;
+                if (!IsDuplicateLevel(elevation, previousElevation))
+                {
+                    int numberFromName = ExtractNumberFromName(level.Name);
+                    bool validName = IsValidFloorNumber(numberFromName, levels.Count);
+                    bool validHeight = Math.Abs(elevation - previousElevation) >= LEVEL_MIN_HEIGHT;
 
-                if (validName && validHeight && calculatedFloorNumber <= numberFromName)
-                {
-                    calculatedFloorNumber = numberFromName;
-                }
-                else if (calculatedFloorNumber <= 0 && elevation <= -LEVEL_MIN_HEIGHT)
-                {
-                    calculatedFloorNumber = BASEMENT_NUMBER;
-                }
-                else if (calculatedFloorNumber <= 0 && elevation <= LEVEL_MIN_HEIGHT)
-                {
-                    calculatedFloorNumber = GROUND_NUMBER;
-                }
-                else if (calculatedFloorNumber > 0 && validHeight)
-                {
-                    calculatedFloorNumber += 1;
-                }
-                else if (calculatedFloorNumber >= 99)
-                {
+                    if (validName && validHeight && calculatedFloorNumber <= numberFromName)
+                    {
+                        calculatedFloorNumber = numberFromName;
+                    }
+                    else if (calculatedFloorNumber <= 0 && elevation <= -LEVEL_MIN_HEIGHT)
+                    {
+                        calculatedFloorNumber = BASEMENT_NUMBER;
+                    }
+                    else if (calculatedFloorNumber <= 0 && elevation <= LEVEL_MIN_HEIGHT)
+                    {
+                        calculatedFloorNumber = GROUND_NUMBER;
+                    }
+                    else if (calculatedFloorNumber > 0 && validHeight)
+                    {
                         calculatedFloorNumber += 1;
+                    }
+                    else if (calculatedFloorNumber >= 99)
+                    {
+                        calculatedFloorNumber += 1;
+                    }
                 }
 
-                levelDictionary[calculatedFloorNumber] = currentLevel;
+                levelDictionary[calculatedFloorNumber] = level;
 
                 previousElevation = elevation;
 
@@ -66,6 +70,15 @@ namespace LevelAssignment
         {
             double elevationInFeet = level.get_Parameter(BuiltInParameter.LEVEL_ELEV).AsDouble();
             return Math.Round(UnitManager.FootToMm(elevationInFeet) / 1000.0, 3);
+        }
+
+        /// <summary>
+        /// Проверяет, является ли уровень дублирующим (слишком близким по высоте)
+        /// </summary>
+        /// <returns>true, если уровни слишком близки и один из них следует пропустить</returns>
+        private static bool IsDuplicateLevel(double currentElevation, double previousElevation, double deviation = 600)
+        {
+            return Math.Abs(currentElevation - previousElevation) <= deviation;
         }
 
         /// <summary>
@@ -89,6 +102,7 @@ namespace LevelAssignment
         {
             return numberFromName != 0 && (numberFromName < totalLevels || specialFloorNumbers.Contains(numberFromName));
         }
+
 
 
 
