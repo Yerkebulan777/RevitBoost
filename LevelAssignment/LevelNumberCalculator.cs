@@ -33,7 +33,9 @@ namespace LevelAssignment
 
             Dictionary<int, Level> levelDictionary = [];
 
-            List<Level> sortedLevels = levels.OrderBy(x => x.Elevation).ToList();
+            double elevetionLimit = LEVEL_MIN_HEIGHT * levels.Count;
+
+            List<Level> sortedLevels = [.. levels.OrderBy(x => x.Elevation)];
 
             for (int levelIndex = 0; levelIndex < sortedLevels.Count; levelIndex++)
             {
@@ -52,7 +54,7 @@ namespace LevelAssignment
                     {
                         calculatedFloorNumber = numberFromName;
                     }
-                    else if (isLastOrSecondLastLevel && isHeightValid && elevation > 0)
+                    else if (isLastOrSecondLastLevel && isHeightValid && elevation > elevetionLimit)
                     {
                         if (calculatedFloorNumber is >= 99 and <= 100)
                         {
