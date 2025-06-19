@@ -27,7 +27,7 @@ namespace LevelAssignment
 
                 int numberFromName = ExtractNumberFromName(currentLevel.Name);
                 bool validName = IsValidFloorNumber(numberFromName, levels.Count);
-                bool validHeight = Math.Abs(elevation - previousElevation) > LEVEL_MIN_HEIGHT;
+                bool validHeight = Math.Abs(elevation - previousElevation) >= LEVEL_MIN_HEIGHT;
 
                 if (validName && validHeight && calculatedFloorNumber <= numberFromName)
                 {
@@ -47,7 +47,7 @@ namespace LevelAssignment
                 }
                 else if (calculatedFloorNumber >= 99)
                 {
-                    calculatedFloorNumber += 1;
+                        calculatedFloorNumber += 1;
                 }
 
                 levelDictionary[calculatedFloorNumber] = currentLevel;
