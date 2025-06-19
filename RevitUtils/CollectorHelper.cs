@@ -5,6 +5,7 @@ namespace RevitUtils
 {
     public static class CollectorHelper
     {
+
         #region FilteredByFamilylName
 
         public static List<FamilyInstance> GetInstancesByFamilyName(Document doc, BuiltInCategory bic, string familyName)
