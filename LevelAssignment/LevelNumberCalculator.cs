@@ -1,5 +1,4 @@
 ﻿using RevitUtils;
-using System.Diagnostics;
 using System.Text.RegularExpressions;
 
 
@@ -7,56 +6,54 @@ namespace LevelAssignment
 {
     public class LevelNumberCalculator
     {
-        private const int GROUND_FLOOR = 1; // Номер первого этажа
-        private const int FIRST_BASEMENT = -1; // Номер подземного этажа
+        private const int FIRST_NUMBER = 1; // Номер первого этажа
+        private const int BASEMENT_NUMBER = -1; // Номер подземного этажа
         private const double SLAB_THICKNESS = 0.25; // Номинальная толщина плиты (м)
         private const double LEVEL_MIN_HEIGHT = 2.0; // Минимальная высота этажа (м)
-        private readonly Regex levelNumberRegex = new(@"\d+", RegexOptions.Compiled);
-        private readonly int[] specialFloorNumbers = { 99, 100, 101 };
 
-        /// <summary>
-        /// Определяет номер этажа для заданного уровня
-        /// </summary>
+        private readonly int[] specialFloorNumbers = [99, 100, 101]; // Специальные номера этажей
 
-        /// <returns>Номер этажа (положительный - надземные, отрицательный - подземные)</returns>
-        public int GetLevelNumber(Level level, List<Level> levels)
+        private static readonly Regex levelNumberRegex = new(@"\d+", RegexOptions.Compiled);
+
+        public Dictionary<int, Level> CalculateLevelNumberData(List<Level> levels)
         {
-            int currentLevelId = level.Id.IntegerValue;
-
-            List<Level> sortedLevels = [.. levels.OrderBy(x => x.Elevation)];
-
-            int currentFloorNumber = 0;
             double previousElevation = 0;
+            int calculatedFloorNumber = 0;
 
-            foreach (Level currentLevel in sortedLevels)
+            Dictionary<int, Level> levelDictionary = [];
+
+            foreach (Level currentLevel in levels.OrderBy(x => x.Elevation))
             {
                 double elevation = GetElevationInMeters(currentLevel);
 
-                if (Math.Floor(elevation) >= 0)
+                int numberFromName = ExtractNumberFromName(currentLevel.Name);
+                bool validName = IsValidFloorNumber(numberFromName, levels.Count);
+                bool validHeight = Math.Abs(elevation - previousElevation) > LEVEL_MIN_HEIGHT;
+
+                if (validName && validHeight && calculatedFloorNumber < numberFromName)
                 {
-                    int numberFromName = ExtractNumberFromName(currentLevel.Name);
-                    bool validName = IsValidFloorNumber(numberFromName, levels.Count);
-                    bool validHeight = Math.Abs(elevation - previousElevation) > LEVEL_MIN_HEIGHT;
-
-                    // Обновляем референсную высоту
-                    if (validName || validHeight)
-                    {
-                        previousElevation = elevation;
-                    }
-
-                    // Определяем номер этажа
-                    currentFloorNumber = CalculateFloorNumber(elevation, numberFromName, currentFloorNumber, validHeight, validName);
-
-                    // Если это наш целевой уровень - возвращаем результат
-                    if (currentLevel.Id.IntegerValue == currentLevelId)
-                    {
-                        LogResult(currentLevel.Name, numberFromName, elevation, currentFloorNumber);
-                        return currentFloorNumber;
-                    }
+                    calculatedFloorNumber = numberFromName;
                 }
+                else if (elevation > SLAB_THICKNESS)
+                {
+                    calculatedFloorNumber = BASEMENT_NUMBER;
+                }
+                else if (elevation < LEVEL_MIN_HEIGHT)
+                {
+                    calculatedFloorNumber = FIRST_NUMBER;
+                }
+                else if (calculatedFloorNumber > 0 && validHeight)
+                {
+                    calculatedFloorNumber += 1;
+                }
+
+                levelDictionary[calculatedFloorNumber] = currentLevel;
+
+                previousElevation = elevation;
+
             }
 
-            return -1;
+            return levelDictionary;
         }
 
         /// <summary>
@@ -90,40 +87,8 @@ namespace LevelAssignment
             return numberFromName != 0 && (numberFromName < totalLevels || specialFloorNumbers.Contains(numberFromName));
         }
 
-        /// <summary>
-        /// Вычисляет номер этажа на основе высоты и других параметров
-        /// </summary>
-        private static int CalculateFloorNumber(double elevation, int? numberFromName, int currentNumber, bool validHeight, bool validName)
-        {
-            // Уровень около нулевой отметки
-            if (Math.Abs(elevation) < SLAB_THICKNESS)
-            {
-                return GROUND_FLOOR;
-            }
 
-            // Подземные уровни
-            if (elevation < -SLAB_THICKNESS)
-            {
-                return currentNumber >= 0 ? FIRST_BASEMENT : validHeight ? currentNumber - 1 : currentNumber;
-            }
 
-            // Надземные уровни
-            return elevation > SLAB_THICKNESS
-                ? validName && numberFromName.HasValue ? numberFromName.Value : validHeight ? currentNumber + 1 : currentNumber
-                : currentNumber;
-        }
-
-        /// <summary>
-        /// Логирование результата для отладки
-        /// </summary>
-        private static void LogResult(string levelName, int? numberFromName, double elevation, int result)
-        {
-            Debug.WriteLine($"Уровень: {levelName}");
-            Debug.WriteLine($"Число из имени: {numberFromName?.ToString() ?? "Нет"}");
-            Debug.WriteLine($"Высота: {elevation:F3} м");
-            Debug.WriteLine($"Результат: {result}");
-            Debug.WriteLine("----------------------------------------");
-        }
     }
 }
 
