@@ -1,18 +1,29 @@
 ﻿using RevitUtils;
 using System.Text.RegularExpressions;
 
-
 namespace LevelAssignment
 {
     public sealed class LevelNumberCalculator
     {
         private const int GROUND_NUMBER = 1; // Номер первого этажа
         private const int BASEMENT_NUMBER = -1; // Номер подземного этажа
-        private const double LEVEL_MIN_HEIGHT = 1800; // Минимальная высота этажа (мм)
-
+        private const double LEVEL_MIN_HEIGHT = 1.8; // Минимальная высота этажа (м)
         private readonly int[] specialFloorNumbers = [99, 100, 101]; // Специальные номера этажей
 
         private static readonly Regex levelNumberRegex = new(@"\d+", RegexOptions.Compiled);
+
+
+        public List<Level> GetValidLevels(Document doc, double maxHeightInMeters = 100)
+        {
+            double maximum = UnitManager.MmToFoot(maxHeightInMeters * 1000);
+            ParameterValueProvider provider = new(new ElementId(BuiltInParameter.LEVEL_ELEV));
+            FilterDoubleRule rule = new(provider, new FilterNumericLess(), maximum, 5E-3);
+
+            return [.. new FilteredElementCollector(doc).OfClass(typeof(Level))
+                .WherePasses(new ElementParameterFilter(rule)).Cast<Level>()
+                .OrderBy(x => x.Elevation).GroupBy(x => x.Elevation)
+                .Select(x => x.First())];
+        }
 
 
         public Dictionary<int, Level> CalculateLevelNumberData(List<Level> levels)
@@ -22,8 +33,12 @@ namespace LevelAssignment
 
             Dictionary<int, Level> levelDictionary = [];
 
-            foreach (Level level in levels.OrderBy(x => x.Elevation))
+            List<Level> sortedLevels = levels.OrderBy(x => x.Elevation).ToList();
+
+            for (int levelIndex = 0; levelIndex < sortedLevels.Count; levelIndex++)
             {
+                Level level = sortedLevels[levelIndex];
+
                 double elevation = GetElevationInMeters(level);
 
                 if (!IsDuplicateLevel(elevation, previousElevation))
@@ -31,10 +46,22 @@ namespace LevelAssignment
                     int numberFromName = ExtractNumberFromName(level.Name);
                     bool isValidLevelNumber = IsValidFloorNumber(numberFromName, levels.Count);
                     bool isHeightValid = Math.Abs(elevation - previousElevation) >= LEVEL_MIN_HEIGHT;
+                    bool isLastOrSecondLastLevel = IsLastOrSecondLastLevel(levelIndex, sortedLevels.Count);
 
                     if (isValidLevelNumber && isHeightValid && calculatedFloorNumber <= numberFromName)
                     {
                         calculatedFloorNumber = numberFromName;
+                    }
+                    else if (isLastOrSecondLastLevel && isHeightValid && elevation > 0)
+                    {
+                        if (calculatedFloorNumber is >= 99 and <= 100)
+                        {
+                            calculatedFloorNumber += 1;
+                        }
+                        else
+                        {
+                            calculatedFloorNumber = 100;
+                        }
                     }
                     else if (calculatedFloorNumber <= 0 && elevation <= -LEVEL_MIN_HEIGHT)
                     {
@@ -57,10 +84,17 @@ namespace LevelAssignment
                 levelDictionary[calculatedFloorNumber] = level;
 
                 previousElevation = elevation;
-
             }
 
             return levelDictionary;
+        }
+
+        /// <summary>
+        /// Определяет, является ли уровень последним или предпоследним
+        /// </summary>
+        private static bool IsLastOrSecondLastLevel(int currentIndex, int totalCount)
+        {
+            return currentIndex > 5 && currentIndex > totalCount - 3; // Последние два уровня
         }
 
         /// <summary>
@@ -105,7 +139,5 @@ namespace LevelAssignment
 
 
 
-
     }
 }
-
