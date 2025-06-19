@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace LevelAssignment
 {
-    public class LevelNumberCalculator
+    public sealed class LevelNumberCalculator
     {
         private const int FIRST_NUMBER = 1; // Номер первого этажа
         private const int BASEMENT_NUMBER = -1; // Номер подземного этажа
