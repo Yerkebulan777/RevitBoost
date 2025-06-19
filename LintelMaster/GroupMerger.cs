@@ -274,17 +274,12 @@
         /// <summary>
         /// Вычисляет оценку схожести между двумя группами
         /// </summary>
-        private double ComputeSimilarityScore(
-            SizeKey source,
-            SizeKey target,
-            int sourceSize,
-            int targetSize,
-            int totalElements)
+        private double ComputeSimilarityScore(SizeKey source, SizeKey target, int sourceSize, int targetSize, int totalElements)
         {
             // Нормализуем различия относительно допусков
-            double thickDiff = Math.Abs(source.ThickInMm - target.ThickInMm) / _thickTolerance;
-            double widthDiff = Math.Abs(source.WidthInMm - target.WidthInMm) / _widthTolerance;
-            double heightDiff = Math.Abs(source.HeightInMm - target.HeightInMm) / _heightTolerance;
+            double thickDiff = Math.Abs((double)source.ThickInMm - target.ThickInMm) / _thickTolerance;
+            double widthDiff = Math.Abs((double)source.WidthInMm - target.WidthInMm) / _widthTolerance;
+            double heightDiff = Math.Abs((double)source.HeightInMm - target.HeightInMm) / _heightTolerance;
 
             // Взвешенная оценка размеров
             double sizeScore =

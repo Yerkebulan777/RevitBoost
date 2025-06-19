@@ -1,5 +1,4 @@
 ﻿using Document = Autodesk.Revit.DB.Document;
-using Level = Autodesk.Revit.DB.Level;
 
 
 namespace RevitUtils
@@ -44,41 +43,51 @@ namespace RevitUtils
 
         #region Category filter
 
-        public static IList<Category> GetCategories(Document doc, CategoryType catType)
+        public static IList<Category> GetFilterableCategories(Document doc, CategoryType ctype = CategoryType.Model, bool filterVisible = true)
         {
-            List<Category> categories = [];
+            List<Category> categories = new(50);
 
             foreach (ElementId catId in ParameterFilterUtilities.GetAllFilterableCategories())
             {
-                Category category = Category.GetCategory(doc, catId);
+                Category cat = Category.GetCategory(doc, (BuiltInCategory)catId.IntegerValue);
 
-                if (category != null && category.CanAddSubcategory && category.CategoryType == catType)
+                if (cat is not null && cat.CategoryType == ctype && cat.CanAddSubcategory)
                 {
-                    categories.Add(category);
+                    if (!filterVisible)
+                    {
+                        categories.Add(cat);
+                    }
+                    else if (cat.IsCuttable || cat.HasMaterialQuantities)
+                    {
+                        categories.Add(cat);
+                    }
                 }
             }
 
             return categories;
         }
 
-        #endregion
 
-
-        #region Level filter
-
-        public static List<Level> GetInValidLevels(Document doc, double maxHeightInMeters = 100)
+        public static FilteredElementCollector GetStructuraCollector(Document doc)
         {
-            double maximum = UnitManager.MmToFoot(maxHeightInMeters);
-            ParameterValueProvider provider = new(new ElementId(BuiltInParameter.LEVEL_ELEV));
-            FilterDoubleRule rule = new(provider, new FilterNumericGreaterOrEqual(), maximum, 5E-3);
-            return new FilteredElementCollector(doc).OfClass(typeof(Level)).WherePasses(new ElementParameterFilter(rule))
-                .Cast<Level>().OrderBy(x => x.ProjectElevation)
-                .GroupBy(x => x.ProjectElevation)
-                .Select(x => x.First())
-                .ToList();
+            IList<BuiltInCategory> structuralCats = new[]
+            {
+                BuiltInCategory.OST_Walls,
+                BuiltInCategory.OST_Floors,
+                BuiltInCategory.OST_GenericModel,
+                BuiltInCategory.OST_StructuralColumns,
+                BuiltInCategory.OST_StructuralFraming,
+                BuiltInCategory.OST_StructuralFoundation,
+            };
+
+            ElementMulticategoryFilter categoryFilter = new(structuralCats);
+            FilteredElementCollector collector = new FilteredElementCollector(doc).WherePasses(categoryFilter);
+
+            return collector;
         }
 
         #endregion
+
 
     }
 }
