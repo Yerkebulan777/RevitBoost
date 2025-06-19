@@ -29,10 +29,10 @@ namespace LevelAssignment
                 if (!IsDuplicateLevel(elevation, previousElevation))
                 {
                     int numberFromName = ExtractNumberFromName(level.Name);
-                    bool validName = IsValidFloorNumber(numberFromName, levels.Count);
-                    bool validHeight = Math.Abs(elevation - previousElevation) >= LEVEL_MIN_HEIGHT;
+                    bool isValidLevelNumber = IsValidFloorNumber(numberFromName, levels.Count);
+                    bool isHeightValid = Math.Abs(elevation - previousElevation) >= LEVEL_MIN_HEIGHT;
 
-                    if (validName && validHeight && calculatedFloorNumber <= numberFromName)
+                    if (isValidLevelNumber && isHeightValid && calculatedFloorNumber <= numberFromName)
                     {
                         calculatedFloorNumber = numberFromName;
                     }
@@ -44,7 +44,7 @@ namespace LevelAssignment
                     {
                         calculatedFloorNumber = GROUND_NUMBER;
                     }
-                    else if (calculatedFloorNumber > 0 && validHeight)
+                    else if (calculatedFloorNumber > 0 && isHeightValid)
                     {
                         calculatedFloorNumber += 1;
                     }
@@ -76,9 +76,9 @@ namespace LevelAssignment
         /// Проверяет, является ли уровень дублирующим (слишком близким по высоте)
         /// </summary>
         /// <returns>true, если уровни слишком близки и один из них следует пропустить</returns>
-        private static bool IsDuplicateLevel(double currentElevation, double previousElevation, double deviation = 600)
+        private static bool IsDuplicateLevel(double currentElevation, double previousElevation, double deviation = 1000)
         {
-            return Math.Abs(currentElevation - previousElevation) <= deviation;
+            return currentElevation > 0 && Math.Abs(currentElevation - previousElevation) < deviation;
         }
 
         /// <summary>
