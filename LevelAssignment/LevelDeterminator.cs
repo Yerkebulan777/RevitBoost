@@ -1,9 +1,4 @@
-﻿using Autodesk.Revit.DB;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace LevelAssignment
+﻿namespace LevelAssignment
 {
     /// <summary>
     /// Главный класс для определения уровней элементов
