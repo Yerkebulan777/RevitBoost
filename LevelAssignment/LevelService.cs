@@ -1,12 +1,47 @@
 ﻿using RevitUtils;
+using System.Diagnostics;
 
 namespace LevelAssignment
 {
     internal sealed class LevelService
     {
-        // Словарь для хранения границ
-        private readonly Dictionary<BoundaryType, double> boundaries;
-        private readonly List<ElementId> categoryIds;
+        /// <summary>
+        /// Представляет границы прямоугольной области в 2D пространстве
+        /// </summary>
+        public sealed class BoundarySize
+        {
+            public double MinX { get; set; }
+
+            public double MaxX { get; set; }
+
+            public double MinY { get; set; }
+
+            public double MaxY { get; set; }
+
+            // Вычисляемые свойства для удобства
+            public double Width => MaxX - MinX;
+            public double Height => MaxY - MinY;
+            public double Area => Width * Height;
+
+
+            // Фабричный метод для создания валидных границ
+            public static BoundarySize Create(double minX, double maxX, double minY, double maxY)
+            {
+                if (minX > maxX || minY > maxY)
+                {
+                    Debug.WriteLine("Ошибка: Минимальные значения не могут быть больше максимальных");
+                    throw new ArgumentException("Минимальные значения не могут быть больше максимальных");
+                }
+
+                return new BoundarySize
+                {
+                    MinX = minX,
+                    MaxX = maxX,
+                    MinY = minY,
+                    MaxY = maxY
+                };
+            }
+        }
 
 
         public enum BoundaryType
@@ -17,7 +52,9 @@ namespace LevelAssignment
             MaxY
         }
 
-
+        private readonly List<ElementId> categoryIds;
+        private readonly Dictionary<BoundaryType, double> boundaries;
+        
         public LevelService(Document doc)
         {
             categoryIds = CollectorHelper.GetModelCategoryIds(doc);
@@ -47,11 +84,10 @@ namespace LevelAssignment
 
         public void CalculateBoundingPoints(Document doc, List<Level> levels)
         {
-            // Сбрасываем границы к начальным значениям
-            boundaries[BoundaryType.MinX] = double.PositiveInfinity;
-            boundaries[BoundaryType.MaxX] = double.NegativeInfinity;
-            boundaries[BoundaryType.MinY] = double.PositiveInfinity;
-            boundaries[BoundaryType.MaxY] = double.NegativeInfinity;
+            boundaries[BoundaryType.MinX] = 0;
+            boundaries[BoundaryType.MaxX] = 0;
+            boundaries[BoundaryType.MinY] = 0;
+            boundaries[BoundaryType.MaxY] = 0;
 
             foreach (Level level in levels.Where(l => l is not null))
             {
