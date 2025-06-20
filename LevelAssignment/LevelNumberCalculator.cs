@@ -71,7 +71,7 @@ namespace LevelAssignment
                         calculatedNumber = GROUND_NUMBER;
                     }
 
-                    // если уровень крыши или чердака
+                    // если здание выше 3 этажей и уровень крыши или чердака
 
                     else if (IsTopLevel(calculatedNumber, levelIdx, sortedLevels.Count))
                     {
