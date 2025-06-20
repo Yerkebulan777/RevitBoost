@@ -29,8 +29,8 @@ namespace LevelAssignment
 
         public Dictionary<int, Level> CalculateLevelNumberData(List<Level> levels)
         {
-            double previousElevation = 0;
             int calculatedNumber = 0;
+            double previousElevation = 0;
 
             Dictionary<int, Level> levelDictionary = [];
 
