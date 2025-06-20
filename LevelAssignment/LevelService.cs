@@ -43,11 +43,11 @@ namespace LevelAssignment
             }
         }
 
-        private readonly BoundarySize boundaries;
+        public readonly BoundarySize Bound;
 
         public LevelService(Document doc)
         {
-            boundaries = new BoundarySize();
+            Bound = new BoundarySize();
         }
 
 
@@ -74,10 +74,10 @@ namespace LevelAssignment
                         // Проверяем размер элемента
                         if (pointMin.DistanceTo(pointMax) < tolerance)
                         {
-                            boundaries.MinX = Math.Min(boundaries.MinX, pointMin.X - padding);
-                            boundaries.MinY = Math.Min(boundaries.MinY, pointMin.Y - padding);
-                            boundaries.MaxX = Math.Max(boundaries.MaxX, pointMax.X + padding);
-                            boundaries.MaxY = Math.Max(boundaries.MaxY, pointMax.Y + padding);
+                            Bound.MinX = Math.Min(Bound.MinX, pointMin.X - padding);
+                            Bound.MinY = Math.Min(Bound.MinY, pointMin.Y - padding);
+                            Bound.MaxX = Math.Max(Bound.MaxX, pointMax.X + padding);
+                            Bound.MaxY = Math.Max(Bound.MaxY, pointMax.Y + padding);
                         }
                     }
                 }
@@ -109,22 +109,15 @@ namespace LevelAssignment
         }
 
 
-        private LogicalOrFilter CreateIntersectBoxFilter(ref Level model, int floorNumber, List<Level> levels, bool visible = true)
+        public LogicalOrFilter CreateIntersectBoxFilter(ref Level model, int floorNumber, List<Level> levels, bool visible = true)
         {
             double height = GetLevelHeight(model, floorNumber, levels, out double elevation);
 
-            XYZ minPoint = Transform.Identity.OfPoint(new(minX, minY, elevation));
+            XYZ minPoint = Transform.Identity.OfPoint(new(Bound.MinX, Bound.MinY, elevation));
 
-            XYZ maxPoint = Transform.Identity.OfPoint(new(maxX, maxY, elevation + height));
+            XYZ maxPoint = Transform.Identity.OfPoint(new(Bound.MaxX, Bound.MaxY, elevation + height));
 
             Solid solid = SolidHelper.CreateSolidBoxByPoint(minPoint, maxPoint, height);
-            _ = new
-            BoundingBoxXYZ()
-            {
-                Min = minPoint,
-                Max = maxPoint,
-                Enabled = true,
-            };
 
             if (visible)
             {
