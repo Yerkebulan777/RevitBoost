@@ -43,29 +43,45 @@ namespace LevelAssignment
             }
         }
 
+        private readonly BoundarySize boundaries;
 
-        public enum BoundaryType
-        {
-            MinX,
-            MaxX,
-            MinY,
-            MaxY
-        }
-
-        private readonly List<ElementId> categoryIds;
-        private readonly Dictionary<BoundaryType, double> boundaries;
-        
         public LevelService(Document doc)
         {
-            categoryIds = CollectorHelper.GetModelCategoryIds(doc);
+            boundaries = new BoundarySize();
+        }
 
-            boundaries = new Dictionary<BoundaryType, double>
+
+        public void CalculateBoundingPoints(Document doc, List<Level> levels)
+        {
+            List<ElementId> categoryIds = CollectorHelper.GetModelCategoryIds(doc);
+
+            foreach (Level level in levels.Where(x => x is not null))
             {
-                [BoundaryType.MinX] = double.PositiveInfinity,
-                [BoundaryType.MaxX] = double.NegativeInfinity,
-                [BoundaryType.MinY] = double.PositiveInfinity,
-                [BoundaryType.MaxY] = double.NegativeInfinity
-            };
+                FilteredElementCollector collector = GetGeometryByLevel(doc, level, categoryIds);
+
+                double tolerance = UnitManager.MmToFoot(5000);
+                double padding = UnitManager.MmToFoot(5000);
+
+                foreach (Element element in collector)
+                {
+                    BoundingBoxXYZ bbox = element.get_BoundingBox(null);
+
+                    if (bbox?.Enabled == true)
+                    {
+                        XYZ pointMin = bbox.Min;
+                        XYZ pointMax = bbox.Max;
+
+                        // Проверяем размер элемента
+                        if (pointMin.DistanceTo(pointMax) < tolerance)
+                        {
+                            boundaries.MinX = Math.Min(boundaries.MinX, pointMin.X - padding);
+                            boundaries.MinY = Math.Min(boundaries.MinY, pointMin.Y - padding);
+                            boundaries.MaxX = Math.Max(boundaries.MaxX, pointMax.X + padding);
+                            boundaries.MaxY = Math.Max(boundaries.MaxY, pointMax.Y + padding);
+                        }
+                    }
+                }
+            }
         }
 
 
@@ -81,52 +97,6 @@ namespace LevelAssignment
                 .Select(x => x.First())];
         }
 
-
-        public void CalculateBoundingPoints(Document doc, List<Level> levels)
-        {
-            boundaries[BoundaryType.MinX] = 0;
-            boundaries[BoundaryType.MaxX] = 0;
-            boundaries[BoundaryType.MinY] = 0;
-            boundaries[BoundaryType.MaxY] = 0;
-
-            foreach (Level level in levels.Where(l => l is not null))
-            {
-                if (level is not null)
-                {
-                    FilteredElementCollector collector = GetGeometryByLevel(doc, level, categoryIds);
-
-                    double tolerance = UnitManager.MmToFoot(9000);
-                    double padding = UnitManager.MmToFoot(3000);
-
-                    foreach (Element element in collector)
-                    {
-                        BoundingBoxXYZ bbox = element.get_BoundingBox(null);
-
-                        if (bbox?.Enabled == true)
-                        {
-                            XYZ pointMin = bbox.Min;
-                            XYZ pointMax = bbox.Max;
-
-                            // Проверяем размер элемента
-                            if (pointMin.DistanceTo(pointMax) < tolerance)
-                            {
-                                // Обновляем границы используя enum
-                                UpdateBoundary(BoundaryType.MinX, pointMin.X - padding, Math.Min);
-                                UpdateBoundary(BoundaryType.MinY, pointMin.Y - padding, Math.Min);
-                                UpdateBoundary(BoundaryType.MaxX, pointMax.X + padding, Math.Max);
-                                UpdateBoundary(BoundaryType.MaxY, pointMax.Y + padding, Math.Max);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-
-        private void UpdateBoundary(BoundaryType type, double newValue, Func<double, double, double> comparer)
-        {
-            boundaries[type] = comparer(boundaries[type], newValue);
-        }
 
 
         public FilteredElementCollector GetGeometryByLevel(Document doc, Level level, List<ElementId> catIds)
