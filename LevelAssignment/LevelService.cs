@@ -4,18 +4,31 @@ namespace LevelAssignment
 {
     internal sealed class LevelService
     {
-        private readonly double minX;
-        private readonly double maxX;
-        private readonly double minY;
-        private readonly double maxY;
-
-
+        // Словарь для хранения границ
+        private readonly Dictionary<BoundaryType, double> boundaries;
         private readonly List<ElementId> categoryIds;
+
+
+        public enum BoundaryType
+        {
+            MinX,
+            MaxX,
+            MinY,
+            MaxY
+        }
 
 
         public LevelService(Document doc)
         {
             categoryIds = CollectorHelper.GetModelCategoryIds(doc);
+
+            boundaries = new Dictionary<BoundaryType, double>
+            {
+                [BoundaryType.MinX] = double.PositiveInfinity,
+                [BoundaryType.MaxX] = double.NegativeInfinity,
+                [BoundaryType.MinY] = double.PositiveInfinity,
+                [BoundaryType.MaxY] = double.NegativeInfinity
+            };
         }
 
 
@@ -32,48 +45,51 @@ namespace LevelAssignment
         }
 
 
-        public static void GetBoundingPoints(Document doс, in List<Level> models, out double minX, out double maxX, out double minY, out double maxY)
+        public void CalculateBoundingPoints(Document doc, List<Level> levels)
         {
-            minX = double.PositiveInfinity;
-            maxX = double.NegativeInfinity;
-            minY = double.PositiveInfinity;
-            maxY = double.NegativeInfinity;
+            // Сбрасываем границы к начальным значениям
+            boundaries[BoundaryType.MinX] = double.PositiveInfinity;
+            boundaries[BoundaryType.MaxX] = double.NegativeInfinity;
+            boundaries[BoundaryType.MinY] = double.PositiveInfinity;
+            boundaries[BoundaryType.MaxY] = double.NegativeInfinity;
 
-
-            foreach (Level level in models)
+            foreach (Level level in levels.Where(l => l is not null))
             {
-                if (level != null)
+                if (level is not null)
                 {
-
-                    FilteredElementCollector collector = GetGeometryByLevel(doс, level, categoryIds);
+                    FilteredElementCollector collector = GetGeometryByLevel(doc, level, categoryIds);
 
                     double tolerance = UnitManager.MmToFoot(9000);
-                    double adding = UnitManager.MmToFoot(3000);
+                    double padding = UnitManager.MmToFoot(3000);
 
                     foreach (Element element in collector)
                     {
                         BoundingBoxXYZ bbox = element.get_BoundingBox(null);
 
-                        if (bbox != null && bbox.Enabled)
+                        if (bbox?.Enabled == true)
                         {
                             XYZ pointMin = bbox.Min;
                             XYZ pointMax = bbox.Max;
 
+                            // Проверяем размер элемента
                             if (pointMin.DistanceTo(pointMax) < tolerance)
                             {
-                                minX = Math.Min(minX, pointMin.X - adding);
-                                minY = Math.Min(minY, pointMin.Y - adding);
-                                maxX = Math.Max(maxX, pointMax.X + adding);
-                                maxY = Math.Max(maxY, pointMax.Y + adding);
+                                // Обновляем границы используя enum
+                                UpdateBoundary(BoundaryType.MinX, pointMin.X - padding, Math.Min);
+                                UpdateBoundary(BoundaryType.MinY, pointMin.Y - padding, Math.Min);
+                                UpdateBoundary(BoundaryType.MaxX, pointMax.X + padding, Math.Max);
+                                UpdateBoundary(BoundaryType.MaxY, pointMax.Y + padding, Math.Max);
                             }
                         }
                     }
                 }
-                else
-                {
-                    throw new ArgumentNullException("Not found level");
-                }
             }
+        }
+
+
+        private void UpdateBoundary(BoundaryType type, double newValue, Func<double, double, double> comparer)
+        {
+            boundaries[type] = comparer(boundaries[type], newValue);
         }
 
 
