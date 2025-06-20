@@ -1,4 +1,5 @@
 ﻿using RevitUtils;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 
 namespace LevelAssignment
@@ -29,9 +30,11 @@ namespace LevelAssignment
         public Dictionary<int, Level> CalculateLevelNumberData(List<Level> levels)
         {
             double previousElevation = 0;
-            int calculatedFloorNumber = 0;
+            int calculatedNumber = 0;
 
             Dictionary<int, Level> levelDictionary = [];
+
+            Debug.WriteLine("Calculating level numbers...");
 
             List<Level> sortedLevels = [.. levels.OrderBy(x => x.Elevation)];
 
@@ -49,50 +52,61 @@ namespace LevelAssignment
                     bool isValidLevelNumber = IsValidFloorNumber(numberFromName, levels.Count);
                     bool isHeightValid = Math.Abs(elevation - previousElevation) >= LEVEL_MIN_HEIGHT;
 
-                    if (isValidLevelNumber && isHeightValid && calculatedFloorNumber <= numberFromName)
+                    if (isValidLevelNumber && isHeightValid && calculatedNumber <= numberFromName)
                     {
-                        calculatedFloorNumber = numberFromName;
+                        calculatedNumber = numberFromName;
                     }
-                    else if (calculatedFloorNumber <= 0 && elevation < -LEVEL_MIN_HEIGHT)
+
+                    // если номер меньше или равно 0 и отметка ниже цоколя
+
+                    else if (calculatedNumber <= 0 && elevation < -LEVEL_MIN_HEIGHT)
                     {
-                        calculatedFloorNumber = BASEMENT_NUMBER;
+                        calculatedNumber = BASEMENT_NUMBER;
                     }
-                    else if (calculatedFloorNumber <= 0 && elevation < LEVEL_MIN_HEIGHT)
+
+                    // если номер меньше или равно 0 и отметка выше цоколя
+
+                    else if (calculatedNumber <= 0 && elevation < LEVEL_MIN_HEIGHT)
                     {
-                        calculatedFloorNumber = GROUND_NUMBER;
+                        calculatedNumber = GROUND_NUMBER;
                     }
 
                     // если уровень крыши или чердака
 
-                    else if (IsTopLevel(calculatedFloorNumber, levelIdx, sortedLevels.Count))
+                    else if (IsTopLevel(calculatedNumber, levelIdx, sortedLevels.Count))
                     {
-                        calculatedFloorNumber = isHeightValid ? 100 : 101;
+                        calculatedNumber = isHeightValid ? 100 : 101;
 
                         if (levelName.Contains("Чердак", StringComparison.OrdinalIgnoreCase))
                         {
-                            calculatedFloorNumber = specialFloorNumbers[0]; // 99
+                            calculatedNumber = specialFloorNumbers[0]; // 99
                         }
                         if (levelName.Contains("Крыша", StringComparison.OrdinalIgnoreCase))
                         {
-                            calculatedFloorNumber = specialFloorNumbers[1]; // 100
+                            calculatedNumber = specialFloorNumbers[1]; // 100
                         }
                         if (levelName.Contains("Будка", StringComparison.OrdinalIgnoreCase))
                         {
-                            calculatedFloorNumber = specialFloorNumbers[2]; // 101
+                            calculatedNumber = specialFloorNumbers[2]; // 101
                         }
                     }
 
                     // если уровень выше 1 этажа и высота валидна
 
-                    else if (calculatedFloorNumber > 0 && isHeightValid)
+                    else if (calculatedNumber > 0 && isHeightValid)
                     {
-                        calculatedFloorNumber += 1;
+                        calculatedNumber += 1;
                     }
                 }
 
-                levelDictionary[calculatedFloorNumber] = level;
+                Debug.WriteLine($"Level: {levelName}, Elevation: {elevation} m");
+
+                Debug.WriteLine($"Number: {calculatedNumber}");
+
+                levelDictionary[calculatedNumber] = level;
 
                 previousElevation = elevation;
+
             }
 
             return levelDictionary;
