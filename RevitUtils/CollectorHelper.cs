@@ -1,4 +1,5 @@
-﻿using Document = Autodesk.Revit.DB.Document;
+﻿using System.Diagnostics;
+using Document = Autodesk.Revit.DB.Document;
 
 
 namespace RevitUtils
@@ -44,28 +45,26 @@ namespace RevitUtils
 
         #region Category filter
 
-        public static IList<Category> GetFilterableCategories(Document doc, CategoryType ctype = CategoryType.Model, bool filterVisible = true)
+        public static List<ElementId> GetModelCategoryIds(Document doc, int lehght = 10)
         {
-            List<Category> categories = new(50);
+            List<ElementId> categoryIds = new(lehght);
 
             foreach (ElementId catId in ParameterFilterUtilities.GetAllFilterableCategories())
             {
-                Category cat = Category.GetCategory(doc, (BuiltInCategory)catId.IntegerValue);
+                Category cat = Category.GetCategory(doc, catId);
 
-                if (cat is not null && cat.CategoryType == ctype && cat.CanAddSubcategory)
+                if (cat is not null && cat.CategoryType == CategoryType.Model)
                 {
-                    if (!filterVisible)
+                    Debug.WriteLine($"Category: {cat.Name}, Id: {cat.Id.IntegerValue}");
+
+                    if (cat.CanAddSubcategory && cat.IsTagCategory && cat.IsVisibleInUI)
                     {
-                        categories.Add(cat);
-                    }
-                    else if (cat.IsCuttable || cat.HasMaterialQuantities)
-                    {
-                        categories.Add(cat);
+                        categoryIds.Add(catId);
                     }
                 }
             }
 
-            return categories;
+            return categoryIds;
         }
 
 

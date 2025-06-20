@@ -177,5 +177,57 @@ namespace RevitUtils
         }
 
 
+        public static XYZ ComputeInstanceCentroid(ref Transform global, in Element instance)
+        {
+            List<XYZ> points = [];
+
+            GeometryElement geometryElement = instance.get_Geometry(new Options());
+
+            foreach (GeometryObject geometryObject in geometryElement.GetTransformed(global))
+            {
+                if (geometryObject is Curve curve)
+                {
+                    points.AddRange(curve.Tessellate());
+                }
+                else if (geometryObject is Solid solid)
+                {
+                    foreach (Edge edge in solid.Edges)
+                    {
+                        points.AddRange(edge.Tessellate());
+                    }
+                }
+            }
+
+            XYZ centroid = ComputeCentroidFromPoints(points);
+
+            return centroid;
+        }
+
+
+        private static XYZ ComputeCentroidFromPoints(IEnumerable<XYZ> points)
+        {
+            XYZ centroid = XYZ.Zero;
+            if (points.Any())
+            {
+                double sumX = 0;
+                double sumY = 0;
+                double sumZ = 0;
+                int count = 0;
+
+                foreach (XYZ point in points)
+                {
+                    sumX += point.X;
+                    sumY += point.Y;
+                    sumZ += point.Z;
+                    count++;
+                }
+
+                centroid = new XYZ(sumX / count, sumY / count, sumZ / count);
+            }
+            return centroid;
+        }
+
+
+
     }
 }

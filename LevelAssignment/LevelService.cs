@@ -4,6 +4,13 @@ namespace LevelAssignment
 {
     internal class LevelService
     {
+        private readonly double minX;
+        private readonly double maxX;
+        private readonly double minY;
+        private readonly double maxY;
+
+
+
         public List<Level> GetValidLevels(Document doc, double maxHeightInMeters = 100)
         {
             double maximum = UnitManager.MmToFoot(maxHeightInMeters * 1000);
@@ -17,38 +24,90 @@ namespace LevelAssignment
         }
 
 
-        private LogicalOrFilter CreateIntersectBoxFilter(ref LevelModel model, bool visible = true)
+        public static void GetBoundingPoints(Document document, in List<Level> models, out double minX, out double maxX, out double minY, out double maxY)
         {
+            minX = double.PositiveInfinity;
+            maxX = double.NegativeInfinity;
+            minY = double.PositiveInfinity;
+            maxY = double.NegativeInfinity;
 
-            double height = GetLevelHeight(model, out double elevation);
+            foreach (Level model in models)
+            {
+                if (model != null)
+                {
+                    BuiltInCategory[] excludedBics = new BuiltInCategory[]
+                    {
+                    BuiltInCategory.OST_Levels,
+                    BuiltInCategory.OST_Lines,
+                    BuiltInCategory.OST_Mass,
+                    };
+
+                    FilteredElementCollector collector = CollectorHelper.GetModelElements(document, excludedBics);
+                    collector = collector.WherePasses(new ElementLevelFilter(model.Id));
+                    collector = collector.WhereElementIsViewIndependent();
+                    collector = collector.WhereElementIsNotElementType();
+
+                    double tolerance = UnitManager.MmToFoot(9000);
+                    double adding = UnitManager.MmToFoot(3000);
+
+                    foreach (Element element in collector)
+                    {
+                        BoundingBoxXYZ bbox = element.get_BoundingBox(null);
+
+                        if (bbox != null && bbox.Enabled)
+                        {
+                            XYZ pointMin = bbox.Min;
+                            XYZ pointMax = bbox.Max;
+
+                            if (pointMin.DistanceTo(pointMax) < tolerance)
+                            {
+                                minX = Math.Min(minX, pointMin.X - adding);
+                                minY = Math.Min(minY, pointMin.Y - adding);
+                                maxX = Math.Max(maxX, pointMax.X + adding);
+                                maxY = Math.Max(maxY, pointMax.Y + adding);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    throw new ArgumentNullException("Not found level");
+                }
+            }
+        }
+
+
+        public static FilteredElementCollector GetInstancesByCategoryIds(Document doc, List<ElementId> categoryIds)
+        {
+            ElementMulticategoryFilter categoryFilter = new(categoryIds);
+
+            return new FilteredElementCollector(doc).WherePasses(categoryFilter)
+                .WhereElementIsViewIndependent()
+                .WhereElementIsNotElementType();
+        }
+
+
+        private LogicalOrFilter CreateIntersectBoxFilter(ref Level model, int floorNumber, List<Level> levels, bool visible = true)
+        {
+            double height = GetLevelHeight(model, floorNumber, levels, out double elevation);
 
             XYZ minPoint = Transform.Identity.OfPoint(new(minX, minY, elevation));
 
             XYZ maxPoint = Transform.Identity.OfPoint(new(maxX, maxY, elevation + height));
 
-            Solid solid = CreateSolidBoxByPoint(minPoint, maxPoint, height);
-
-            BoundingBoxXYZ bbox = new()
-
+            Solid solid = SolidHelper.CreateSolidBoxByPoint(minPoint, maxPoint, height);
+            _ = new
+            BoundingBoxXYZ()
             {
-
                 Min = minPoint,
-
                 Max = maxPoint,
-
                 Enabled = true,
-
             };
 
             if (visible)
-
             {
-
-                CreateDirectShape(document, solid, model.DisplayName);
-
+                solid.CreateDirectShape(model.Document);
             }
-
-            model.BoundingBox = bbox;
 
             Outline outline = new(minPoint, maxPoint);
 
@@ -65,7 +124,6 @@ namespace LevelAssignment
             return logicIntersectOrFilter;
 
         }
-
 
 
         public static double GetLevelHeight(Level level, int floorNumber, List<Level> levels, out double evelation)
@@ -96,9 +154,6 @@ namespace LevelAssignment
 
             return result;
         }
-
-
-
 
 
 
