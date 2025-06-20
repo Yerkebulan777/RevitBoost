@@ -7,7 +7,7 @@ namespace LevelAssignment
     {
         private const int GROUND_NUMBER = 1; // Номер первого этажа
         private const int BASEMENT_NUMBER = -1; // Номер подземного этажа
-        private const double LEVEL_MIN_HEIGHT = 1.8; // Минимальная высота этажа (м)
+        private const double LEVEL_MIN_HEIGHT = 1.5; // Минимальная высота этажа (м)
         private readonly int[] specialFloorNumbers = [99, 100, 101]; // Специальные номера этажей
 
         private static readonly Regex levelNumberRegex = new(@"\d+", RegexOptions.Compiled);
@@ -35,9 +35,11 @@ namespace LevelAssignment
 
             List<Level> sortedLevels = [.. levels.OrderBy(x => x.Elevation)];
 
-            for (int levelIndex = 0; levelIndex < sortedLevels.Count; levelIndex++)
+            for (int levelIdx = 0; levelIdx < sortedLevels.Count; levelIdx++)
             {
-                Level level = sortedLevels[levelIndex];
+                Level level = sortedLevels[levelIdx];
+
+                string levelName = level.Name.ToUpper();
 
                 double elevation = GetElevationInMeters(level);
 
@@ -46,34 +48,46 @@ namespace LevelAssignment
                     int numberFromName = ExtractNumberFromName(level.Name);
                     bool isValidLevelNumber = IsValidFloorNumber(numberFromName, levels.Count);
                     bool isHeightValid = Math.Abs(elevation - previousElevation) >= LEVEL_MIN_HEIGHT;
-                    bool isLastOrSecondLastLevel = IsLastOrSecondLastLevel(levelIndex, sortedLevels.Count);
 
                     if (isValidLevelNumber && isHeightValid && calculatedFloorNumber <= numberFromName)
                     {
                         calculatedFloorNumber = numberFromName;
                     }
-                    else if (calculatedFloorNumber <= 0 && elevation <= -LEVEL_MIN_HEIGHT)
+                    else if (calculatedFloorNumber <= 0 && elevation < -LEVEL_MIN_HEIGHT)
                     {
                         calculatedFloorNumber = BASEMENT_NUMBER;
                     }
-                    else if (calculatedFloorNumber <= 0 && elevation <= LEVEL_MIN_HEIGHT)
+                    else if (calculatedFloorNumber <= 0 && elevation < LEVEL_MIN_HEIGHT)
                     {
                         calculatedFloorNumber = GROUND_NUMBER;
                     }
-                    else if (isLastOrSecondLastLevel && isHeightValid)
-                    {
-                        calculatedFloorNumber = 100;
-                    }
-                    else if (calculatedFloorNumber > 0 && isHeightValid)
-                    {
-                        calculatedFloorNumber += 1;
 
-                        if (calculatedFloorNumber > 100)
+                    // если уровень крыши или чердака
+
+                    else if (IsTopLevel(calculatedFloorNumber, levelIdx, sortedLevels.Count))
+                    {
+                        calculatedFloorNumber = isHeightValid ? 100 : 101;
+
+                        if (levelName.Contains("Чердак", StringComparison.OrdinalIgnoreCase))
                         {
-                            calculatedFloorNumber = 100;
+                            calculatedFloorNumber = specialFloorNumbers[0]; // 99
+                        }
+                        if (levelName.Contains("Крыша", StringComparison.OrdinalIgnoreCase))
+                        {
+                            calculatedFloorNumber = specialFloorNumbers[1]; // 100
+                        }
+                        if (levelName.Contains("Будка", StringComparison.OrdinalIgnoreCase))
+                        {
+                            calculatedFloorNumber = specialFloorNumbers[2]; // 101
                         }
                     }
 
+                    // если уровень выше 1 этажа и высота валидна
+
+                    else if (calculatedFloorNumber > 0 && isHeightValid)
+                    {
+                        calculatedFloorNumber += 1;
+                    }
                 }
 
                 levelDictionary[calculatedFloorNumber] = level;
@@ -123,9 +137,9 @@ namespace LevelAssignment
         /// <summary>
         /// Определяет, является ли уровень последним или предпоследним
         /// </summary>
-        private static bool IsLastOrSecondLastLevel(int currentIndex, int totalCount)
+        private static bool IsTopLevel(int currentNum, int index, int lenght)
         {
-            return currentIndex > 5 && currentIndex > totalCount - 3; // Последние два уровня
+            return currentNum > 3 && index > lenght - 3; 
         }
 
 
