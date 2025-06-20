@@ -2,7 +2,7 @@
 
 namespace LevelAssignment
 {
-    internal class LevelService
+    internal sealed class LevelService
     {
         private readonly double minX;
         private readonly double maxX;
