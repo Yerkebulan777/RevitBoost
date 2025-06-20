@@ -98,7 +98,6 @@ namespace LevelAssignment
         }
 
 
-
         public FilteredElementCollector GetGeometryByLevel(Document doc, Level level, List<ElementId> catIds)
         {
             return new FilteredElementCollector(doc)
