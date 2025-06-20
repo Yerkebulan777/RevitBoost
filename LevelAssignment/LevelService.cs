@@ -12,6 +12,7 @@ namespace LevelAssignment
 
         private readonly List<ElementId> categoryIds;
 
+
         public LevelService(Document doc)
         {
             categoryIds = CollectorHelper.GetModelCategoryIds(doc);
