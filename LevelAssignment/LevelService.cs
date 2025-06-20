@@ -10,6 +10,13 @@ namespace LevelAssignment
         private readonly double maxY;
 
 
+        private readonly List<ElementId> categoryIds;
+
+        public LevelService(Document doc)
+        {
+            categoryIds = CollectorHelper.GetModelCategoryIds(doc);
+        }
+
 
         public List<Level> GetValidLevels(Document doc, double maxHeightInMeters = 100)
         {
@@ -24,28 +31,20 @@ namespace LevelAssignment
         }
 
 
-        public static void GetBoundingPoints(Document document, in List<Level> models, out double minX, out double maxX, out double minY, out double maxY)
+        public static void GetBoundingPoints(Document doс, in List<Level> models, out double minX, out double maxX, out double minY, out double maxY)
         {
             minX = double.PositiveInfinity;
             maxX = double.NegativeInfinity;
             minY = double.PositiveInfinity;
             maxY = double.NegativeInfinity;
 
-            foreach (Level model in models)
-            {
-                if (model != null)
-                {
-                    BuiltInCategory[] excludedBics = new BuiltInCategory[]
-                    {
-                    BuiltInCategory.OST_Levels,
-                    BuiltInCategory.OST_Lines,
-                    BuiltInCategory.OST_Mass,
-                    };
 
-                    FilteredElementCollector collector = CollectorHelper.GetModelElements(document, excludedBics);
-                    collector = collector.WherePasses(new ElementLevelFilter(model.Id));
-                    collector = collector.WhereElementIsViewIndependent();
-                    collector = collector.WhereElementIsNotElementType();
+            foreach (Level level in models)
+            {
+                if (level != null)
+                {
+
+                    FilteredElementCollector collector = GetGeometryByLevel(doс, level, categoryIds);
 
                     double tolerance = UnitManager.MmToFoot(9000);
                     double adding = UnitManager.MmToFoot(3000);
@@ -77,11 +76,11 @@ namespace LevelAssignment
         }
 
 
-        public static FilteredElementCollector GetInstancesByCategoryIds(Document doc, List<ElementId> categoryIds)
+        public FilteredElementCollector GetGeometryByLevel(Document doc, Level level, List<ElementId> catIds)
         {
-            ElementMulticategoryFilter categoryFilter = new(categoryIds);
-
-            return new FilteredElementCollector(doc).WherePasses(categoryFilter)
+            return new FilteredElementCollector(doc)
+                .WherePasses(new ElementLevelFilter(level.Id))
+                .WherePasses(new ElementMulticategoryFilter(catIds))
                 .WhereElementIsViewIndependent()
                 .WhereElementIsNotElementType();
         }
