@@ -91,7 +91,7 @@ namespace LevelAssignment
 
         public LogicalOrFilter CreateIntersectBoxFilter(ref Level model, int floorNumber, List<Level> levels, bool visible = false)
         {
-            double clearance = UnitManager.MmToFoot(50);
+            double clearance = UnitManager.MmToFoot(100);
 
             List<Level> sortedLevels = [.. levels.OrderBy(x => x.Elevation)];
 
