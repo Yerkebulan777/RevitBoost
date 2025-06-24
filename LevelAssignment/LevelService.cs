@@ -128,7 +128,6 @@ namespace LevelAssignment
             evelation = level.Elevation;
 
             List<Level> sortedLevels = [.. levels.OrderBy(x => x.Elevation)];
-
             Level abovetLevel = sortedLevels.FirstOrDefault(x => x.Elevation > level.Elevation);
             Level belowLevel = sortedLevels.LastOrDefault(x => x.Elevation < level.Elevation);
 
