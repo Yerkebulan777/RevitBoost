@@ -10,10 +10,6 @@ namespace LevelAssignment
         public double MaxY { get; set; }
 
 
-
-
-
-
         public List<Level> GetValidLevels(Document doc, double maxHeightInMeters = 100)
         {
             double maximum = UnitManager.MmToFoot(maxHeightInMeters * 1000);
@@ -27,34 +23,31 @@ namespace LevelAssignment
         }
 
 
-        public void CalculateBoundingPoints(Document doc, List<Level> levels, double tolerance)
+        public void CalculateBoundingPoints(Document doc, List<Level> levels, double minimum)
         {
-            List<ElementId> categoryIds = CollectorHelper.GetModelCategoryIds(doc);
+            List<ElementId> modelCategoryIds = CollectorHelper.GetModelCategoryIds(doc);
 
-            FilteredElementCollector collector;
+            HashSet<ElementId> visibleElementIds = [];
 
-            foreach (Level level in levels)
+            foreach (Level currentLevel in levels)
             {
-                collector = GetInstancesByLevel(doc, level, categoryIds);
-
-                collector = collector.UnionWith(CollectorHelper.GetAnnotationCollector(doc));
-
-                foreach (Element element in collector)
+                foreach (ViewPlan floorPlan in GetViewPlansByLevel(doc, currentLevel))
                 {
-                    BoundingBoxXYZ bbox = element.get_BoundingBox(null);
+                    FilteredElementCollector elements = GetInstancesInView(doc, floorPlan, modelCategoryIds);
 
-                    if (bbox?.Enabled == true)
+                    foreach (Element element in elements.Where(el => visibleElementIds.Add(el.Id)))
                     {
-                        XYZ pntMin = bbox.Min;
-                        XYZ pntMax = bbox.Max;
+                        BoundingBoxXYZ bbox = element.get_BoundingBox(null);
 
-                        // Проверяем размер элемента
-                        if (pntMin.DistanceTo(pntMax) < tolerance)
+                        if ((bbox?.Enabled) is true)
                         {
-                            MinX = Math.Min(MinX, pntMin.X);
-                            MinY = Math.Min(MinY, pntMin.Y);
-                            MaxX = Math.Max(MaxX, pntMax.X);
-                            MaxY = Math.Max(MaxY, pntMax.Y);
+                            XYZ minPoint = bbox.Min;
+                            XYZ maxPoint = bbox.Max;
+                            
+                            if (minPoint.DistanceTo(maxPoint) > minimum)
+                            {
+                                UpdateBoundingLimits(minPoint, maxPoint);
+                            }
                         }
                     }
                 }
@@ -62,11 +55,33 @@ namespace LevelAssignment
         }
 
 
-        public FilteredElementCollector GetInstancesByLevel(Document doc, Level level, List<ElementId> catIds)
+        private void UpdateBoundingLimits(XYZ minPoint, XYZ maxPoint)
         {
-            return new FilteredElementCollector(doc)
-                .WherePasses(new ElementLevelFilter(level.Id))
-                .WherePasses(new ElementMulticategoryFilter(catIds))
+            MinX = Math.Min(MinX, minPoint.X);
+            MinY = Math.Min(MinY, minPoint.Y);
+            MaxX = Math.Max(MaxX, maxPoint.X);
+            MaxY = Math.Max(MaxY, maxPoint.Y);
+        }
+
+
+        /// <summary>
+        /// Получает все планы этажей для указанного уровня
+        /// </summary>
+        private static List<ViewPlan> GetViewPlansByLevel(Document doc, Level level)
+        {
+            return [.. new FilteredElementCollector(doc)
+                .OfClass(typeof(ViewPlan)).OfType<ViewPlan>()
+                .Where(pln => !pln.IsTemplate && pln.IsValidObject && pln.GenLevel.Id == level.Id)];
+        }
+
+
+        /// <summary>
+        /// Получает видимые элементы в указанном виде используя FilteredElementCollector
+        /// </summary>
+        private static FilteredElementCollector GetInstancesInView(Document doc, View view, List<ElementId> categoryIds)
+        {
+            return new FilteredElementCollector(doc, view.Id)
+                .WherePasses(new ElementMulticategoryFilter(categoryIds))
                 .WhereElementIsViewIndependent()
                 .WhereElementIsNotElementType();
         }
