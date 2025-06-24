@@ -87,11 +87,14 @@ namespace LevelAssignment
         }
 
 
+
         public LogicalOrFilter CreateIntersectBoxFilter(ref Level model, int floorNumber, List<Level> levels, bool visible = false)
         {
             double clearance = UnitManager.MmToFoot(50);
 
-            double height = GetLevelHeight(model, floorNumber, levels, out double elevation);
+            List<Level> sortedLevels = [.. levels.OrderBy(x => x.Elevation)];
+
+            double height = GetLevelHeight(model, floorNumber, sortedLevels, out double elevation);
 
             XYZ minPoint = Transform.Identity.OfPoint(new XYZ(MinX, MinY, elevation + clearance));
 
@@ -121,13 +124,12 @@ namespace LevelAssignment
         }
 
 
-        public static double GetLevelHeight(Level level, int floorNumber, List<Level> levels, out double evelation)
+        public static double GetLevelHeight(Level level, int floorNumber, List<Level> sortedLevels, out double evelation)
         {
             double result = 0;
 
             evelation = level.Elevation;
 
-            List<Level> sortedLevels = [.. levels.OrderBy(x => x.Elevation)];
             Level aboveLevel = sortedLevels.FirstOrDefault(x => x.Elevation > level.Elevation);
             Level belowLevel = sortedLevels.LastOrDefault(x => x.Elevation < level.Elevation);
 
