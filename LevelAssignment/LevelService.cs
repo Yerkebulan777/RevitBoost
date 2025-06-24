@@ -89,13 +89,13 @@ namespace LevelAssignment
 
 
 
-        public LogicalOrFilter CreateIntersectBoxFilter(ref Level model, int floorNumber, List<Level> levels, bool visible = false)
+        public LogicalOrFilter CreateIntersectBoxFilter(ref Level level, int floorNumber, List<Level> levels, bool visible = false)
         {
             double clearance = UnitManager.MmToFoot(100);
 
             List<Level> sortedLevels = [.. levels.OrderBy(x => x.Elevation)];
 
-            double height = GetLevelHeight(model, floorNumber, sortedLevels, out double elevation);
+            double height = GetLevelHeight(level, floorNumber, sortedLevels, out double elevation);
 
             XYZ minPoint = Transform.Identity.OfPoint(new XYZ(MinX, MinY, elevation + clearance));
 
@@ -105,7 +105,7 @@ namespace LevelAssignment
 
             if (visible)
             {
-                solid.CreateDirectShape(model.Document);
+                solid.CreateDirectShape(level.Document);
             }
 
             Outline outline = new(minPoint, maxPoint);
