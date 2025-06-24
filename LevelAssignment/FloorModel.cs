@@ -18,7 +18,7 @@
 
         public int CompareTo(FloorModel other)
         {
-            if (other == null) return 1;
+            if (other is null) return 1;
             return ProjectElevation.CompareTo(other.ProjectElevation);
         }
     }
