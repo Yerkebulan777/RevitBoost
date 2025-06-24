@@ -64,6 +64,7 @@ namespace LevelAssignment
         }
 
 
+
         /// <summary>
         /// Получает все планы этажей для указанного уровня
         /// </summary>
