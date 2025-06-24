@@ -10,6 +10,10 @@ namespace LevelAssignment
         public double MaxY { get; set; }
 
 
+
+
+
+
         public List<Level> GetValidLevels(Document doc, double maxHeightInMeters = 100)
         {
             double maximum = UnitManager.MmToFoot(maxHeightInMeters * 1000);
@@ -23,15 +27,17 @@ namespace LevelAssignment
         }
 
 
-        public void CalculateBoundingPoints(Document doc, List<Level> levels)
+        public void CalculateBoundingPoints(Document doc, List<Level> levels, double tolerance)
         {
             List<ElementId> categoryIds = CollectorHelper.GetModelCategoryIds(doc);
 
-            double tolerance = UnitManager.MmToFoot(500);
+            FilteredElementCollector collector;
 
             foreach (Level level in levels)
             {
-                FilteredElementCollector collector = GetInstancesyByLevel(doc, level, categoryIds);
+                collector = GetInstancesByLevel(doc, level, categoryIds);
+
+                collector = collector.UnionWith(CollectorHelper.GetAnnotationCollector(doc));
 
                 foreach (Element element in collector)
                 {
@@ -56,7 +62,7 @@ namespace LevelAssignment
         }
 
 
-        public FilteredElementCollector GetInstancesyByLevel(Document doc, Level level, List<ElementId> catIds)
+        public FilteredElementCollector GetInstancesByLevel(Document doc, Level level, List<ElementId> catIds)
         {
             return new FilteredElementCollector(doc)
                 .WherePasses(new ElementLevelFilter(level.Id))

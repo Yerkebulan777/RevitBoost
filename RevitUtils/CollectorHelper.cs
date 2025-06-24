@@ -43,11 +43,12 @@ namespace RevitUtils
         #endregion
 
 
-        #region Category filter
+        #region Category filters
 
-        public static List<ElementId> GetModelCategoryIds(Document doc, int lehght = 10)
+
+        public static List<ElementId> GetModelCategoryIds(Document doc)
         {
-            List<ElementId> categoryIds = new(lehght);
+            List<ElementId> categoryIds = new(100);
 
             foreach (ElementId catId in ParameterFilterUtilities.GetAllFilterableCategories())
             {
@@ -68,9 +69,27 @@ namespace RevitUtils
         }
 
 
+        public static FilteredElementCollector GetAnnotationCollector(Document doc)
+        {
+            IList<BuiltInCategory> annotationCats = new[]
+            {
+                BuiltInCategory.OST_Lines,             // Линии детализации
+                BuiltInCategory.OST_DetailComponents,  // Элементы детализации
+                BuiltInCategory.OST_GenericAnnotation, // Условные обозначения
+                BuiltInCategory.OST_FilledRegion,      // Заливки
+                BuiltInCategory.OST_Dimensions         // Размеры
+            };
+
+            ElementMulticategoryFilter categoryFilter = new(annotationCats);
+            FilteredElementCollector collector = new FilteredElementCollector(doc).WherePasses(categoryFilter);
+
+            return collector;
+        }
+
+
         public static FilteredElementCollector GetStructuraCollector(Document doc)
         {
-            IList<BuiltInCategory> structuralCats = new[]
+            IList<BuiltInCategory> structuralBics = new[]
             {
                 BuiltInCategory.OST_Walls,
                 BuiltInCategory.OST_Floors,
@@ -80,11 +99,12 @@ namespace RevitUtils
                 BuiltInCategory.OST_StructuralFoundation,
             };
 
-            ElementMulticategoryFilter categoryFilter = new(structuralCats);
+            ElementMulticategoryFilter categoryFilter = new(structuralBics);
             FilteredElementCollector collector = new FilteredElementCollector(doc).WherePasses(categoryFilter);
 
             return collector;
         }
+
 
         #endregion
 
