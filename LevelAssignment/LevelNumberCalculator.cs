@@ -33,7 +33,7 @@ namespace LevelAssignment
 
                 string levelName = level.Name.ToUpper();
 
-                double elevation = GetElevationInMeters(level);
+                double elevation = GetProjectElevationInMeters(level);
 
                 if (!IsDuplicateLevel(elevation, previousElevation))
                 {
@@ -105,10 +105,9 @@ namespace LevelAssignment
         /// <summary>
         /// Преобразует высоту уровня в метры.
         /// </summary>
-        private static double GetElevationInMeters(Level level)
+        private static double GetProjectElevationInMeters(Level level)
         {
-            double elevationInFeet = level.get_Parameter(BuiltInParameter.LEVEL_ELEV).AsDouble();
-            return Math.Round(UnitManager.FootToMm(elevationInFeet) / 1000.0, 3);
+            return Math.Round(UnitManager.FootToMm(level.ProjectElevation) / 1000.0, 3);
         }
 
 
