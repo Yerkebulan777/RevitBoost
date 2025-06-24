@@ -206,7 +206,7 @@
             List<double> floorOffsets = GetFloorOffsets();
 
             // Применение смещений
-            levelHeights = levelHeights.Zip(floorOffsets, (h, o) => h + o).ToList();
+            levelHeights = [.. levelHeights.Zip(floorOffsets, (h, o) => h + o)];
 
             // Сортировка по высоте
             var sortedPairs = levelHeights
