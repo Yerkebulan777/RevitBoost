@@ -128,20 +128,20 @@ namespace LevelAssignment
             evelation = level.Elevation;
 
             List<Level> sortedLevels = [.. levels.OrderBy(x => x.Elevation)];
-            Level abovetLevel = sortedLevels.FirstOrDefault(x => x.Elevation > level.Elevation);
+            Level aboveLevel = sortedLevels.FirstOrDefault(x => x.Elevation > level.Elevation);
             Level belowLevel = sortedLevels.LastOrDefault(x => x.Elevation < level.Elevation);
 
-            if (floorNumber > 0 && abovetLevel is not null && belowLevel is not null)
+            if (floorNumber > 0 && aboveLevel is not null && belowLevel is not null)
             {
-                result = Math.Abs(abovetLevel.Elevation - level.Elevation);
+                result = Math.Abs(aboveLevel.Elevation - level.Elevation);
             }
-            else if (floorNumber != 0 && abovetLevel is null)
+            else if (floorNumber != 0 && aboveLevel is null)
             {
                 result = Math.Abs(level.Elevation - belowLevel.Elevation);
             }
             else if (floorNumber < 0 && belowLevel is null)
             {
-                result = Math.Abs(abovetLevel.Elevation - level.Elevation);
+                result = Math.Abs(aboveLevel.Elevation - level.Elevation);
                 double subtract = UnitManager.MmToFoot(3000);
                 evelation -= subtract;
                 result += subtract;
