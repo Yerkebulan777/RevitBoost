@@ -43,7 +43,7 @@ namespace LevelAssignment
                         {
                             XYZ minPoint = bbox.Min;
                             XYZ maxPoint = bbox.Max;
-                            
+
                             if (minPoint.DistanceTo(maxPoint) > minimum)
                             {
                                 UpdateBoundingLimits(minPoint, maxPoint);
@@ -87,11 +87,13 @@ namespace LevelAssignment
         }
 
 
-        public LogicalOrFilter CreateIntersectBoxFilter(ref Level model, int floorNumber, List<Level> levels, bool visible = true)
+        public LogicalOrFilter CreateIntersectBoxFilter(ref Level model, int floorNumber, List<Level> levels, bool visible = false)
         {
+            double clearance = UnitManager.MmToFoot(50);
+
             double height = GetLevelHeight(model, floorNumber, levels, out double elevation);
 
-            XYZ minPoint = Transform.Identity.OfPoint(new XYZ(MinX, MinY, elevation));
+            XYZ minPoint = Transform.Identity.OfPoint(new XYZ(MinX, MinY, elevation + clearance));
 
             XYZ maxPoint = Transform.Identity.OfPoint(new XYZ(MaxX, MaxY, elevation + height));
 
@@ -124,22 +126,23 @@ namespace LevelAssignment
             double result = 0;
 
             evelation = level.Elevation;
-            double clearance = UnitManager.MmToFoot(150);
 
-            Level abovetLevel = levels.FirstOrDefault(x => x.ProjectElevation > level.ProjectElevation);
-            Level belowLevel = levels.LastOrDefault(x => x.ProjectElevation < level.ProjectElevation);
+            List<Level> sortedLevels = [.. levels.OrderBy(x => x.Elevation)];
+
+            Level abovetLevel = sortedLevels.FirstOrDefault(x => x.Elevation > level.Elevation);
+            Level belowLevel = sortedLevels.LastOrDefault(x => x.Elevation < level.Elevation);
 
             if (floorNumber > 0 && abovetLevel is not null && belowLevel is not null)
             {
-                result = Math.Abs(abovetLevel.ProjectElevation - level.ProjectElevation - clearance);
+                result = Math.Abs(abovetLevel.Elevation - level.Elevation);
             }
             else if (floorNumber != 0 && abovetLevel is null)
             {
-                result = Math.Abs(level.ProjectElevation - belowLevel.ProjectElevation - clearance);
+                result = Math.Abs(level.Elevation - belowLevel.Elevation);
             }
             else if (floorNumber < 0 && belowLevel is null)
             {
-                result = Math.Abs(abovetLevel.ProjectElevation - level.ProjectElevation);
+                result = Math.Abs(abovetLevel.Elevation - level.Elevation);
                 double subtract = UnitManager.MmToFoot(3000);
                 evelation -= subtract;
                 result += subtract;
