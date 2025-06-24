@@ -13,10 +13,34 @@ namespace LevelAssignment
 
         private static readonly Regex levelNumberRegex = new(@"\d+", RegexOptions.Compiled);
 
+
+        /// <summary>
+        /// Вычисляет модели этажей на основе уровней проекта
+        /// </summary>
+        public List<FloorModel> GenerateFloorModels(List<Level> levels)
+        {
+            Dictionary<int, Level> levelNumMap = CalculateLevelNumberData(levels);
+
+            List<FloorModel> floorModels = [];
+
+            // Группируем уровни по номерам этажей
+            foreach (IGrouping<int, Level> group in levelNumMap
+                .GroupBy(kvp => kvp.Key, kvp => kvp.Value)
+                .OrderBy(g => g.Min(level => level.Elevation)))
+            {
+                int floorNumber = group.Key;
+                List<Level> floorLevels = [.. group]; // Уровни только этого этажа
+                floorModels.Add(new FloorModel(floorNumber, floorLevels));
+            }
+
+            return floorModels;
+        }
+
+
         /// <summary>
         /// Вычисляет вычисляет номера уровней.
         /// </summary>
-        public Dictionary<int, Level> CalculateLevelNumberData(List<Level> levels)
+        private Dictionary<int, Level> CalculateLevelNumberData(List<Level> levels)
         {
             int calculatedNumber = 0;
             double previousElevation = 0;
@@ -141,7 +165,7 @@ namespace LevelAssignment
         /// </summary>
         private static bool IsTopLevel(int currentNum, int index, int lenght)
         {
-            return currentNum > 3 && index > lenght - 3; 
+            return currentNum > 3 && index > lenght - 3;
         }
 
 

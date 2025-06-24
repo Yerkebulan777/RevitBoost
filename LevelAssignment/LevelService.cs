@@ -63,8 +63,6 @@ namespace LevelAssignment
             MaxY = Math.Max(MaxY, maxPoint.Y);
         }
 
-
-
         /// <summary>
         /// Получает все планы этажей для указанного уровня
         /// </summary>
@@ -74,7 +72,6 @@ namespace LevelAssignment
                 .OfClass(typeof(ViewPlan)).OfType<ViewPlan>()
                 .Where(pln => !pln.IsTemplate && pln.IsValidObject && pln.GenLevel.Id == level.Id)];
         }
-
 
         /// <summary>
         /// Получает видимые элементы в указанном виде используя FilteredElementCollector
