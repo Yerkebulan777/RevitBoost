@@ -2,11 +2,10 @@
 {
     public sealed class FloorModel
     {
+        public readonly List<Level> FloorLevels;
         public double ProjectElevation { get; }
         public string DisplayName { get; }
         public int FloorNumber { get; }
-
-        public readonly List<Level> FloorLevels;
 
         public FloorModel(int floorNumber, IEnumerable<Level> floorLevels)
         {
@@ -17,10 +16,6 @@
             FloorNumber = floorNumber;
         }
 
-        /// <summary>
-        /// Проверяет, содержит ли этаж несколько уровней
-        /// </summary>
-        public bool HasMultipleLevels => FloorLevels.Count > 1;
 
 
     }
