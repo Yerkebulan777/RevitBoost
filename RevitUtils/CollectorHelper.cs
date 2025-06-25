@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using Autodesk.Revit.DB;
+using System.Diagnostics;
 using Document = Autodesk.Revit.DB.Document;
 
 
@@ -56,10 +57,14 @@ namespace RevitUtils
 
                 if (cat is not null && cat.CategoryType == CategoryType.Model)
                 {
-                    Debug.WriteLine($"Category: {cat.Name}, Id: {cat.Id.IntegerValue}");
+                    Debug.WriteLine($"Is model category: {cat.Name}");
 
                     if (cat.CanAddSubcategory && cat.IsTagCategory && cat.IsVisibleInUI)
                     {
+                        Debug.WriteLine($"Is valid category: {cat.Name}");
+
+                        if (!excludedCategoryIds.Contains(cat.Id))
+
                         categoryIds.Add(catId);
                     }
                 }
