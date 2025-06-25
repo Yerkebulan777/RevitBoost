@@ -18,8 +18,7 @@ namespace LevelAssignment
 
             return [.. new FilteredElementCollector(doc).OfClass(typeof(Level))
                 .WherePasses(new ElementParameterFilter(rule)).Cast<Level>()
-                .OrderBy(x => x.Elevation).GroupBy(x => x.Elevation)
-                .Select(x => x.First())];
+                .OrderBy(x => x.Elevation)];
         }
 
 
