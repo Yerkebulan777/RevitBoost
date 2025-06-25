@@ -10,41 +10,12 @@ namespace LevelAssignment
         public double MaxY { get; set; }
 
 
-        List<BuiltInCategory> excludedCategories = new[]
-        {
-            // Арматура и армирование
-            BuiltInCategory.OST_Rebar,
-            BuiltInCategory.OST_PathRein,
-            BuiltInCategory.OST_FabricReinforcement,
-            BuiltInCategory.OST_StructuralStiffener,
-        
-            // MEP фитинги и соединения
-            BuiltInCategory.OST_PipeFitting,
-            BuiltInCategory.OST_DuctFitting,
-            BuiltInCategory.OST_CableTrayFitting,
-            BuiltInCategory.OST_ConduitFitting,
-            BuiltInCategory.OST_ConnectorElem,
-        
-            // Детализация и аннотации
-            BuiltInCategory.OST_DetailComponents,
-            BuiltInCategory.OST_GenericAnnotation,
-            BuiltInCategory.OST_Dimensions,
-            BuiltInCategory.OST_TextNotes,
-        
-            // Дополнительные мелкие элементы
-            BuiltInCategory.OST_Entourage,
-            BuiltInCategory.OST_PlantingAreas,
-            BuiltInCategory.OST_Site
-
-        };
-
-
         /// <summary>
         /// Определяет границы проекта на основе видимых элементов этажей
         /// </summary>
         public void CalculateBoundingPoints(Document doc, List<Level> levels, double minimum)
         {
-            List<ElementId> modelCategoryIds = CollectorHelper.GetModelCategoryIds(doc);
+            List<ElementId> modelCategoryIds = CollectorHelper.GetModelCategoryIds(doc, GetExcludedCategories());
 
             HashSet<ElementId> visibleElementIds = [];
 
@@ -76,6 +47,37 @@ namespace LevelAssignment
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Получает список исключенных категорий категорий  
+        /// </summary>
+        /// <returns></returns>
+        private static List<BuiltInCategory> GetExcludedCategories()
+        {
+            List<BuiltInCategory> excludedCategories = new()
+            {
+                // Арматура и армирование
+                BuiltInCategory.OST_Rebar,
+                BuiltInCategory.OST_PathRein,
+                BuiltInCategory.OST_FabricReinforcement,
+                BuiltInCategory.OST_StructuralStiffener,
+
+                // MEP фитинги и соединения
+                BuiltInCategory.OST_PipeFitting,
+                BuiltInCategory.OST_DuctFitting,
+                BuiltInCategory.OST_CableTrayFitting,
+                BuiltInCategory.OST_ConduitFitting,
+                BuiltInCategory.OST_ConnectorElem,
+
+                // Детализация и аннотации
+                BuiltInCategory.OST_DetailComponents,
+                BuiltInCategory.OST_GenericAnnotation,
+                BuiltInCategory.OST_Entourage,
+                BuiltInCategory.OST_Site
+            };
+
+            return excludedCategories;
         }
 
         /// <summary>
