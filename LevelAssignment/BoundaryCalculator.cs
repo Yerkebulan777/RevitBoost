@@ -11,7 +11,7 @@ namespace LevelAssignment
 
 
         /// <summary>
-        /// Получение границ видов планов с приоритетной проверкой CropBoxActive
+        /// Получение границ видов планов этажей для всех уровней
         /// </summary>
         public void CalculateBoundingPoints(Document doc, List<Level> levels)
         {
