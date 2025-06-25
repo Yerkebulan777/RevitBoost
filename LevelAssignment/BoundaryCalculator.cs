@@ -1,4 +1,5 @@
 ﻿using RevitUtils;
+using System.Diagnostics;
 
 namespace LevelAssignment
 {
@@ -50,36 +51,86 @@ namespace LevelAssignment
         }
 
         /// <summary>
-        /// Получение границ плана
+        /// Извлекает границы плана этажа с применением приоритетной стратегии
         /// </summary>
+        /// <param name="floorPlan">План этажа для анализа</param>
+        /// <param name="level">Уровень, связанный с планом</param>
+        /// <returns>Outline границ плана или null, если границы не определены</returns>
         internal Outline ExtractViewPlanBoundary(ViewPlan floorPlan, Level level)
         {
-            // Приоритет 1: Активный CropBox
+            try
+            {
+                // Стратегия 1: Использование активного CropBox
+                Outline cropBoxBounds = TryExtractFromCropBox(floorPlan, level);
+                if (cropBoxBounds != null)
+                {
+                    return cropBoxBounds;
+                }
+
+                // Стратегия 2: Использование свойства Outline вида
+                Outline viewOutlineBounds = TryExtractFromViewOutline(floorPlan, level);
+                if (viewOutlineBounds != null)
+                {
+                    return viewOutlineBounds;
+                }
+
+                // Стратегия 3: Анализ через CropRegionShapeManager
+                Outline cropRegionBounds = TryExtractFromCropRegion(floorPlan, level);
+                if (cropRegionBounds != null)
+                {
+                    return cropRegionBounds;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Логирование ошибки для диагностики
+                Debug.WriteLine($"Ошибка при извлечении границ плана {floorPlan.Name}: {ex.Message}");
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Попытка извлечения границ из активного CropBox
+        /// </summary>
+        private Outline TryExtractFromCropBox(ViewPlan floorPlan, Level level)
+        {
             if (floorPlan.CropBoxActive && floorPlan.CropBox != null)
             {
                 return TransformCropBox(floorPlan.CropBox, level);
             }
+            return null;
+        }
 
-            // Приоритет 2: Свойство Outline вида (если доступно)
+        /// <summary>
+        /// Попытка извлечения границ из свойства Outline вида
+        /// </summary>
+        private Outline TryExtractFromViewOutline(ViewPlan floorPlan, Level level)
+        {
             BoundingBoxUV viewOutline = floorPlan.Outline;
-            if (viewOutline is not null)
+            if (viewOutline != null)
             {
                 return TransformViewOutline(viewOutline, level);
             }
+            return null;
+        }
 
-            // Приоритет 3: Анализ через CropRegionShapeManager
+        /// <summary>
+        /// Попытка извлечения границ через CropRegionShapeManager
+        /// </summary>
+        private Outline TryExtractFromCropRegion(ViewPlan floorPlan, Level level)
+        {
             ViewCropRegionShapeManager cropManager = floorPlan.GetCropRegionShapeManager();
 
-            if (cropManager.CanHaveShape)
+            if (cropManager?.CanHaveShape == true)
             {
                 IList<CurveLoop> cropShapes = cropManager.GetCropShape();
 
-                if (cropShapes.Any())
+                if (cropShapes?.Any() == true)
                 {
                     return GetCropRegionOutline(cropShapes, level);
                 }
             }
-
             return null;
         }
 
@@ -225,8 +276,6 @@ namespace LevelAssignment
 
             return points;
         }
-
-
 
 
         public LogicalOrFilter CreateIntersectFilter(Document doc, FloorModel current, List<FloorModel> floorModels, bool visible = false)
