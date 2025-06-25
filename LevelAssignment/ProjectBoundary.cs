@@ -9,6 +9,36 @@ namespace LevelAssignment
         public double MinY { get; set; }
         public double MaxY { get; set; }
 
+
+        List<BuiltInCategory> excludedCategories = new[]
+        {
+            // Арматура и армирование
+            BuiltInCategory.OST_Rebar,
+            BuiltInCategory.OST_PathRein,
+            BuiltInCategory.OST_FabricReinforcement,
+            BuiltInCategory.OST_StructuralStiffener,
+        
+            // MEP фитинги и соединения
+            BuiltInCategory.OST_PipeFitting,
+            BuiltInCategory.OST_DuctFitting,
+            BuiltInCategory.OST_CableTrayFitting,
+            BuiltInCategory.OST_ConduitFitting,
+            BuiltInCategory.OST_ConnectorElem,
+        
+            // Детализация и аннотации
+            BuiltInCategory.OST_DetailComponents,
+            BuiltInCategory.OST_GenericAnnotation,
+            BuiltInCategory.OST_Dimensions,
+            BuiltInCategory.OST_TextNotes,
+        
+            // Дополнительные мелкие элементы
+            BuiltInCategory.OST_Entourage,
+            BuiltInCategory.OST_PlantingAreas,
+            BuiltInCategory.OST_Site
+
+        };
+
+
         /// <summary>
         /// Определяет границы проекта на основе видимых элементов этажей
         /// </summary>

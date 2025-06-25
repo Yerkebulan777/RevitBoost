@@ -1,5 +1,4 @@
-﻿using Autodesk.Revit.DB;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Document = Autodesk.Revit.DB.Document;
 
 
@@ -41,13 +40,7 @@ namespace RevitUtils
             return collector.WherePasses(logicOrFilter).WhereElementIsNotElementType();
         }
 
-        #endregion
-
-
-        #region Category filters
-
-
-        public static List<ElementId> GetModelCategoryIds(Document doc)
+        public static List<ElementId> GetModelCategoryIds(Document doc, List<BuiltInCategory> excluded = null)
         {
             List<ElementId> categoryIds = new(100);
 
@@ -57,15 +50,16 @@ namespace RevitUtils
 
                 if (cat is not null && cat.CategoryType == CategoryType.Model)
                 {
-                    Debug.WriteLine($"Is model category: {cat.Name}");
+                    Debug.WriteLine($"Category: {cat.Name} Id: {cat.Id.IntegerValue}");
 
                     if (cat.CanAddSubcategory && cat.IsTagCategory && cat.IsVisibleInUI)
                     {
-                        Debug.WriteLine($"Is valid category: {cat.Name}");
+                        BuiltInCategory catBic = (BuiltInCategory)cat.Id.IntegerValue;
 
-                        if (!excludedCategoryIds.Contains(cat.Id))
-
-                        categoryIds.Add(catId);
+                        if (excluded is null || !excluded.Contains(catBic))
+                        {
+                            categoryIds.Add(catId);
+                        }
                     }
                 }
             }
