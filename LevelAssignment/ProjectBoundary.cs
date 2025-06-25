@@ -9,10 +9,10 @@ namespace LevelAssignment
         public double MinY { get; set; }
         public double MaxY { get; set; }
 
-
         /// <summary>
         /// Определяет границы проекта на основе видимых элементов этажей
         /// </summary>
+
         public void CalculateBoundingPoints(Document doc, List<Level> levels, double minimum)
         {
             List<ElementId> modelCategoryIds = CollectorHelper.GetModelCategoryIds(doc, GetExcludedCategories());
@@ -48,7 +48,6 @@ namespace LevelAssignment
                 }
             }
         }
-
 
         /// <summary>
         /// Получение границ видов планов с приоритетной проверкой CropBoxActive
