@@ -16,7 +16,6 @@ namespace LevelAssignment
         }
 
 
-
         public class OptimizedFloorElementAssigner
         {
             public Dictionary<FloorModel, List<Element>> AssignElementsToFloors(Document doc, List<Level> levels)
