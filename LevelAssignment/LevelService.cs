@@ -32,7 +32,7 @@ namespace LevelAssignment
 
             foreach (Level currentLevel in levels)
             {
-                MinX -= buffer; MinY -= buffer; 
+                MinX -= buffer; MinY -= buffer;
                 MaxX += buffer; MaxY += buffer;
 
                 foreach (ViewPlan floorPlan in GetViewPlansByLevel(doc, currentLevel))
@@ -100,27 +100,19 @@ namespace LevelAssignment
 
             XYZ maxPoint = Transform.Identity.OfPoint(new XYZ(MaxX, MaxY, elevation + height));
 
-            Solid solid = SolidHelper.CreateSolidBoxByPoint(minPoint, maxPoint, height);
-
-            if (visible)
-            {
-                solid.CreateDirectShape(doc);
-            }
+            Solid floorSolid = SolidHelper.CreateSolidBoxByPoint(minPoint, maxPoint, height);
 
             Outline outline = new(minPoint, maxPoint);
 
-            ElementIntersectsSolidFilter solidFilter = new(solid);
+            if (visible)
+            {
+                floorSolid.CreateDirectShape(doc);
+            }
 
-            BoundingBoxIsInsideFilter insideBoxFilter = new(outline: outline);
+            ElementIntersectsSolidFilter solidFilter = new(floorSolid);
+            BoundingBoxIntersectsFilter boundingBoxFilter = new(outline);
 
-            BoundingBoxIntersectsFilter intersectBoxFilter = new(outline: outline);
-
-            LogicalOrFilter logicBoundingOrFilter = new(insideBoxFilter, intersectBoxFilter);
-
-            LogicalOrFilter logicIntersectOrFilter = new(logicBoundingOrFilter, solidFilter);
-
-            return logicIntersectOrFilter;
-
+            return new LogicalOrFilter(boundingBoxFilter, solidFilter);
         }
 
 
