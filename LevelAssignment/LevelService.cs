@@ -85,11 +85,11 @@ namespace LevelAssignment
 
 
 
-        public LogicalOrFilter CreateIntersectBoxFilter(Document doc, FloorModel level, int floorNumber, List<FloorModel> floorModels, bool visible = false)
+        public LogicalOrFilter CreateIntersectBoxFilter(Document doc, FloorModel current, int floorNumber, List<FloorModel> floorModels, bool visible = false)
         {
             double clearance = UnitManager.MmToFoot(100);
 
-            double height = GetLevelHeight(level, floorNumber, floorModels, out double elevation);
+            double height = GetLevelHeight(current, floorNumber, floorModels, out double elevation);
 
             XYZ minPoint = Transform.Identity.OfPoint(new XYZ(MinX, MinY, elevation + clearance));
 
