@@ -19,7 +19,6 @@ namespace RevitUtils
 
 
         #region FilteredBySymbolName
-
         public static FilteredElementCollector GetInstancesBySymbolName(Document doc, BuiltInCategory bic, string symbolName)
         {
             ElementId typeParamId = new(BuiltInParameter.ELEM_TYPE_PARAM);
@@ -39,6 +38,9 @@ namespace RevitUtils
             FilteredElementCollector collector = new FilteredElementCollector(doc).OfCategory(bic);
             return collector.WherePasses(logicOrFilter).WhereElementIsNotElementType();
         }
+
+        #endregion
+
 
         public static List<ElementId> GetModelCategoryIds(Document doc, List<BuiltInCategory> excluded = null)
         {
@@ -67,7 +69,6 @@ namespace RevitUtils
             return categoryIds;
         }
 
-
         public static FilteredElementCollector GetAnnotationCollector(Document doc)
         {
             IList<BuiltInCategory> annotationCats = new[]
@@ -84,7 +85,6 @@ namespace RevitUtils
 
             return collector;
         }
-
 
         public static FilteredElementCollector GetStructuraCollector(Document doc)
         {
@@ -104,9 +104,16 @@ namespace RevitUtils
             return collector;
         }
 
-
-        #endregion
-
+        /// <summary>
+        /// Получает видимые элементы в указанном виде используя FilteredElementCollector
+        /// </summary>
+        public static FilteredElementCollector GetInstancesInView(Document doc, View view, List<ElementId> categoryIds)
+        {
+            return new FilteredElementCollector(doc, view.Id)
+                .WherePasses(new ElementMulticategoryFilter(categoryIds))
+                .WhereElementIsViewIndependent()
+                .WhereElementIsNotElementType();
+        }
 
     }
 }

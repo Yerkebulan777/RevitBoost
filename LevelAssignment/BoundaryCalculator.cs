@@ -9,44 +9,6 @@ namespace LevelAssignment
         public double MinY { get; set; }
         public double MaxY { get; set; }
 
-        /// <summary>
-        /// Определяет границы проекта на основе видимых элементов этажей
-        /// </summary>
-        public void CalculateBoundingPoints(Document doc, List<Level> levels, double minimum)
-        {
-            List<ElementId> modelCategoryIds = CollectorHelper.GetModelCategoryIds(doc, GetExcludedCategories());
-
-            HashSet<ElementId> visibleElementIds = [];
-
-            double buffer = UnitManager.MmToFoot(300);
-
-            foreach (Level currentLevel in levels)
-            {
-                MinX -= buffer; MinY -= buffer;
-                MaxX += buffer; MaxY += buffer;
-
-                foreach (ViewPlan floorPlan in GetViewPlansByLevel(doc, currentLevel))
-                {
-                    FilteredElementCollector elements = GetInstancesInView(doc, floorPlan, modelCategoryIds);
-
-                    foreach (Element element in elements.Where(el => visibleElementIds.Add(el.Id)))
-                    {
-                        BoundingBoxXYZ bbox = element.get_BoundingBox(null);
-
-                        if ((bbox?.Enabled) is true)
-                        {
-                            XYZ minPoint = bbox.Min;
-                            XYZ maxPoint = bbox.Max;
-
-                            if (minPoint.DistanceTo(maxPoint) > minimum)
-                            {
-                                UpdateBoundingLimits(minPoint, maxPoint);
-                            }
-                        }
-                    }
-                }
-            }
-        }
 
         /// <summary>
         /// Получение границ видов планов с приоритетной проверкой CropBoxActive
@@ -61,7 +23,7 @@ namespace LevelAssignment
 
                 foreach (ViewPlan floorPlan in floorPlans)
                 {
-                    Outline viewBoundary = ExtractViewBoundaryWithPriority(floorPlan, level);
+                    Outline viewBoundary = ExtractViewPlanBoundary(floorPlan, level);
 
                     if (viewBoundary != null)
                     {
@@ -70,13 +32,57 @@ namespace LevelAssignment
                 }
             }
 
-            ProcessPrioritizedBoundaries(prioritizedOutlines);
+            ProcessBoundaries(prioritizedOutlines);
+        }
+
+        /// <summary>
+        /// Получает все планы этажей для указанного уровня
+        /// </summary>
+        internal List<ViewPlan> GetViewPlansByLevel(Document doc, Level level)
+        {
+            return [.. new FilteredElementCollector(doc)
+                .OfClass(typeof(ViewPlan)).OfType<ViewPlan>()
+                .Where(pln => !pln.IsTemplate && pln.GenLevel.Id == level.Id)];
+        }
+
+        /// <summary>
+        /// Получение границ плана
+        /// </summary>
+        internal Outline ExtractViewPlanBoundary(ViewPlan floorPlan, Level level)
+        {
+            // Приоритет 1: Активный CropBox
+            if (floorPlan.CropBoxActive && floorPlan.CropBox != null)
+            {
+                return TransformCropBox(floorPlan.CropBox, level);
+            }
+
+            // Приоритет 2: Свойство Outline вида (если доступно)
+            BoundingBoxUV viewOutline = floorPlan.Outline;
+            if (viewOutline is not null)
+            {
+                return TransformViewOutline(viewOutline, level);
+            }
+
+            // Приоритет 3: Анализ через CropRegionShapeManager
+            ViewCropRegionShapeManager cropManager = floorPlan.GetCropRegionShapeManager();
+
+            if (cropManager.CanHaveShape)
+            {
+                IList<CurveLoop> cropShapes = cropManager.GetCropShape();
+
+                if (cropShapes.Any())
+                {
+                    return GetCropRegionOutline(cropShapes, level);
+                }
+            }
+
+            return null;
         }
 
         /// <summary>
         /// Обработка приоритизированных границ
         /// </summary>
-        private void ProcessPrioritizedBoundaries(List<Outline> prioritizedOutlines)
+        private void ProcessBoundaries(List<Outline> prioritizedOutlines)
         {
             // Объединение всех границ
             foreach (Outline outline in prioritizedOutlines)
@@ -91,7 +97,7 @@ namespace LevelAssignment
         /// <summary>
         /// Преобразование outline вида в проектные координаты
         /// </summary>
-        private Outline TransformViewOutlineToProjectCoordinates(BoundingBoxUV viewOutline, Level level)
+        private Outline TransformViewOutline(BoundingBoxUV viewOutline, Level level)
         {
             BasePoint basePoint = GetProjectBasePoint(level.Document);
 
@@ -111,50 +117,9 @@ namespace LevelAssignment
         }
 
         /// <summary>
-        /// Обработка приоритетных границ видов
-        /// </summary>
-        private Outline ExtractViewBoundaryWithPriority(ViewPlan floorPlan, Level level)
-        {
-            // Приоритет 1: Активный CropBox
-            if (floorPlan.CropBoxActive && floorPlan.CropBox != null)
-            {
-                return ConvertCropBoxToProjectOutline(floorPlan.CropBox, level);
-            }
-
-            // Приоритет 2: Свойство Outline вида (если доступно)
-            try
-            {
-                BoundingBoxUV viewOutline = floorPlan.Outline;
-                if (viewOutline != null)
-                {
-                    return TransformViewOutlineToProjectCoordinates(viewOutline, level);
-                }
-            }
-            catch (Exception)
-            {
-                // Продолжаем к следующему методу если Outline недоступен
-            }
-
-            // Приоритет 3: Анализ через CropRegionShapeManager
-            ViewCropRegionShapeManager cropManager = floorPlan.GetCropRegionShapeManager();
-
-            if (cropManager.CanHaveShape)
-            {
-                IList<CurveLoop> cropShapes = cropManager.GetCropShape();
-
-                if (cropShapes.Any())
-                {
-                    return ProcessCropShapeGeometry(cropShapes, level);
-                }
-            }
-
-            return null;
-        }
-
-        /// <summary>
         /// Преобразует границы CropBox в проектные координаты
         /// </summary>
-        private Outline ConvertCropBoxToProjectOutline(BoundingBoxXYZ cropBox, Level level)
+        private Outline TransformCropBox(BoundingBoxXYZ cropBox, Level level)
         {
             BasePoint basePoint = GetProjectBasePoint(level.Document);
 
@@ -186,7 +151,7 @@ namespace LevelAssignment
         /// <summary>
         /// Обработка сложной геометрии границ обрезки вида
         /// </summary>
-        private Outline ProcessCropShapeGeometry(IList<CurveLoop> cropShapes, Level level)
+        private Outline GetCropRegionOutline(IList<CurveLoop> cropShapes, Level level)
         {
             List<XYZ> allBoundaryPoints = [];
 
@@ -254,7 +219,6 @@ namespace LevelAssignment
         /// <summary>
         /// Получает список исключенных категорий категорий  
         /// </summary>
-        /// <returns></returns>
         private static List<BuiltInCategory> GetExcludedCategories()
         {
             List<BuiltInCategory> excludedCategories =
@@ -282,37 +246,7 @@ namespace LevelAssignment
             return excludedCategories;
         }
 
-        /// <summary>
-        /// Получает все планы этажей для указанного уровня
-        /// </summary>
-        private List<ViewPlan> GetViewPlansByLevel(Document doc, Level level)
-        {
-            return [.. new FilteredElementCollector(doc)
-                .OfClass(typeof(ViewPlan)).OfType<ViewPlan>()
-                .Where(pln => !pln.IsTemplate && pln.GenLevel.Id == level.Id)];
-        }
 
-        /// <summary>
-        /// Обновляет границы ограничивающего прямоугольника
-        /// </summary>
-        private void UpdateBoundingLimits(XYZ minPoint, XYZ maxPoint)
-        {
-            MinX = Math.Min(MinX, minPoint.X);
-            MinY = Math.Min(MinY, minPoint.Y);
-            MaxX = Math.Max(MaxX, maxPoint.X);
-            MaxY = Math.Max(MaxY, maxPoint.Y);
-        }
-
-        /// <summary>
-        /// Получает видимые элементы в указанном виде используя FilteredElementCollector
-        /// </summary>
-        private static FilteredElementCollector GetInstancesInView(Document doc, View view, List<ElementId> categoryIds)
-        {
-            return new FilteredElementCollector(doc, view.Id)
-                .WherePasses(new ElementMulticategoryFilter(categoryIds))
-                .WhereElementIsViewIndependent()
-                .WhereElementIsNotElementType();
-        }
 
 
         public LogicalOrFilter CreateIntersectFilter(Document doc, FloorModel current, List<FloorModel> floorModels, bool visible = false)
@@ -369,7 +303,6 @@ namespace LevelAssignment
 
             return result;
         }
-
 
     }
 }
