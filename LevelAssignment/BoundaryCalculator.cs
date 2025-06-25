@@ -4,30 +4,34 @@ namespace LevelAssignment
 {
     internal sealed class BoundaryCalculator
     {
-        public double MinX { get; set; }
-        public double MaxX { get; set; }
-        public double MinY { get; set; }
-        public double MaxY { get; set; }
+        private double MinX { get; set; }
+        private double MaxX { get; set; }
+        private double MinY { get; set; }
+        private double MaxY { get; set; }
 
+        public Outline ProjectBoundaryOutline { get; private set; }
 
         /// <summary>
-        /// Получение границ видов планов этажей для всех уровней
+        /// Получение границ видов планов до 3 этажа
         /// </summary>
-        public void CalculateBoundingPoints(Document doc, List<Level> levels)
+        public void CalculateBoundingPoints(Document doc, List<FloorModel> floorModels)
         {
             List<Outline> prioritizedOutlines = [];
 
-            foreach (Level level in levels)
+            List<FloorModel> filteredFloors = [.. floorModels.Where(fm => fm.FloorNumber <= 3)];
+
+            foreach (FloorModel floorModel in filteredFloors)
             {
-                List<ViewPlan> floorPlans = GetViewPlansByLevel(doc, level);
-
-                foreach (ViewPlan floorPlan in floorPlans)
+                foreach (Level level in floorModel.FloorLevels)
                 {
-                    Outline viewBoundary = ExtractViewPlanBoundary(floorPlan, level);
-
-                    if (viewBoundary != null)
+                    foreach (ViewPlan floorPlan in GetViewPlansByLevel(doc, level))
                     {
-                        prioritizedOutlines.Add(viewBoundary);
+                        Outline viewBoundary = ExtractViewPlanBoundary(floorPlan, level);
+
+                        if (viewBoundary is not null)
+                        {
+                            prioritizedOutlines.Add(viewBoundary);
+                        }
                     }
                 }
             }
@@ -92,6 +96,12 @@ namespace LevelAssignment
                 MaxX = Math.Max(MaxX, outline.MaximumPoint.X);
                 MaxY = Math.Max(MaxY, outline.MaximumPoint.Y);
             }
+
+            XYZ minPoint = new(MinX, MinY, 0);
+            XYZ maxPoint = new(MaxX, MaxY, 0);
+
+            // Создание итоговых проектных границ
+            ProjectBoundaryOutline = new Outline(minPoint, maxPoint);
         }
 
         /// <summary>
