@@ -80,7 +80,7 @@ namespace LevelAssignment
         }
 
         /// <summary>
-        /// Обработка приоритизированных границ
+        /// Обработка границ
         /// </summary>
         private void ProcessBoundaries(List<Outline> prioritizedOutlines)
         {
@@ -214,36 +214,6 @@ namespace LevelAssignment
             }
 
             return points;
-        }
-
-        /// <summary>
-        /// Получает список исключенных категорий категорий  
-        /// </summary>
-        private static List<BuiltInCategory> GetExcludedCategories()
-        {
-            List<BuiltInCategory> excludedCategories =
-            [
-                // Арматура и армирование
-                BuiltInCategory.OST_Rebar,
-                BuiltInCategory.OST_PathRein,
-                BuiltInCategory.OST_FabricReinforcement,
-                BuiltInCategory.OST_StructuralStiffener,
-
-                // MEP фитинги и соединения
-                BuiltInCategory.OST_PipeFitting,
-                BuiltInCategory.OST_DuctFitting,
-                BuiltInCategory.OST_CableTrayFitting,
-                BuiltInCategory.OST_ConduitFitting,
-                BuiltInCategory.OST_ConnectorElem,
-
-                // Детализация и аннотации
-                BuiltInCategory.OST_DetailComponents,
-                BuiltInCategory.OST_GenericAnnotation,
-                BuiltInCategory.OST_Entourage,
-                BuiltInCategory.OST_Site
-            ];
-
-            return excludedCategories;
         }
 
 
