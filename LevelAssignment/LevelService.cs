@@ -28,8 +28,13 @@ namespace LevelAssignment
 
             HashSet<ElementId> visibleElementIds = [];
 
+            double buffer = UnitManager.MmToFoot(300);
+
             foreach (Level currentLevel in levels)
             {
+                MinX -= buffer; MinY -= buffer; 
+                MaxX += buffer; MaxY += buffer;
+
                 foreach (ViewPlan floorPlan in GetViewPlansByLevel(doc, currentLevel))
                 {
                     FilteredElementCollector elements = GetInstancesInView(doc, floorPlan, modelCategoryIds);
