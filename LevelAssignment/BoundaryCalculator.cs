@@ -12,6 +12,7 @@ namespace LevelAssignment
 
         public Outline ProjectBoundaryOutline { get; private set; }
 
+
         /// <summary>
         /// Получение границ видов планов до 3 этажа
         /// </summary>
