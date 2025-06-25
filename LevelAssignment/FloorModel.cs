@@ -1,6 +1,6 @@
 ﻿namespace LevelAssignment
 {
-    public sealed class FloorModel : IComparable<FloorModel>
+    public sealed record FloorModel  
     {
         public readonly List<Level> FloorLevels;
         public double ProjectElevation { get; }
@@ -14,12 +14,6 @@
             ProjectElevation = baseLevel.ProjectElevation;
             DisplayName = baseLevel.Name;
             FloorNumber = floorNumber;
-        }
-
-        public int CompareTo(FloorModel other)
-        {
-            if (other is null) return 1;
-            return ProjectElevation.CompareTo(other.ProjectElevation);
         }
     }
 }

@@ -150,6 +150,45 @@ namespace LevelAssignment
             return result;
         }
 
+        public static double GetLevelHeight(Level level, int floorNumber, List<FloorModel> models, out double elevation)
+        {
+            double result = 0;
+
+            elevation = level.Elevation;
+
+            // Найти текущий FloorModel который содержит данный Level
+            FloorModel currentFloor = models.FirstOrDefault(fm => fm.FloorLevels.Contains(level));
+
+            if (currentFloor == null)
+            {
+                return result;
+            }
+
+            // Сортируем FloorModels по ProjectElevation
+            List<FloorModel> sortedFloors = [.. models.OrderBy(x => x.ProjectElevation)];
+
+            FloorModel aboveFloor = sortedFloors.FirstOrDefault(x => x.ProjectElevation > currentFloor.ProjectElevation);
+            FloorModel belowFloor = sortedFloors.LastOrDefault(x => x.ProjectElevation < currentFloor.ProjectElevation);
+
+            if (floorNumber > 0 && aboveFloor is not null && belowFloor is not null)
+            {
+                result = Math.Abs(aboveFloor.ProjectElevation - currentFloor.ProjectElevation);
+            }
+            else if (floorNumber > 1 && aboveFloor is null)
+            {
+                result = Math.Abs(currentFloor.ProjectElevation - belowFloor.ProjectElevation);
+            }
+            else if (floorNumber < 0 && belowFloor is null)
+            {
+                result = Math.Abs(aboveFloor.ProjectElevation - currentFloor.ProjectElevation);
+                double subtract = UnitManager.MmToFoot(3000);
+                elevation -= subtract;
+                result += subtract;
+            }
+
+            return result;
+        }
+
 
     }
 }
