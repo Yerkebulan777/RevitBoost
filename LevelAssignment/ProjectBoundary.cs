@@ -49,14 +49,193 @@ namespace LevelAssignment
             }
         }
 
+
+        /// <summary>
+        /// Получение границ видов планов с приоритетной проверкой CropBoxActive
+        /// </summary>
+        public void CalculateBoundingPoints(Document doc, List<Level> levels)
+        {
+            List<Outline> prioritizedOutlines = [];
+
+            foreach (Level level in levels)
+            {
+                List<ViewPlan> floorPlans = GetViewPlansByLevel(doc, level);
+
+                foreach (ViewPlan floorPlan in floorPlans)
+                {
+                    Outline viewBoundary = ExtractViewBoundaryWithPriority(floorPlan, level);
+
+                    if (viewBoundary != null)
+                    {
+                        prioritizedOutlines.Add(viewBoundary);
+                    }
+                }
+            }
+
+            ProcessPrioritizedBoundaries(prioritizedOutlines);
+        }
+
+        private Outline ExtractViewBoundaryWithPriority(ViewPlan floorPlan, Level level)
+        {
+            // Приоритет 1: Активный CropBox
+            if (floorPlan.CropBoxActive && floorPlan.CropBox != null)
+            {
+                return ConvertCropBoxToProjectOutline(floorPlan.CropBox, level);
+            }
+
+            // Приоритет 2: Свойство Outline вида (если доступно)
+            try
+            {
+                BoundingBoxUV viewOutline = floorPlan.Outline;
+                if (viewOutline != null)
+                {
+                    return TransformViewOutlineToProjectCoordinates(viewOutline, level);
+                }
+            }
+            catch (Exception)
+            {
+                // Продолжаем к следующему методу если Outline недоступен
+            }
+
+            // Приоритет 3: Анализ через CropRegionShapeManager
+            ViewCropRegionShapeManager cropManager = floorPlan.GetCropRegionShapeManager();
+
+            if (cropManager.CanHaveShape)
+            {
+                IList<CurveLoop> cropShapes = cropManager.GetCropShape();
+
+                if (cropShapes.Any())
+                {
+                    return ProcessCropShapeGeometry(cropShapes, level);
+                }
+            }
+
+            return null;
+        }
+
+        private Outline TransformToProjectCoordinates(Outline viewOutline, Level level)
+        {
+            BasePoint basePoint = GetProjectBasePoint(level.Document);
+
+            XYZ offset = basePoint.Position;
+
+            XYZ minPoint = new(
+                viewOutline.MinimumPoint.X - offset.X,
+                viewOutline.MinimumPoint.Y - offset.Y,
+                level.Elevation);
+
+            XYZ maxPoint = new(
+                viewOutline.MaximumPoint.X - offset.X,
+                viewOutline.MaximumPoint.Y - offset.Y,
+                level.Elevation);
+
+            return new Outline(minPoint, maxPoint);
+        }
+
+
+        private Outline ConvertCropBoxToProjectOutline(BoundingBoxXYZ cropBox, Level level)
+        {
+            BasePoint basePoint = GetProjectBasePoint(level.Document);
+
+            XYZ offset = basePoint?.Position ?? XYZ.Zero;
+
+            XYZ minProjectPoint = new(
+                cropBox.Min.X - offset.X,
+                cropBox.Min.Y - offset.Y,
+                level.Elevation);
+
+            XYZ maxProjectPoint = new(
+                cropBox.Max.X - offset.X,
+                cropBox.Max.Y - offset.Y,
+                level.Elevation);
+
+            return new Outline(minProjectPoint, maxProjectPoint);
+        }
+
+        private BasePoint GetProjectBasePoint(Document doc)
+        {
+            return new FilteredElementCollector(doc)
+                .OfClass(typeof(BasePoint)).Cast<BasePoint>()
+                .FirstOrDefault(bp => !bp.IsShared);
+        }
+
+
+        /// <summary>
+        /// Обработка сложной геометрии границ обрезки вида
+        /// </summary>
+        private Outline ProcessCropShapeGeometry(IList<CurveLoop> cropShapes, Level level)
+        {
+            List<XYZ> allBoundaryPoints = [];
+
+            foreach (CurveLoop curveLoop in cropShapes)
+            {
+                foreach (Curve curve in curveLoop)
+                {
+                    // Извлечение точек из различных типов кривых
+                    List<XYZ> points = ExtractPointsFromCurve(curve);
+                    allBoundaryPoints.AddRange(points);
+                }
+            }
+
+            if (!allBoundaryPoints.Any())
+            {
+                return null;
+            }
+
+            // Преобразование в проектные координаты
+            BasePoint basePoint = GetProjectBasePoint(level.Document);
+            XYZ offset = basePoint?.Position ?? XYZ.Zero;
+
+            List<XYZ> transformedPoints = [.. allBoundaryPoints.Select(pt => new XYZ(pt.X - offset.X, pt.Y - offset.Y, pt.Z))];
+
+            // Определение границ области
+            XYZ minProjectPoint = new(
+                transformedPoints.Min(p => p.X),
+                transformedPoints.Min(p => p.Y),
+                level.Elevation);
+
+            XYZ maxProjectPoint = new(
+                transformedPoints.Max(p => p.X),
+                transformedPoints.Max(p => p.Y),
+                level.Elevation);
+
+            return new Outline(minProjectPoint, maxProjectPoint);
+        }
+
+        /// <summary>
+        /// Извлечение точек из различных типов кривых
+        /// </summary>
+        private List<XYZ> ExtractPointsFromCurve(Curve curve)
+        {
+            List<XYZ> points =
+            [
+                // Базовые точки кривой
+                curve.GetEndPoint(0),
+                curve.GetEndPoint(1)
+            ];
+
+            // Дополнительная дискретизация для сложных кривых
+            if (curve is Arc or Ellipse or NurbSpline)
+            {
+                const int subdivisions = 10;
+                for (int i = 1; i < subdivisions; i++)
+                {
+                    double parameter = (double)i / subdivisions;
+                    points.Add(curve.Evaluate(parameter, false));
+                }
+            }
+
+            return points;
+        }
+
         /// <summary>
         /// Получает список исключенных категорий категорий  
         /// </summary>
         /// <returns></returns>
         private static List<BuiltInCategory> GetExcludedCategories()
         {
-            List<BuiltInCategory> excludedCategories = new()
-            {
+            List<BuiltInCategory> excludedCategories =
+            [
                 // Арматура и армирование
                 BuiltInCategory.OST_Rebar,
                 BuiltInCategory.OST_PathRein,
@@ -75,7 +254,7 @@ namespace LevelAssignment
                 BuiltInCategory.OST_GenericAnnotation,
                 BuiltInCategory.OST_Entourage,
                 BuiltInCategory.OST_Site
-            };
+            ];
 
             return excludedCategories;
         }
