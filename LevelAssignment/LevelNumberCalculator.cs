@@ -10,7 +10,6 @@ namespace LevelAssignment
         private const int BASEMENT_NUMBER = -1; // Номер подземного этажа
         private const double LEVEL_MIN_HEIGHT = 1.5; // Минимальная высота этажа (м)
         private readonly int[] specialFloorNumbers = [99, 100, 101]; // Специальные номера этажей
-
         private static readonly Regex levelNumberRegex = new(@"\d+", RegexOptions.Compiled);
 
 
