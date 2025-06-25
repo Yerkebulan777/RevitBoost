@@ -85,13 +85,11 @@ namespace LevelAssignment
 
 
 
-        public LogicalOrFilter CreateIntersectBoxFilter(ref Level level, int floorNumber, List<Level> levels, bool visible = false)
+        public LogicalOrFilter CreateIntersectBoxFilter(Document doc, FloorModel level, int floorNumber, List<FloorModel> floorModels, bool visible = false)
         {
             double clearance = UnitManager.MmToFoot(100);
 
-            List<Level> sortedLevels = [.. levels.OrderBy(x => x.Elevation)];
-
-            double height = GetLevelHeight(level, floorNumber, sortedLevels, out double elevation);
+            double height = GetLevelHeight(level, floorNumber, floorModels, out double elevation);
 
             XYZ minPoint = Transform.Identity.OfPoint(new XYZ(MinX, MinY, elevation + clearance));
 
@@ -101,7 +99,7 @@ namespace LevelAssignment
 
             if (visible)
             {
-                solid.CreateDirectShape(level.Document);
+                solid.CreateDirectShape(doc);
             }
 
             Outline outline = new(minPoint, maxPoint);
@@ -121,65 +119,27 @@ namespace LevelAssignment
         }
 
 
-        public static double GetLevelHeight(Level level, int floorNumber, List<Level> sortedLevels, out double evelation)
+        public static double GetLevelHeight(FloorModel current, int floorNumber, List<FloorModel> floors, out double elevation)
         {
             double result = 0;
 
-            evelation = level.Elevation;
+            elevation = current.ProjectElevation;
 
-            Level aboveLevel = sortedLevels.FirstOrDefault(x => x.Elevation > level.Elevation);
-            Level belowLevel = sortedLevels.LastOrDefault(x => x.Elevation < level.Elevation);
-
-            if (floorNumber > 0 && aboveLevel is not null && belowLevel is not null)
-            {
-                result = Math.Abs(aboveLevel.Elevation - level.Elevation);
-            }
-            else if (floorNumber != 0 && aboveLevel is null)
-            {
-                result = Math.Abs(level.Elevation - belowLevel.Elevation);
-            }
-            else if (floorNumber < 0 && belowLevel is null)
-            {
-                result = Math.Abs(aboveLevel.Elevation - level.Elevation);
-                double subtract = UnitManager.MmToFoot(3000);
-                evelation -= subtract;
-                result += subtract;
-            }
-
-            return result;
-        }
-
-        public static double GetLevelHeight(Level level, int floorNumber, List<FloorModel> models, out double elevation)
-        {
-            double result = 0;
-
-            elevation = level.Elevation;
-
-            // Найти текущий FloorModel который содержит данный Level
-            FloorModel currentFloor = models.FirstOrDefault(fm => fm.FloorLevels.Contains(level));
-
-            if (currentFloor == null)
-            {
-                return result;
-            }
-
-            // Сортируем FloorModels по ProjectElevation
-            List<FloorModel> sortedFloors = [.. models.OrderBy(x => x.ProjectElevation)];
-
-            FloorModel aboveFloor = sortedFloors.FirstOrDefault(x => x.ProjectElevation > currentFloor.ProjectElevation);
-            FloorModel belowFloor = sortedFloors.LastOrDefault(x => x.ProjectElevation < currentFloor.ProjectElevation);
+            List<FloorModel> sortedFloors = [.. floors.OrderBy(x => x.ProjectElevation)];
+            FloorModel aboveFloor = sortedFloors.FirstOrDefault(x => x.ProjectElevation > current.ProjectElevation);
+            FloorModel belowFloor = sortedFloors.LastOrDefault(x => x.ProjectElevation < current.ProjectElevation);
 
             if (floorNumber > 0 && aboveFloor is not null && belowFloor is not null)
             {
-                result = Math.Abs(aboveFloor.ProjectElevation - currentFloor.ProjectElevation);
+                result = Math.Abs(aboveFloor.ProjectElevation - current.ProjectElevation);
             }
             else if (floorNumber > 1 && aboveFloor is null)
             {
-                result = Math.Abs(currentFloor.ProjectElevation - belowFloor.ProjectElevation);
+                result = Math.Abs(current.ProjectElevation - belowFloor.ProjectElevation);
             }
             else if (floorNumber < 0 && belowFloor is null)
             {
-                result = Math.Abs(aboveFloor.ProjectElevation - currentFloor.ProjectElevation);
+                result = Math.Abs(aboveFloor.ProjectElevation - current.ProjectElevation);
                 double subtract = UnitManager.MmToFoot(3000);
                 elevation -= subtract;
                 result += subtract;
