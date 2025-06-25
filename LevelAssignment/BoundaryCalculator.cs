@@ -2,7 +2,7 @@
 
 namespace LevelAssignment
 {
-    internal sealed class ProjectBoundary
+    internal sealed class BoundaryCalculator
     {
         public double MinX { get; set; }
         public double MaxX { get; set; }
@@ -12,7 +12,6 @@ namespace LevelAssignment
         /// <summary>
         /// Определяет границы проекта на основе видимых элементов этажей
         /// </summary>
-
         public void CalculateBoundingPoints(Document doc, List<Level> levels, double minimum)
         {
             List<ElementId> modelCategoryIds = CollectorHelper.GetModelCategoryIds(doc, GetExcludedCategories());
@@ -74,6 +73,46 @@ namespace LevelAssignment
             ProcessPrioritizedBoundaries(prioritizedOutlines);
         }
 
+        /// <summary>
+        /// Обработка приоритизированных границ
+        /// </summary>
+        private void ProcessPrioritizedBoundaries(List<Outline> prioritizedOutlines)
+        {
+            // Объединение всех границ
+            foreach (Outline outline in prioritizedOutlines)
+            {
+                MinX = Math.Min(MinX, outline.MinimumPoint.X);
+                MinY = Math.Min(MinY, outline.MinimumPoint.Y);
+                MaxX = Math.Max(MaxX, outline.MaximumPoint.X);
+                MaxY = Math.Max(MaxY, outline.MaximumPoint.Y);
+            }
+        }
+
+        /// <summary>
+        /// Преобразование outline вида в проектные координаты
+        /// </summary>
+        private Outline TransformViewOutlineToProjectCoordinates(BoundingBoxUV viewOutline, Level level)
+        {
+            BasePoint basePoint = GetProjectBasePoint(level.Document);
+
+            XYZ offset = basePoint?.Position ?? XYZ.Zero;
+
+            XYZ minPoint = new(
+                viewOutline.Min.U - offset.X,
+                viewOutline.Min.V - offset.Y,
+                level.Elevation);
+
+            XYZ maxPoint = new(
+                viewOutline.Max.U - offset.X,
+                viewOutline.Max.V - offset.Y,
+                level.Elevation);
+
+            return new Outline(minPoint, maxPoint);
+        }
+
+        /// <summary>
+        /// Обработка приоритетных границ видов
+        /// </summary>
         private Outline ExtractViewBoundaryWithPriority(ViewPlan floorPlan, Level level)
         {
             // Приоритет 1: Активный CropBox
@@ -112,26 +151,9 @@ namespace LevelAssignment
             return null;
         }
 
-        private Outline TransformToProjectCoordinates(Outline viewOutline, Level level)
-        {
-            BasePoint basePoint = GetProjectBasePoint(level.Document);
-
-            XYZ offset = basePoint.Position;
-
-            XYZ minPoint = new(
-                viewOutline.MinimumPoint.X - offset.X,
-                viewOutline.MinimumPoint.Y - offset.Y,
-                level.Elevation);
-
-            XYZ maxPoint = new(
-                viewOutline.MaximumPoint.X - offset.X,
-                viewOutline.MaximumPoint.Y - offset.Y,
-                level.Elevation);
-
-            return new Outline(minPoint, maxPoint);
-        }
-
-
+        /// <summary>
+        /// Преобразует границы CropBox в проектные координаты
+        /// </summary>
         private Outline ConvertCropBoxToProjectOutline(BoundingBoxXYZ cropBox, Level level)
         {
             BasePoint basePoint = GetProjectBasePoint(level.Document);
@@ -151,13 +173,15 @@ namespace LevelAssignment
             return new Outline(minProjectPoint, maxProjectPoint);
         }
 
+        /// <summary>
+        /// Получает базовую точку проекта, которая используется для преобразования координат
+        /// </summary>
         private BasePoint GetProjectBasePoint(Document doc)
         {
             return new FilteredElementCollector(doc)
                 .OfClass(typeof(BasePoint)).Cast<BasePoint>()
                 .FirstOrDefault(bp => !bp.IsShared);
         }
-
 
         /// <summary>
         /// Обработка сложной геометрии границ обрезки вида

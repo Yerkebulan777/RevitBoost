@@ -12,7 +12,6 @@ namespace LevelAssignment
         private readonly int[] specialFloorNumbers = [99, 100, 101]; // Специальные номера этажей
         private static readonly Regex levelNumberRegex = new(@"\d+", RegexOptions.Compiled);
 
-
         /// <summary>
         /// Вычисляет модели этажей на основе уровней проекта
         /// </summary>
