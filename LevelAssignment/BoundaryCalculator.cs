@@ -53,9 +53,6 @@ namespace LevelAssignment
         /// <summary>
         /// Извлекает границы плана этажа с применением приоритетной стратегии
         /// </summary>
-        /// <param name="floorPlan">План этажа для анализа</param>
-        /// <param name="level">Уровень, связанный с планом</param>
-        /// <returns>Outline границ плана или null, если границы не определены</returns>
         internal Outline ExtractViewPlanBoundary(ViewPlan floorPlan, Level level)
         {
             try
