@@ -40,17 +40,17 @@ namespace LevelAssignment
                         //    }
                         //}
 
-                        Outline viewBoundary = ExtractViewPlanBoundary(floorPlan, 0);
+                        Outline boundary = ExtractViewPlanBoundary(floorPlan, 0);
 
-                        if (viewBoundary is not null)
+                        if (boundary is not null)
                         {
-                            floorPlanOutlines.Add(viewBoundary);
+                            floorPlanOutlines.Add(boundary);
                         }
                     }
                 }
 
                 Outline mergedOutline = ProcessBoundaries(floorPlanOutlines);
-                // Также я бы подумал об высоте viewBoundary
+                // Также я бы подумал об высоте  floor Boundary
                 floorModel.BoundaryOutline = mergedOutline;
             }
         }
