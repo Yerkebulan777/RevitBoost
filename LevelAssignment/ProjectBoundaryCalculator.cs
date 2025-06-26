@@ -1,4 +1,5 @@
-﻿using RevitUtils;
+﻿using Autodesk.Revit.DB;
+using RevitUtils;
 
 namespace LevelAssignment
 {
@@ -28,7 +29,19 @@ namespace LevelAssignment
                 {
                     foreach (ViewPlan floorPlan in GetViewPlansByLevel(doc, level))
                     {
-                        Outline viewBoundary = ExtractViewPlanBoundary(floorPlan, level);
+                        // Надо добавить проверку  нахождения на листе//
+
+                        //foreach (ElementId idVp in sheet.GetAllViewports())
+                        //{
+                        //    Viewport vp = doc.GetElement(idVp) as Viewport;
+                        //    if (vp is not null && vp.ViewId == floorPlan.Id)
+                        //    {
+                        //        // Пропускаем планы, которые уже находятся на листе
+                        //        continue;
+                        //    }
+                        //}
+
+                        Outline viewBoundary = ExtractViewPlanBoundary(floorPlan, 0);
 
                         if (viewBoundary is not null)
                         {
