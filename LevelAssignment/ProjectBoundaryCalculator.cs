@@ -1,5 +1,4 @@
-﻿using Autodesk.Revit.DB;
-using RevitUtils;
+﻿using RevitUtils;
 
 namespace LevelAssignment
 {
@@ -19,13 +18,13 @@ namespace LevelAssignment
         /// </summary>
         public void CalculateBoundingPoints(Document doc, List<FloorModel> floorModels)
         {
-            List<Outline> floorPlanOutlines = [];
-
             List<FloorModel> filteredFloors = [.. floorModels.Where(fm => fm.FloorNumber <= 3)];
 
             foreach (FloorModel floorModel in filteredFloors)
             {
-                foreach (Level level in floorModel.FloorLevels)
+                List<Outline> floorPlanOutlines = [];
+
+                foreach (Level level in floorModel.ContainedLevels)
                 {
                     foreach (ViewPlan floorPlan in GetViewPlansByLevel(doc, level))
                     {
@@ -49,15 +48,17 @@ namespace LevelAssignment
                         }
                     }
                 }
-            }
 
-            ProcessBoundaries(floorPlanOutlines);
+                Outline mergedOutline = ProcessBoundaries(floorPlanOutlines);
+                // Также я бы подумал об высоте viewBoundary
+                floorModel.BoundaryOutline = mergedOutline;
+            }
         }
 
         /// <summary>
         /// Обработка границ
         /// </summary>
-        private void ProcessBoundaries(List<Outline> outlines)
+        private Outline ProcessBoundaries(List<Outline> outlines)
         {
             foreach (Outline outline in outlines)
             {
@@ -72,7 +73,7 @@ namespace LevelAssignment
             XYZ minPoint = new(MinX, MinY, MinZ);
             XYZ maxPoint = new(MaxX, MaxY, MaxZ);
 
-            ProjectBoundaryOutline = new Outline(minPoint, maxPoint);
+            return new Outline(minPoint, maxPoint);
         }
 
         /// <summary>
@@ -156,7 +157,7 @@ namespace LevelAssignment
         }
 
         /// <summary>
-        /// Преобразование outline вида в проектные координаты
+        /// Преобразование mergedOutline вида в проектные координаты
         /// </summary>
         private Outline TransformViewOutline(View view, double elevation)
         {
