@@ -492,6 +492,29 @@ namespace RevitUtils
         }
 
 
+        public static bool IsElementVisibleInView(this View view, Element element)
+        {
+            Category category = element.Category;
+
+            if (!element.IsHidden(view))
+            {
+                view.UnhideElements(new List<ElementId> { element.Id });
+            }
+ 
+            if (!view.CanCategoryBeHidden(category.Id))
+            {
+                view.SetCategoryHidden(category.Id, false);
+            }
+
+            FilterRule idRule = ParameterFilterRuleFactory.CreateEqualsRule(new ElementId(BuiltInParameter.ID_PARAM), element.Id);
+            FilteredElementCollector collector = new FilteredElementCollector(element.Document, view.Id)
+                .WherePasses(new ElementCategoryFilter(category.Id))
+                .WherePasses(new ElementParameterFilter(idRule))
+                .WhereElementIsNotElementType();
+
+            return collector.Any() ;
+        }
+
 
     }
 }

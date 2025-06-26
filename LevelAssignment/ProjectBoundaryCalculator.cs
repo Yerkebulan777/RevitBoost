@@ -1,19 +1,17 @@
 ﻿using RevitUtils;
-using System.Diagnostics;
 
 namespace LevelAssignment
 {
     internal sealed class ProjectBoundaryCalculator
     {
-        private double MinX { get; set; }
-        private double MaxX { get; set; }
-        private double MinY { get; set; }
-        private double MaxY { get; set; }
-
-        private BasePoint _cachedBasePoint;
+        private double MinX { get; set; } = double.MaxValue;
+        private double MaxX { get; set; } = double.MinValue;
+        private double MinY { get; set; } = double.MaxValue;
+        private double MaxY { get; set; } = double.MinValue;
+        private double MinZ { get; set; } = double.MaxValue;
+        private double MaxZ { get; set; } = double.MinValue;
 
         public Outline ProjectBoundaryOutline { get; private set; }
-
 
         /// <summary>
         /// Получение границ видов планов до 3 этажа
@@ -51,15 +49,16 @@ namespace LevelAssignment
             foreach (Outline outline in outlines)
             {
                 MinX = Math.Min(MinX, outline.MinimumPoint.X);
-                MinY = Math.Min(MinY, outline.MinimumPoint.Y);
                 MaxX = Math.Max(MaxX, outline.MaximumPoint.X);
+                MinY = Math.Min(MinY, outline.MinimumPoint.Y);
                 MaxY = Math.Max(MaxY, outline.MaximumPoint.Y);
+                MinZ = Math.Min(MinZ, outline.MinimumPoint.Z);
+                MaxZ = Math.Max(MaxZ, outline.MaximumPoint.Z);
             }
 
-            XYZ minPoint = new(MinX, MinY, 0);
-            XYZ maxPoint = new(MaxX, MaxY, 0);
+            XYZ minPoint = new(MinX, MinY, MinZ);
+            XYZ maxPoint = new(MaxX, MaxY, MaxZ);
 
-            // Создание итоговых проектных границ
             ProjectBoundaryOutline = new Outline(minPoint, maxPoint);
         }
 
@@ -73,120 +72,120 @@ namespace LevelAssignment
                 .Where(pln => !pln.IsTemplate && pln.GenLevel.Id == level.Id)];
         }
 
-
-
-        /// <summary>
-        /// Кэшированное получение базовой точки проекта
-        /// </summary>
-        private BasePoint GetProjectBasePoint(Document doc)
-        {
-            return _cachedBasePoint ??= new FilteredElementCollector(doc)
-                .OfClass(typeof(BasePoint))
-                .Cast<BasePoint>()
-                .FirstOrDefault(bp => !bp.IsShared);
-        }
-
         /// <summary>
         /// Извлекает границы плана этажа с применением приоритетной стратегии
         /// </summary>
-        internal Outline ExtractViewPlanBoundary(ViewPlan floorPlan, Level level)
+        internal Outline ExtractViewPlanBoundary(ViewPlan floorPlan, double elevation)
         {
-            try
+            // Стратегия 1: Использование активного CropBox
+            if (floorPlan.CropBoxActive && floorPlan.CropBox != null)
             {
-                // Стратегия 1: Использование активного CropBox
-                if (floorPlan.CropBoxActive && floorPlan.CropBox != null)
+                return TransformCropBox(floorPlan, elevation);
+            }
+
+            // Стратегия 2: Использование свойства Outline вида
+            if (floorPlan.Outline != null)
+            {
+                return TransformViewOutline(floorPlan, elevation);
+            }
+
+            // Стратегия 3: ...
+            List<XYZ> boundaryPoints = [];
+
+            foreach (TransformWithBoundary twb in floorPlan.GetModelToProjectionTransforms())
+            {
+                Transform trans = twb.GetModelToProjectionTransform();
+
+                CurveLoop boundary = twb.GetBoundary();
+
+                if (boundary is not null)
                 {
-                    return TransformCropBox(floorPlan.CropBox, level);
-                }
-
-                // Стратегия 2: Использование свойства Outline вида
-                if (floorPlan.Outline != null)
-                {
-                    return TransformViewOutline(floorPlan.Outline, level);
-                }
-
-                // Стратегия 3: Анализ через CropRegionShapeManager
-                var cropManager = floorPlan.GetCropRegionShapeManager();
-
-                if (cropManager?.CanHaveShape == true)
-                {
-                    var cropShapes = cropManager.GetCropShape();
-
-                    if (cropShapes?.Any() == true)
+                    foreach (Curve curve in boundary)
                     {
-                        return GetCropRegionOutline(cropShapes, level);
+                        boundaryPoints.AddRange(ExtractPoints(curve, trans));
                     }
                 }
             }
-            catch (Exception ex)
+
+            if (!boundaryPoints.Any())
             {
-                Debug.WriteLine($"Ошибка при извлечении границ плана {floorPlan.Name}: {ex.Message}");
+                return null;
             }
 
-            return null;
-        }
+            XYZ minProjectPoint = new(
+                boundaryPoints.Min(p => p.X),
+                boundaryPoints.Min(p => p.Y),
+                elevation);
 
-        /// <summary>
-        /// Преобразование outline вида в проектные координаты
-        /// </summary>
-        private Outline TransformViewOutline(BoundingBoxUV viewOutline, Level level)
-        {
-            var minPoint = new XYZ(viewOutline.Min.U, viewOutline.Min.V, level.Elevation);
-            var maxPoint = new XYZ(viewOutline.Max.U, viewOutline.Max.V, level.Elevation);
-            return new Outline(minPoint, maxPoint);
+            XYZ maxProjectPoint = new(
+                boundaryPoints.Max(p => p.X),
+                boundaryPoints.Max(p => p.Y),
+                elevation);
+
+            return new Outline(minProjectPoint, maxProjectPoint);
         }
 
         /// <summary>
         /// Преобразует границы CropBox в проектные координаты
         /// </summary>
-        private Outline TransformCropBox(BoundingBoxXYZ cropBox, Level level)
+        private Outline TransformCropBox(View view, double elevation)
         {
-            var minPoint = new XYZ(cropBox.Min.X, cropBox.Min.Y, level.Elevation);
-            var maxPoint = new XYZ(cropBox.Max.X, cropBox.Max.Y, level.Elevation);
+            BoundingBoxXYZ cropBox = view.CropBox;
+            Transform viewTransform = view.CropBox.Transform;
+
+            XYZ projectMin = viewTransform.OfPoint(cropBox.Min);
+            XYZ projectMax = viewTransform.OfPoint(cropBox.Max);
+
+            XYZ minPoint = new(projectMin.X, projectMin.Y, elevation);
+            XYZ maxPoint = new(projectMax.X, projectMax.Y, elevation);
+
             return new Outline(minPoint, maxPoint);
         }
 
         /// <summary>
-        /// Обработка сложной геометрии границ обрезки вида
+        /// Преобразование outline вида в проектные координаты
         /// </summary>
-        private Outline GetCropRegionOutline(IList<CurveLoop> cropShapes, Level level)
+        private Outline TransformViewOutline(View view, double elevation)
         {
-            var allBoundaryPoints = new List<XYZ>();
+            BoundingBoxUV viewOutline = view.Outline;
 
-            foreach (var curveLoop in cropShapes)
-            {
-                foreach (var curve in curveLoop)
-                {
-                    allBoundaryPoints.AddRange(ExtractPointsFromCurve(curve));
-                }
-            }
+            Transform viewTransform = GetViewTransform(view);
 
-            if (!allBoundaryPoints.Any()) return null;
+            XYZ minUV = new(viewOutline.Min.U, viewOutline.Min.V, 0);
+            XYZ maxUV = new(viewOutline.Max.U, viewOutline.Max.V, 0);
 
-            var minProjectPoint = new XYZ(
-                allBoundaryPoints.Min(p => p.X),
-                allBoundaryPoints.Min(p => p.Y),
-                level.Elevation);
+            XYZ minPoint = viewTransform.OfPoint(minUV);
+            XYZ maxPoint = viewTransform.OfPoint(maxUV);
 
-            var maxProjectPoint = new XYZ(
-                allBoundaryPoints.Max(p => p.X),
-                allBoundaryPoints.Max(p => p.Y),
-                level.Elevation);
+            minPoint = new XYZ(minPoint.X, minPoint.Y, elevation);
+            maxPoint = new XYZ(maxPoint.X, maxPoint.Y, elevation);
 
-            return new Outline(minProjectPoint, maxProjectPoint);
+            return new Outline(minPoint, maxPoint);
         }
 
+        /// <summary>
+        /// Получение трансформации вида
+        /// </summary>
+        private Transform GetViewTransform(View view)
+        {
+            Transform trans = Transform.Identity;
+            trans.BasisX = view.RightDirection;
+            trans.BasisY = view.UpDirection;
+            trans.BasisZ = view.ViewDirection;
+            trans.Origin = view.Origin;
+
+            return trans;
+        }
 
         /// <summary>
         /// Извлечение точек из различных типов кривых
         /// </summary>
-        private List<XYZ> ExtractPointsFromCurve(Curve curve)
+        private List<XYZ> ExtractPoints(Curve curve, Transform trans)
         {
-            // Базовые точки 
             List<XYZ> points =
             [
-                curve.GetEndPoint(0),
-                curve.GetEndPoint(1),
+                trans.OfPoint(curve.GetEndPoint(0)),
+                trans.OfPoint(curve.GetEndPoint(1)),
             ];
 
             return points;
@@ -249,7 +248,5 @@ namespace LevelAssignment
         }
 
 
-
     }
-
 }
