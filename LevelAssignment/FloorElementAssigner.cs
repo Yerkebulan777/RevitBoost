@@ -21,7 +21,7 @@ namespace LevelAssignment
             //public Dictionary<FloorModel, List<Element>> AssignElementsToFloors(Document doc, List<Level> levels)
             //{
             //    // 1. Подготовительный этап (выполняется один раз)
-            //    var boundaryCalculator = new BoundaryCalculator();
+            //    var boundaryCalculator = new ProjectBoundaryCalculator();
             //    var projectBounds = boundaryCalculator.CalculateProjectBounds(levels);
 
             //    var floorGenerator = new OptimizedFloorModelGenerator();

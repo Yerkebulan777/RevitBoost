@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace LevelAssignment
 {
-    internal sealed class BoundaryCalculator
+    internal sealed class ProjectBoundaryCalculator
     {
         private double MinX { get; set; }
         private double MaxX { get; set; }
@@ -13,6 +13,67 @@ namespace LevelAssignment
         private BasePoint _cachedBasePoint;
 
         public Outline ProjectBoundaryOutline { get; private set; }
+
+
+        /// <summary>
+        /// Получение границ видов планов до 3 этажа
+        /// </summary>
+        public void CalculateBoundingPoints(Document doc, List<FloorModel> floorModels)
+        {
+            List<Outline> floorPlanOutlines = [];
+
+            List<FloorModel> filteredFloors = [.. floorModels.Where(fm => fm.FloorNumber <= 3)];
+
+            foreach (FloorModel floorModel in filteredFloors)
+            {
+                foreach (Level level in floorModel.FloorLevels)
+                {
+                    foreach (ViewPlan floorPlan in GetViewPlansByLevel(doc, level))
+                    {
+                        Outline viewBoundary = ExtractViewPlanBoundary(floorPlan, level);
+
+                        if (viewBoundary is not null)
+                        {
+                            floorPlanOutlines.Add(viewBoundary);
+                        }
+                    }
+                }
+            }
+
+            ProcessBoundaries(floorPlanOutlines);
+        }
+
+        /// <summary>
+        /// Обработка границ
+        /// </summary>
+        private void ProcessBoundaries(List<Outline> outlines)
+        {
+            foreach (Outline outline in outlines)
+            {
+                MinX = Math.Min(MinX, outline.MinimumPoint.X);
+                MinY = Math.Min(MinY, outline.MinimumPoint.Y);
+                MaxX = Math.Max(MaxX, outline.MaximumPoint.X);
+                MaxY = Math.Max(MaxY, outline.MaximumPoint.Y);
+            }
+
+            XYZ minPoint = new(MinX, MinY, 0);
+            XYZ maxPoint = new(MaxX, MaxY, 0);
+
+            // Создание итоговых проектных границ
+            ProjectBoundaryOutline = new Outline(minPoint, maxPoint);
+        }
+
+        /// <summary>
+        /// Получает все планы этажей для указанного уровня
+        /// </summary>
+        internal List<ViewPlan> GetViewPlansByLevel(Document doc, Level level)
+        {
+            return [.. new FilteredElementCollector(doc)
+                .OfClass(typeof(ViewPlan)).OfType<ViewPlan>()
+                .Where(pln => !pln.IsTemplate && pln.GenLevel.Id == level.Id)];
+        }
+
+
 
         /// <summary>
         /// Кэшированное получение базовой точки проекта
@@ -190,4 +251,5 @@ namespace LevelAssignment
 
 
     }
+
 }
