@@ -1,4 +1,7 @@
 ﻿
+using Autodesk.Revit.DB.Architecture;
+using System.Diagnostics;
+
 namespace LevelAssignment
 {
     /// <summary>
@@ -8,7 +11,6 @@ namespace LevelAssignment
     {
         private readonly Document _document;
         private readonly List<Level> _levels;
-        private const double TFloors = 100.0; // Толщина перекрытия в мм
 
         public ElementLevelDeterminator(Document doc, List<Level> levels)
         {
@@ -21,88 +23,106 @@ namespace LevelAssignment
         /// </summary>
         public LevelAssignmentResult DetermineElementLevel(Element element)
         {
-            LevelAssignmentResult result = new() { Element = element };
+            LevelAssignmentResult result = new(element);
 
             try
             {
                 // Этап 1: Проверка назначенного уровня
-                if (element.LevelId != ElementId.InvalidElementId)
-                {
-                    result.Method = Determination.AssignedLevel;
-                    result.Confidence = 1.0;
-                    return result;
-                }
 
-                // Этап 2: Параметрический анализ
-                Level parameterLevel = GetLevelFromParameters(element);
-                if (parameterLevel != null)
-                {
-                    result.Method = Determination.ParameterBased;
-                    result.Confidence = 0.9;
-                    return result;
-                }
-
-                // Этап 3: Геометрический анализ
                 Level geometricLevel = GetLevelFromGeometry(element);
+
                 if (geometricLevel != null)
                 {
                     result.Method = Determination.GeometricAnalysis;
-                    result.Confidence = 0.8;
+                    result.Confidence = 1;
                     return result;
                 }
 
-                result.Method = Determination.Failed;
-                result.Confidence = 0.0;
+
+
             }
             catch (Exception ex)
             {
-                result.Error = ex.Message;
-                result.Method = Determination.Error;
+                Debug.WriteLine($"Error in geometric analysis for element {element.Id}: {ex.Message}");
             }
 
             return result;
         }
 
         /// <summary>
-        /// Определение уровня на основе параметров элемента
+        /// Определение принадлежность к уровню 
         /// </summary>
-        public bool GetLevelFromParameters(Element element, HashSet<ElementId> levelIds)
+        public bool IsOnLevel(Element element, ref HashSet<ElementId> levelIds)
         {
+            Parameter baseLevel;
 
-            // Этап 1: Проверка назначенного уровня
+            if (!levelIds.Any())
+            {
+                Debug.Fail("No levels provided for checking!");
+                return false;
+            }
+
+            string categoryName = element.Category.Name;
+
             if (element.LevelId != ElementId.InvalidElementId)
             {
+                Debug.WriteLine($"LEVEL_ID: {categoryName}");
                 return levelIds.Contains(element.LevelId);
             }
 
-            // Этап 2: Параметрический анализ
-            else if (element is FamilyInstance instance)
+            if (element is Wall wall)
             {
-                Parameter baseLevel = instance.get_Parameter(BuiltInParameter.FAMILY_BASE_LEVEL_PARAM);
-                return levelIds.Contains(baseLevel.AsElementId());
+                baseLevel = wall.get_Parameter(BuiltInParameter.WALL_BASE_CONSTRAINT);
+                if (baseLevel?.AsElementId() is ElementId id && levelIds.Contains(id))
+                {
+                    Debug.WriteLine($"WALL_BASE_CONSTRAINT: {categoryName}");
+                    return true;
+                }
             }
 
-            else if (element is Wall wall)
+            if (element is RoofBase)
             {
-                // Проверяем параметры уровня размещения для стен
-                Parameter baseLevel = wall.get_Parameter(BuiltInParameter.WALL_BASE_CONSTRAINT);
-                Parameter topLevel = wall.get_Parameter(BuiltInParameter.WALL_HEIGHT_TYPE);
-                return levelIds.Contains(baseLevel.AsElementId()) || levelIds.Contains(topLevel.AsElementId());
-            }
-            else if (element is Floor floor)
-            {
-                // Проверяем параметры уровня размещения для полов
-                Parameter baseLevel = floor.get_Parameter(BuiltInParameter.FLOOR_LEVEL_ID);
-                return levelIds.Contains(baseLevel.AsElementId());
-            }
-            else if (element is HostObject host)
-            {
-                // Проверяем параметр уровня размещения для хост-объектов
-                Parameter hostLevel = host.get_Parameter(BuiltInParameter.LEVEL_PARAM);
-                return levelIds.Contains(hostLevel.AsElementId());
+                baseLevel = element.get_Parameter(BuiltInParameter.ROOF_BASE_LEVEL_PARAM);
+                if (baseLevel?.AsElementId() is ElementId id && levelIds.Contains(id))
+                {
+                    Debug.WriteLine($"ROOF_BASE_LEVEL_PARAM: {categoryName}");
+                    return true;
+                }
             }
 
-            return false;
+            if (element is Stairs)
+            {
+                baseLevel = element.get_Parameter(BuiltInParameter.STAIRS_BASE_LEVEL_PARAM);
+                if (baseLevel?.AsElementId() is ElementId id && levelIds.Contains(id))
+                {
+                    Debug.WriteLine($"STAIRS_BASE_LEVEL_PARAM: {categoryName}");
+                    return true;
+                }
+            }
+
+            baseLevel = element.get_Parameter(BuiltInParameter.LEVEL_PARAM);
+            if (baseLevel?.AsElementId() is ElementId baseId && levelIds.Contains(baseId))
+            {
+                Debug.WriteLine($"LEVEL_PARAM: {categoryName}");
+                return true;
+            }
+
+            baseLevel = element.get_Parameter(BuiltInParameter.SCHEDULE_LEVEL_PARAM);
+            if (baseLevel?.AsElementId() is ElementId scheduleId && levelIds.Contains(scheduleId))
+            {
+                Debug.WriteLine($"SCHEDULE_LEVEL_PARAM: {categoryName}");
+                return true;
+            }
+
+            baseLevel = element.get_Parameter(BuiltInParameter.FAMILY_LEVEL_PARAM);
+            if (baseLevel?.AsElementId() is ElementId familyId && levelIds.Contains(familyId))
+            {
+                Debug.WriteLine($"FAMILY_LEVEL_PARAM: {categoryName}");
+                return true;
+            }
+
+            throw new InvalidOperationException($"Не удалось определить уровень для {categoryName}!");
+
         }
 
         /// <summary>
@@ -113,25 +133,12 @@ namespace LevelAssignment
             try
             {
                 BoundingBoxXYZ bbox = element.get_BoundingBox(null);
+
                 if (bbox == null)
                 {
                     return null;
                 }
 
-
-                // Вычисляем минимальную Z-координату элемента с учетом смещений
-                double minZ = CalculateElementMinZ(element, basePointZ);
-
-                // Получаем отсортированные уровни с высотами
-                var (levelNumbers, levelHeights) = GetSortedLevelsAndHeights();
-
-                // Находим подходящий уровень
-                int levelIndex = DetermineLevelIndex(minZ, levelHeights);
-
-                if (levelIndex >= 0 && levelIndex < _levels.Count)
-                {
-                    return _levels[levelIndex];
-                }
             }
             catch (Exception)
             {
@@ -143,53 +150,37 @@ namespace LevelAssignment
 
 
         /// <summary>
-        /// Получает числовое значение параметра из типа элемента
-        /// </summary>
-        private double GetParameterDoubleValue(Element element, BuiltInParameter paramId)
-        {
-            ElementId typeId = element.GetTypeId();
-            if (typeId != ElementId.InvalidElementId)
-            {
-                Parameter param = element.Document.GetElement(typeId).get_Parameter(paramId);
-                if (param != null)
-                {
-                    return param.AsDouble();
-                }
-            }
-            return 0;
-        }
-
-        /// <summary>
         /// Пакетная обработка элементов
         /// </summary>
         public Dictionary<ElementId, LevelAssignmentResult> ProcessElements(IEnumerable<Element> elements)
         {
-            return elements.ToDictionary(
-                elem => elem.Id,
-                DetermineElementLevel
-            );
+            return elements.ToDictionary(elem => elem.Id, DetermineElementLevel);
         }
     }
 
     /// <summary>
     /// Результат определения уровня элемента
     /// </summary>
-    public class LevelAssignmentResult
+    public record LevelAssignmentResult
     {
-        public Element Element { get; set; }
+        public readonly Element Element;
+        public int Confidence { get; set; }
         public Determination Method { get; set; }
-        public double Confidence { get; set; }
-        public string Error { get; set; }
+
+        public LevelAssignmentResult(Element element)
+        {
+            Method = Determination.Failed;
+            Element = element;
+            Confidence = 0;
+        }
     }
 
     public enum Determination
     {
-        AssignedLevel,
         ParameterBased,
         GeometricAnalysis,
         SpatialAnalysis,
         Failed,
-        Error
     }
 
 
