@@ -20,9 +20,11 @@ namespace LevelAssignment
         {
             List<FloorModel> filteredFloors = [.. floorModels.Where(fm => fm.FloorNumber <= 3)];
 
+            List<Outline> floorPlanOutlines = [];
+
             foreach (FloorModel floorModel in filteredFloors)
             {
-                List<Outline> floorPlanOutlines = [];
+                double elevation = floorModel.InternalElevation;
 
                 foreach (Level level in floorModel.ContainedLevels)
                 {
@@ -40,7 +42,7 @@ namespace LevelAssignment
                         //    }
                         //}
 
-                        Outline boundary = ExtractViewPlanBoundary(floorPlan, 0);
+                        Outline boundary = ExtractViewPlanBoundary(floorPlan, elevation);
 
                         if (boundary is not null)
                         {
@@ -49,10 +51,10 @@ namespace LevelAssignment
                     }
                 }
 
-                Outline mergedOutline = ProcessBoundaries(floorPlanOutlines);
                 // Также я бы подумал об высоте  floor Boundary
-                floorModel.BoundaryOutline = mergedOutline;
             }
+
+            ProjectBoundaryOutline = ProcessBoundaries(floorPlanOutlines);
         }
 
         /// <summary>
