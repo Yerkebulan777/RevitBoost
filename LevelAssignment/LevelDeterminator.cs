@@ -75,13 +75,26 @@ namespace LevelAssignment
                 return levelIds.Contains(element.LevelId);
             }
 
+            // Этап 2: Параметрический анализ
             else if (element is FamilyInstance instance)
             {
-                // Проверяем параметр уровня основания для семейных экземпляров
                 Parameter baseLevel = instance.get_Parameter(BuiltInParameter.FAMILY_BASE_LEVEL_PARAM);
                 return levelIds.Contains(baseLevel.AsElementId());
             }
 
+            else if (element is Wall wall)
+            {
+                // Проверяем параметры уровня размещения для стен
+                Parameter baseLevel = wall.get_Parameter(BuiltInParameter.WALL_BASE_CONSTRAINT);
+                Parameter topLevel = wall.get_Parameter(BuiltInParameter.WALL_HEIGHT_TYPE);
+                return levelIds.Contains(baseLevel.AsElementId()) || levelIds.Contains(topLevel.AsElementId());
+            }
+            else if (element is Floor floor)
+            {
+                // Проверяем параметры уровня размещения для полов
+                Parameter baseLevel = floor.get_Parameter(BuiltInParameter.FLOOR_LEVEL_ID);
+                return levelIds.Contains(baseLevel.AsElementId());
+            }
             else if (element is HostObject host)
             {
                 // Проверяем параметр уровня размещения для хост-объектов
