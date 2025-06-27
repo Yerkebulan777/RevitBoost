@@ -17,16 +17,15 @@ namespace LevelAssignment
         /// </summary>
         public List<FloorModel> GenerateFloorModels(List<Level> levels)
         {
-            Dictionary<int, Level> levelNumMap = CalculateLevelNumberData(levels);
-
             List<FloorModel> floorModels = [];
 
+            // Получаем маппинг уровней на номера этажей
+            Dictionary<int, Level> levelNumMap = CalculateLevelNumberData(levels);
+
             // Группируем уровни по номерам этажей
-            foreach (IGrouping<int, Level> group in levelNumMap
-                .GroupBy(kvp => kvp.Key, kvp => kvp.Value)
-                .OrderBy(g => g.Min(level => level.Elevation)))
+            foreach (IGrouping<int, Level> group in GroupLevelsByFloorNumber(levelNumMap))
             {
-                int floorNumber = group.Key;
+                int floorNumber = group.Key; // Номер этажа (ключ группы)
                 List<Level> floorLevels = [.. group]; // Уровни только этого этажа
                 floorModels.Add(new FloorModel(floorNumber, floorLevels));
             }
@@ -34,6 +33,13 @@ namespace LevelAssignment
             return floorModels;
         }
 
+        /// <summary>
+        /// Группирует уровни по номерам этажей.
+        /// </summary>
+        private IEnumerable<IGrouping<int, Level>> GroupLevelsByFloorNumber(Dictionary<int, Level> data)
+        {
+            return data.GroupBy(kvp => kvp.Key, kvp => kvp.Value);
+        }
 
         /// <summary>
         /// Вычисляет вычисляет номера уровней.
@@ -123,7 +129,6 @@ namespace LevelAssignment
             return levelDictionary;
         }
 
-
         /// <summary>
         /// Преобразует высоту уровня в метры.
         /// </summary>
@@ -132,16 +137,13 @@ namespace LevelAssignment
             return Math.Round(UnitManager.FootToMm(level.ProjectElevation) / 1000.0, 3);
         }
 
-
         /// <summary>
         /// Проверяет, является ли уровень дублирующим (слишком близким по высоте)
         /// </summary>
-        /// <returns>true, если уровни слишком близки и один из них следует пропустить</returns>
         private static bool IsDuplicateLevel(double currentElevation, double previousElevation, double deviation = 1000)
         {
             return currentElevation > 0 && Math.Abs(currentElevation - previousElevation) < deviation;
         }
-
 
         /// <summary>
         /// Извлекает число из имени уровня
@@ -157,7 +159,6 @@ namespace LevelAssignment
             return 0;
         }
 
-
         /// <summary>
         /// Определяет, является ли уровень последним или предпоследним
         /// </summary>
@@ -165,7 +166,6 @@ namespace LevelAssignment
         {
             return currentNum > 3 && index > lenght - 3;
         }
-
 
         /// <summary>
         /// Проверяет валидность номера этажа из имени уровня
@@ -176,6 +176,6 @@ namespace LevelAssignment
         }
 
 
-    }
 
+    }
 }

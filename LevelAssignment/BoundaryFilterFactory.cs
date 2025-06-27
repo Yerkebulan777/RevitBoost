@@ -4,25 +4,25 @@ namespace LevelAssignment
 {
     public static class BoundaryFilterFactory
     {
-        public LogicalOrFilter CreateIntersectFilter(FloorModel current, List<FloorModel> floorModels)
-        {
-            double clearance = UnitManager.MmToFoot(100);
+        //public LogicalOrFilter CreateIntersectFilter(FloorModel current, List<FloorModel> floorModels)
+        //{
+        //    double clearance = UnitManager.MmToFoot(100);
 
-            double height = GetLevelHeight(current, floorModels, out double elevation);
+        //    double height = GetLevelHeight(current, floorModels, out double elevation);
 
-            XYZ minPoint = Transform.Identity.OfPoint(new XYZ(MinX, MinY, elevation + clearance));
+        //    XYZ minPoint = Transform.Identity.OfPoint(new XYZ(MinX, MinY, elevation + clearance));
 
-            XYZ maxPoint = Transform.Identity.OfPoint(new XYZ(MaxX, MaxY, elevation + height));
+        //    XYZ maxPoint = Transform.Identity.OfPoint(new XYZ(MaxX, MaxY, elevation + height));
 
-            Solid floorSolid = SolidHelper.CreateSolidBoxByPoint(minPoint, maxPoint, height);
+        //    Solid floorSolid = SolidHelper.CreateSolidBoxByPoint(minPoint, maxPoint, height);
 
-            Outline outline = new(minPoint, maxPoint);
+        //    Outline outline = new(minPoint, maxPoint);
 
-            ElementIntersectsSolidFilter solidFilter = new(floorSolid);
-            BoundingBoxIntersectsFilter boundingBoxFilter = new(outline);
+        //    ElementIntersectsSolidFilter solidFilter = new(floorSolid);
+        //    BoundingBoxIntersectsFilter boundingBoxFilter = new(outline);
 
-            return new LogicalOrFilter(boundingBoxFilter, solidFilter);
-        }
+        //    return new LogicalOrFilter(boundingBoxFilter, solidFilter);
+        //}
 
 
         public static double GetLevelHeight(FloorModel current, List<FloorModel> floors, out double elevation)
