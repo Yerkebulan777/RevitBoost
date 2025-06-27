@@ -115,5 +115,23 @@ namespace RevitUtils
                 .WhereElementIsNotElementType();
         }
 
+
+        /// <summary>
+        /// Нативная фильтрация элементов с заданным параметром
+        /// </summary>
+        public static FilteredElementCollector GetInstancesByFilter(Document doc, SharedParameterElement parameter, ElementFilter elementFilter)
+        {
+            HasValueFilterRule hasValueRule = new(parameter.Id);
+            ElementParameterFilter parameterFilter = new(hasValueRule);
+
+            return new FilteredElementCollector(doc)
+                .WherePasses(parameterFilter)
+                .WherePasses(elementFilter)
+                .WhereElementIsViewIndependent()
+                .WhereElementIsNotElementType();
+        }
+
+
+
     }
 }

@@ -11,12 +11,10 @@ namespace LevelAssignment
         private double MinZ { get; set; } = double.MaxValue;
         private double MaxZ { get; set; } = double.MinValue;
 
-        public Outline ProjectBoundaryOutline { get; private set; }
-
         /// <summary>
         /// Вычисление общей границы проекта на основе планов этажей
         /// </summary>
-        public void ComputeProjectBoundary(Document doc, ref List<FloorInfo> floorModels)
+        public Outline ComputeProjectBoundary(Document doc, ref List<FloorInfo> floorModels)
         {
             List<Outline> floorPlanOutlines = [];
 
@@ -43,7 +41,7 @@ namespace LevelAssignment
                 }
             }
 
-            ProjectBoundaryOutline = MergeOutlines(floorPlanOutlines);
+            return MergeOutlines(floorPlanOutlines);
         }
 
         /// <summary>

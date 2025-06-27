@@ -4,21 +4,10 @@ namespace LevelAssignment
 {
     internal sealed class FloorElementAssigner
     {
-        public List<Level> GetValidLevels(Document doc, double maxHeightInMeters = 100)
-        {
-            double maximum = UnitManager.MmToFoot(maxHeightInMeters * 1000);
-            ParameterValueProvider provider = new(new ElementId(BuiltInParameter.LEVEL_ELEV));
-            FilterDoubleRule rule = new(provider, new FilterNumericLess(), maximum, 5E-3);
-
-            return [.. new FilteredElementCollector(doc).OfClass(typeof(Level))
-                .WherePasses(new ElementParameterFilter(rule)).Cast<Level>()
-                .OrderBy(x => x.Elevation)];
-        }
-
 
         public class OptimizedFloorElementAssigner
         {
-            //public Dictionary<FloorInfo, List<Element>> AssignElementsToFloors(Document doc, List<Level> levels)
+            //public Dictionary<FloorInfo, List<Element>> AssignElementsToFloors(Document _document, List<Level> levels)
             //{
             //    // 1. Подготовительный этап (выполняется один раз)
             //    var boundaryCalculator = new ProjectBoundaryCalculator();
@@ -28,8 +17,8 @@ namespace LevelAssignment
             //    var floors = floorGenerator.GetFloorModels(levels);
 
             //    var filterFactory = new FloorFilterFactory(projectBounds);
-            //    var collector = new OptimizedElementCollector(doc);
-            //    var verifier = new ElementFloorVerifier(doc, floors);
+            //    var collector = new OptimizedElementCollector(_document);
+            //    var verifier = new ElementFloorVerifier(_document, floors);
 
             //    var result = new Dictionary<FloorInfo, List<Element>>();
 
@@ -37,7 +26,7 @@ namespace LevelAssignment
             //    foreach (var floor in floors)
             //    {
             //        // Первичная фильтрация (быстрая)
-            //        var floorFilter = filterFactory.CreateOptimizedFloorFilter(doc, floor, floors);
+            //        var floorFilter = filterFactory.CreateOptimizedFloorFilter(_document, floor, floors);
             //        var candidateElements = collector.GetElementsForFloor(floor, floorFilter);
 
             //        // Точная верификация (для спорных случаев)

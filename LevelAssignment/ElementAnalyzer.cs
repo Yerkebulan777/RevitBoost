@@ -11,17 +11,7 @@
             _basePointZ = GetBasePointZ();
         }
 
-        /// <summary>
-        /// Получает элементы, поддерживающие заданный параметр
-        /// </summary>
-        public List<Element> GetElementsWithParameter(Guid parameterGuid)
-        {
-            return [.. new FilteredElementCollector(_document)
-                .WhereElementIsNotElementType()
-                .Cast<Element>()
-                .Where(e => e.get_Parameter(parameterGuid) != null &&
-                           !e.get_Parameter(parameterGuid).IsReadOnly)];
-        }
+
 
         /// <summary>
         /// Вычисляет пространственные характеристики элементов
@@ -38,11 +28,14 @@
 
         private double CalculateElementMinZ(Element element)
         {
-            var bbox = element.get_BoundingBox(null);
-            if (bbox == null) return 0;
+            BoundingBoxXYZ bbox = element.get_BoundingBox(null);
+            if (bbox == null)
+            {
+                return 0;
+            }
 
             double heightOffset = GetParameterDoubleValue(element, BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM);
-            return Math.Round((bbox.Min.Z - _basePointZ + heightOffset) * 304.8 + 1);
+            return Math.Round(((bbox.Min.Z - _basePointZ + heightOffset) * 304.8) + 1);
         }
 
         private double GetBasePointZ()

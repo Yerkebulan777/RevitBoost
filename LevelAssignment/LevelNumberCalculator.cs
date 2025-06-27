@@ -10,7 +10,7 @@ namespace LevelAssignment
         private const int BASEMENT_NUMBER = -1; // Номер подземного этажа
         private const double LEVEL_MIN_HEIGHT = 1.5; // Минимальная высота этажа (м)
         private readonly int[] specialFloorNumbers = [99, 100, 101]; // Специальные номера этажей
-        private static readonly Regex levelNumberRegex = new(@"\d+", RegexOptions.Compiled);
+        private static readonly Regex levelNumberRegex = new(@"^\d{1,3}.", RegexOptions.Compiled);
 
         /// <summary>
         /// Вычисляет модели этажей на основе уровней проекта
@@ -34,17 +34,9 @@ namespace LevelAssignment
         }
 
         /// <summary>
-        /// Группирует уровни по номерам этажей.
-        /// </summary>
-        private IEnumerable<IGrouping<int, Level>> GroupLevelsByFloorNumber(Dictionary<int, Level> data)
-        {
-            return data.GroupBy(kvp => kvp.Key, kvp => kvp.Value);
-        }
-
-        /// <summary>
         /// Вычисляет вычисляет номера уровней.
         /// </summary>
-        private Dictionary<int, Level> CalculateLevelNumberData(List<Level> levels)
+        internal Dictionary<int, Level> CalculateLevelNumberData(List<Level> levels)
         {
             int calculatedNumber = 0;
             double previousElevation = 0;
@@ -65,9 +57,8 @@ namespace LevelAssignment
 
                 if (!IsDuplicateLevel(elevation, previousElevation))
                 {
-                    int numberFromName = ExtractNumberFromName(level.Name);
-                    bool isValidLevelNumber = IsValidFloorNumber(numberFromName, levels.Count);
                     bool isHeightValid = Math.Abs(elevation - previousElevation) >= LEVEL_MIN_HEIGHT;
+                    bool isValidLevelNumber = IsValidFloorNumber(level.Name, levels.Count, out int numberFromName);
 
                     if (isValidLevelNumber && isHeightValid && calculatedNumber <= numberFromName)
                     {
@@ -130,6 +121,36 @@ namespace LevelAssignment
         }
 
         /// <summary>
+        /// Проверяет валидность номера этажа из имени уровня
+        /// </summary>
+        internal bool IsValidFloorNumber(string levelName, int totalLevels, out int number)
+        {
+            bool hasNumber = TryParseNumber(levelName, out number);
+
+            return hasNumber && (number < totalLevels || specialFloorNumbers.Contains(number));
+        }
+
+        /// <summary>
+        /// Извлекает число из имени уровня
+        /// </summary>
+        private bool TryParseNumber(string levelName, out int number)
+        {
+            number = 0;
+
+            Match match = levelNumberRegex.Match(levelName.Trim());
+
+            return match.Success && int.TryParse(match.Value, out number);
+        }
+
+        /// <summary>
+        /// Группирует уровни по номерам этажей.
+        /// </summary>
+        private IEnumerable<IGrouping<int, Level>> GroupLevelsByFloorNumber(Dictionary<int, Level> data)
+        {
+            return data.GroupBy(kvp => kvp.Key, kvp => kvp.Value);
+        }
+
+        /// <summary>
         /// Преобразует высоту уровня в метры.
         /// </summary>
         private static double GetProjectElevationInMeters(Level level)
@@ -146,20 +167,6 @@ namespace LevelAssignment
         }
 
         /// <summary>
-        /// Извлекает число из имени уровня
-        /// </summary>
-        private int ExtractNumberFromName(string levelName)
-        {
-            if (!string.IsNullOrEmpty(levelName))
-            {
-                Match match = levelNumberRegex.Match(levelName);
-                return match.Success && int.TryParse(match.Value, out int number) ? number : 0;
-            }
-
-            return 0;
-        }
-
-        /// <summary>
         /// Определяет, является ли уровень последним или предпоследним
         /// </summary>
         private static bool IsTopLevel(int currentNum, int index, int lenght)
@@ -167,13 +174,7 @@ namespace LevelAssignment
             return currentNum > 3 && index > lenght - 3;
         }
 
-        /// <summary>
-        /// Проверяет валидность номера этажа из имени уровня
-        /// </summary>
-        private bool IsValidFloorNumber(int numberFromName, int totalLevels)
-        {
-            return numberFromName != 0 && (numberFromName < totalLevels || specialFloorNumbers.Contains(numberFromName));
-        }
+
 
 
 

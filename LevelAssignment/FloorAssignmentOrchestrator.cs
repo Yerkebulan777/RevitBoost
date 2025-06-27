@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using RevitUtils;
 
 namespace LevelAssignment
 {
@@ -32,23 +28,47 @@ namespace LevelAssignment
         /// </summary>
         public FloorAssignmentResults ExecuteFullAssignment(Guid targetParameterGuid)
         {
-            var results = new FloorAssignmentResults();
+            FloorAssignmentResults results = new();
 
             try
             {
-                // Этап 1: Подготовка данных о структуре здания
-                var levels = GetValidLevels();
-                var floorModels = _levelCalculator.GenerateFloorModels(levels);
+                // Этап 1: Подготовка данных
 
-                // Этап 2: Анализ пространственных границ
-                _boundaryCalculator.ComputeProjectBoundary(_document, ref floorModels);
+                double offset = UnitManager.MmToFoot(250);
+
+                double clearance = UnitManager.MmToFoot(100);
+
+                List<Level> levels = GetValidLevels(_document);
+
+                List<FloorInfo> floorModels = _levelCalculator.GenerateFloorModels(levels);
+
+                Outline ProjectBoundaryOutline = _boundaryCalculator.ComputeProjectBoundary(_document, ref floorModels);
+
+                ElementMulticategoryFilter categoryFilter = new(CollectorHelper.GetModelCategoryIds(_document));
+
+                SharedParameterElement parameter = SharedParameterElement.Lookup(_document, targetParameterGuid);
+
+                // Этап 2: Основной цикл(оптимизирован для параллельной обработки)
+
+                foreach (FloorInfo floor in floorModels)
+                {
+                    double height = floor.Height;
+
+                    double elevation = floor.InternalElevation;
+
+                    LogicalOrFilter intersectFilter = CreateIntersectFilter(ProjectBoundaryOutline, elevation, height, offset, clearance);
+
+                    LogicalAndFilter logicalAndFilter = new(categoryFilter, intersectFilter);
+
+                    FilteredElementCollector collector = CollectorHelper.GetInstancesByFilter(_document, parameter, logicalAndFilter);
+
+                }
 
                 // Этап 3: Сбор и анализ элементов
-                var targetElements = _elementAnalyzer.GetElementsWithParameter(targetParameterGuid);
-                var spatialData = _elementAnalyzer.CalculateElementsSpatialData(targetElements);
+                List<ElementSpatialData> spatialData = _elementAnalyzer.CalculateElementsSpatialData(targetElements);
 
                 // Этап 4: Определение принадлежности элементов к этажам
-                var assignmentResults = ProcessElementAssignments(spatialData, floorModels);
+                List<ElementFloorAssignment> assignmentResults = ProcessElementAssignments(spatialData, floorModels);
 
                 // Этап 5: Применение результатов
                 ApplyAssignmentResults(assignmentResults, targetParameterGuid);
@@ -67,21 +87,40 @@ namespace LevelAssignment
             return results;
         }
 
+
+        private LogicalOrFilter CreateIntersectFilter(Outline boundary, double elevation, double height, double offset, double clearance)
+        {
+            XYZ minPoint = boundary.MinimumPoint;
+            XYZ maxPoint = boundary.MaximumPoint;
+
+            minPoint = Transform.Identity.OfPoint(new XYZ(minPoint.X, minPoint.Y, elevation + clearance - offset));
+
+            maxPoint = Transform.Identity.OfPoint(new XYZ(maxPoint.X, maxPoint.Y, elevation + height - offset));
+
+            Solid floorSolid = SolidHelper.CreateSolidBoxByPoint(minPoint, maxPoint, height);
+
+            Outline outline = new(minPoint, maxPoint);
+
+            ElementIntersectsSolidFilter solidFilter = new(floorSolid);
+            BoundingBoxIntersectsFilter boundingBoxFilter = new(outline);
+
+            return new LogicalOrFilter(boundingBoxFilter, solidFilter);
+        }
+
+
         /// <summary>
         /// Определяет принадлежность каждого элемента к этажу используя комбинированную стратегию
         /// </summary>
-        private List<ElementFloorAssignment> ProcessElementAssignments(
-            List<ElementSpatialData> spatialData,
-            List<FloorInfo> floorModels)
+        private List<ElementFloorAssignment> ProcessElementAssignments(List<ElementSpatialData> spatialData, List<FloorInfo> floorModels)
         {
-            var assignments = new List<ElementFloorAssignment>();
+            List<ElementFloorAssignment> assignments = [];
 
-            foreach (var elementData in spatialData)
+            foreach (ElementSpatialData elementData in spatialData)
             {
-                var assignment = new ElementFloorAssignment { ElementData = elementData };
+                ElementFloorAssignment assignment = new() { ElementData = elementData };
 
                 // Стратегия 1: Использование встроенного определителя уровней
-                var levelResult = _levelDeterminator.DetermineElementLevel(elementData.Element);
+                LevelAssignmentResult levelResult = _levelDeterminator.DetermineElementLevel(elementData.Element);
                 if (levelResult.AssignedLevel != null)
                 {
                     assignment.AssignedFloor = FindFloorByLevel(floorModels, levelResult.AssignedLevel);
@@ -116,7 +155,7 @@ namespace LevelAssignment
         /// </summary>
         private FloorInfo DetermineFloorByGeometry(ElementSpatialData elementData, List<FloorInfo> floors)
         {
-            var sortedFloors = floors.OrderBy(f => f.InternalElevation).ToList();
+            List<FloorInfo> sortedFloors = floors.OrderBy(f => f.InternalElevation).ToList();
             double elementZ = elementData.MinZ;
 
             // Поиск подходящего этажа по высоте
@@ -141,41 +180,21 @@ namespace LevelAssignment
             return sortedFloors.First();
         }
 
-        /// <summary>
-        /// Определяет этаж на основе пространственного пересечения с границами проекта
-        /// </summary>
-        private FloorInfo DetermineFloorByIntersection(ElementSpatialData elementData, List<FloorInfo> floors)
-        {
-            // Реализация анализа пересечения с использованием BoundaryFilterFactory
-            // Проверяем пересечение элемента с каждым этажом
-            foreach (var floor in floors.OrderBy(f => Math.Abs(f.InternalElevation * 304.8 - elementData.MinZ)))
-            {
-                var filter = BoundaryFilterFactory.CreateIntersectFilter(
-                    floor, _boundaryCalculator.ProjectBoundaryOutline, 0, 100);
-
-                // Если элемент попадает в фильтр - он принадлежит этому этажу
-                var collector = new FilteredElementCollector(_document, new[] { elementData.Element.Id });
-                if (collector.WherePasses(filter).Any())
-                {
-                    return floor;
-                }
-            }
-
-            return null;
-        }
 
         private FloorInfo FindFloorByLevel(List<FloorInfo> floors, Level level)
         {
             return floors.FirstOrDefault(f => f.ContainedLevels.Any(l => l.Id == level.Id));
         }
 
-        private List<Level> GetValidLevels()
+        public List<Level> GetValidLevels(Document doc, double maxHeightInMeters = 100)
         {
-            return new FilteredElementCollector(_document)
-                .OfClass(typeof(Level))
-                .Cast<Level>()
-                .OrderBy(l => l.Elevation)
-                .ToList();
+            double maximum = UnitManager.MmToFoot(maxHeightInMeters * 1000);
+            ParameterValueProvider provider = new(new ElementId(BuiltInParameter.LEVEL_ELEV));
+            FilterDoubleRule rule = new(provider, new FilterNumericLess(), maximum, 5E-3);
+
+            return [.. new FilteredElementCollector(doc).OfClass(typeof(Level))
+                .WherePasses(new ElementParameterFilter(rule)).Cast<Level>()
+                .OrderBy(x => x.Elevation)];
         }
 
         /// <summary>
@@ -183,12 +202,12 @@ namespace LevelAssignment
         /// </summary>
         private void ApplyAssignmentResults(List<ElementFloorAssignment> assignments, Guid parameterGuid)
         {
-            foreach (var assignment in assignments.Where(a => a.AssignedFloor != null))
+            foreach (ElementFloorAssignment assignment in assignments.Where(a => a.AssignedFloor != null))
             {
-                var parameter = assignment.ElementData.Element.get_Parameter(parameterGuid);
+                Parameter parameter = assignment.ElementData.Element.get_Parameter(parameterGuid);
                 if (parameter != null && !parameter.IsReadOnly)
                 {
-                    parameter.Set(assignment.AssignedFloor.Index);
+                    _ = parameter.Set(assignment.AssignedFloor.Index);
                 }
             }
         }
