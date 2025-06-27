@@ -3,11 +3,11 @@
     public sealed record FloorModel
     {
         public readonly List<Level> ContainedLevels;
-        public Outline BoundaryOutline { get; set; }
-        public double InternalElevation { get; }
-        public double ProjectElevation { get; }
-        public string DisplayName { get; }
-        public int FloorNumber { get; }
+        public double InternalElevation { get; private set; }
+        public double ProjectElevation { get; private set; }
+        public string DisplayName { get; private set; }
+        public double Height { get; internal set; }
+        public int Index { get; private set; }
 
 
         public FloorModel(int floorNumber, IEnumerable<Level> floorLevels)
@@ -17,7 +17,7 @@
             ProjectElevation = baseLevel.ProjectElevation;
             InternalElevation = baseLevel.Elevation;
             DisplayName = baseLevel.Name;
-            FloorNumber = floorNumber;
+            Index = floorNumber;
         }
     }
 

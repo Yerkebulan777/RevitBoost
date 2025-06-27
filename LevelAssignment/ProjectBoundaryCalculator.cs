@@ -18,15 +18,13 @@ namespace LevelAssignment
         /// </summary>
         public void CalculateBoundingPoints(Document doc, List<FloorModel> floorModels)
         {
-            List<FloorModel> filteredFloors = [.. floorModels.Where(fm => fm.FloorNumber <= 3)];
+            List<FloorModel> filteredFloors = [.. floorModels.Where(fm => fm.Index <= 3)];
 
             List<Outline> floorPlanOutlines = [];
 
             foreach (FloorModel floorModel in filteredFloors)
             {
-                double elevation = floorModel.InternalElevation;
-
-                double height = GetLevelHeight(current, floorModels, out double elevation);
+                floorModel.Height = GetLevelHeight(floorModel, floorModels, out double elevation);
 
                 foreach (Level level in floorModel.ContainedLevels)
                 {
@@ -71,15 +69,15 @@ namespace LevelAssignment
             FloorModel aboveFloor = sortedFloors.FirstOrDefault(x => x.InternalElevation > current.InternalElevation);
             FloorModel belowFloor = sortedFloors.LastOrDefault(x => x.InternalElevation < current.InternalElevation);
 
-            if (current.FloorNumber > 0 && aboveFloor is not null && belowFloor is not null)
+            if (current.Index > 0 && aboveFloor is not null && belowFloor is not null)
             {
                 result = Math.Abs(aboveFloor.InternalElevation - current.InternalElevation);
             }
-            else if (current.FloorNumber > 1 && aboveFloor is null)
+            else if (current.Index > 1 && aboveFloor is null)
             {
                 result = Math.Abs(current.InternalElevation - belowFloor.InternalElevation);
             }
-            else if (current.FloorNumber < 0 && belowFloor is null)
+            else if (current.Index < 0 && belowFloor is null)
             {
                 result = Math.Abs(aboveFloor.InternalElevation - current.InternalElevation);
                 double subtract = UnitManager.MmToFoot(3000);

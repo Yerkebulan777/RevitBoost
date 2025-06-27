@@ -35,15 +35,15 @@ namespace LevelAssignment
             FloorModel aboveFloor = sortedFloors.FirstOrDefault(x => x.ProjectElevation > current.ProjectElevation);
             FloorModel belowFloor = sortedFloors.LastOrDefault(x => x.ProjectElevation < current.ProjectElevation);
 
-            if (current.FloorNumber > 0 && aboveFloor is not null && belowFloor is not null)
+            if (current.Index > 0 && aboveFloor is not null && belowFloor is not null)
             {
                 result = Math.Abs(aboveFloor.ProjectElevation - current.ProjectElevation);
             }
-            else if (current.FloorNumber > 1 && aboveFloor is null)
+            else if (current.Index > 1 && aboveFloor is null)
             {
                 result = Math.Abs(current.ProjectElevation - belowFloor.ProjectElevation);
             }
-            else if (current.FloorNumber < 0 && belowFloor is null)
+            else if (current.Index < 0 && belowFloor is null)
             {
                 result = Math.Abs(aboveFloor.ProjectElevation - current.ProjectElevation);
                 double subtract = UnitManager.MmToFoot(3000);
