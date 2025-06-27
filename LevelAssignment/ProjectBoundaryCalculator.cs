@@ -57,14 +57,16 @@ namespace LevelAssignment
             ProjectBoundaryOutline = ProcessBoundaries(floorPlanOutlines);
         }
 
-
+        /// <summary>
+        /// Получает высоту уровня относительно других уровней
+        /// </summary>
         public static double GetLevelHeight(FloorModel current, List<FloorModel> floors, out double elevation)
         {
             double result = 0;
 
             elevation = current.InternalElevation;
 
-            List<FloorModel> sortedFloors = [.. floors.OrderBy(x => x.ProjectElevation)];
+            List<FloorModel> sortedFloors = [.. floors.OrderBy(x => x.InternalElevation)];
 
             FloorModel aboveFloor = sortedFloors.FirstOrDefault(x => x.InternalElevation > current.InternalElevation);
             FloorModel belowFloor = sortedFloors.LastOrDefault(x => x.InternalElevation < current.InternalElevation);
