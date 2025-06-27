@@ -46,7 +46,6 @@ namespace LevelAssignment
             ProjectBoundaryOutline = MergeOutlines(floorPlanOutlines);
         }
 
-
         /// <summary>
         /// Обновление границ проекта на основе контуров
         /// </summary>
@@ -66,6 +65,54 @@ namespace LevelAssignment
             XYZ maxPoint = new(MaxX, MaxY, MaxZ);
 
             return new Outline(minPoint, maxPoint);
+        }
+
+        /// <summary>
+        /// Извлекает границы плана этажа с применением приоритетной стратегии
+        /// </summary>
+        internal Outline ExtractViewPlanBoundary(ViewPlan floorPlan, double elevation)
+        {
+            // Стратегия 1: Использование активного CropBox
+            if (floorPlan.CropBoxActive && floorPlan.CropBox != null)
+            {
+                return TransformCropBox(floorPlan, elevation);
+            }
+
+            // Стратегия 2: Использование свойства Outline вида
+            if (floorPlan.Outline != null)
+            {
+                return TransformViewOutline(floorPlan, elevation);
+            }
+
+            // Стратегия 3: ...
+            List<XYZ> boundaryPoints = [];
+
+            foreach (TransformWithBoundary twb in floorPlan.GetModelToProjectionTransforms())
+            {
+                Transform trans = twb.GetModelToProjectionTransform();
+
+                foreach (Curve curve in twb.GetBoundary())
+                {
+                    boundaryPoints.AddRange(ExtractPoints(curve, trans));
+                }
+            }
+
+            if (boundaryPoints.Any())
+            {
+                XYZ minProjectPoint = new(
+                    boundaryPoints.Min(p => p.X),
+                    boundaryPoints.Min(p => p.Y),
+                    elevation);
+
+                XYZ maxProjectPoint = new(
+                    boundaryPoints.Max(p => p.X),
+                    boundaryPoints.Max(p => p.Y),
+                    elevation);
+
+                return new Outline(minProjectPoint, maxProjectPoint);
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -127,64 +174,11 @@ namespace LevelAssignment
         /// <summary>
         /// Получает все планы этажей для указанного уровня
         /// </summary>
-        internal List<ViewPlan> GetViewPlansByLevel(Document doc, Level level)
+        List<ViewPlan> GetViewPlansByLevel(Document doc, Level level)
         {
             return [.. new FilteredElementCollector(doc)
                 .OfClass(typeof(ViewPlan)).OfType<ViewPlan>()
                 .Where(pln => !pln.IsTemplate && pln.GenLevel.Id == level.Id)];
-        }
-
-        /// <summary>
-        /// Извлекает границы плана этажа с применением приоритетной стратегии
-        /// </summary>
-        internal Outline ExtractViewPlanBoundary(ViewPlan floorPlan, double elevation)
-        {
-            // Стратегия 1: Использование активного CropBox
-            if (floorPlan.CropBoxActive && floorPlan.CropBox != null)
-            {
-                return TransformCropBox(floorPlan, elevation);
-            }
-
-            // Стратегия 2: Использование свойства Outline вида
-            if (floorPlan.Outline != null)
-            {
-                return TransformViewOutline(floorPlan, elevation);
-            }
-
-            // Стратегия 3: ...
-            List<XYZ> boundaryPoints = [];
-
-            foreach (TransformWithBoundary twb in floorPlan.GetModelToProjectionTransforms())
-            {
-                Transform trans = twb.GetModelToProjectionTransform();
-
-                CurveLoop boundary = twb.GetBoundary();
-
-                if (boundary is not null)
-                {
-                    foreach (Curve curve in boundary)
-                    {
-                        boundaryPoints.AddRange(ExtractPoints(curve, trans));
-                    }
-                }
-            }
-
-            if (!boundaryPoints.Any())
-            {
-                return null;
-            }
-
-            XYZ minProjectPoint = new(
-                boundaryPoints.Min(p => p.X),
-                boundaryPoints.Min(p => p.Y),
-                elevation);
-
-            XYZ maxProjectPoint = new(
-                boundaryPoints.Max(p => p.X),
-                boundaryPoints.Max(p => p.Y),
-                elevation);
-
-            return new Outline(minProjectPoint, maxProjectPoint);
         }
 
         /// <summary>
@@ -252,34 +246,6 @@ namespace LevelAssignment
 
             return points;
         }
-
-
-        public LogicalOrFilter CreateIntersectFilter(Document doc, FloorModel current, List<FloorModel> floorModels, bool visible = false)
-        {
-            double clearance = UnitManager.MmToFoot(100);
-
-            double height = GetLevelHeight(current, floorModels, out double elevation);
-
-            XYZ minPoint = Transform.Identity.OfPoint(new XYZ(MinX, MinY, elevation + clearance));
-
-            XYZ maxPoint = Transform.Identity.OfPoint(new XYZ(MaxX, MaxY, elevation + height));
-
-            Solid floorSolid = SolidHelper.CreateSolidBoxByPoint(minPoint, maxPoint, height);
-
-            Outline outline = new(minPoint, maxPoint);
-
-            if (visible)
-            {
-                floorSolid.CreateDirectShape(doc);
-            }
-
-            ElementIntersectsSolidFilter solidFilter = new(floorSolid);
-            BoundingBoxIntersectsFilter boundingBoxFilter = new(outline);
-
-            return new LogicalOrFilter(boundingBoxFilter, solidFilter);
-        }
-
-
 
 
 
