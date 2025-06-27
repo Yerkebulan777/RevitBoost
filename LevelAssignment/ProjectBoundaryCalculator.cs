@@ -16,13 +16,13 @@ namespace LevelAssignment
         /// <summary>
         /// Вычисление общей границы проекта на основе планов этажей
         /// </summary>
-        public void ComputeProjectBoundary(Document doc, ref List<floorInfo> floorModels)
+        public void ComputeProjectBoundary(Document doc, ref List<FloorInfo> floorModels)
         {
             List<Outline> floorPlanOutlines = [];
 
             HashSet<ElementId> viewsOnSheets = GetViewsOnValidSheets(doc);
 
-            foreach (floorInfo floorModel in floorModels)
+            foreach (FloorInfo floorModel in floorModels)
             {
                 floorModel.Height = GetLevelHeight(floorModel, floorModels, out double elevation);
 
@@ -118,16 +118,16 @@ namespace LevelAssignment
         /// <summary>
         /// Получает высоту уровня относительно других уровней
         /// </summary>
-        private double GetLevelHeight(floorInfo current, List<floorInfo> floors, out double elevation)
+        private double GetLevelHeight(FloorInfo current, List<FloorInfo> floors, out double elevation)
         {
             double result = 0;
 
             elevation = current.InternalElevation;
 
-            List<floorInfo> sortedFloors = [.. floors.OrderBy(x => x.InternalElevation)];
+            List<FloorInfo> sortedFloors = [.. floors.OrderBy(x => x.InternalElevation)];
 
-            floorInfo aboveFloor = sortedFloors.FirstOrDefault(x => x.InternalElevation > current.InternalElevation);
-            floorInfo belowFloor = sortedFloors.LastOrDefault(x => x.InternalElevation < current.InternalElevation);
+            FloorInfo aboveFloor = sortedFloors.FirstOrDefault(x => x.InternalElevation > current.InternalElevation);
+            FloorInfo belowFloor = sortedFloors.LastOrDefault(x => x.InternalElevation < current.InternalElevation);
 
             if (current.Index > 0 && aboveFloor is not null && belowFloor is not null)
             {

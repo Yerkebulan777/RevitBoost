@@ -4,7 +4,7 @@ namespace LevelAssignment
 {
     public static class BoundaryFilterFactory
     {
-        public static LogicalOrFilter CreateIntersectFilter(floorInfo floorInfo, Outline boundary, double offset, double clearance)
+        public static LogicalOrFilter CreateIntersectFilter(FloorInfo floorInfo, Outline boundary, double offset, double clearance)
         {
             XYZ minPoint = boundary.MinimumPoint;
             XYZ maxPoint = boundary.MaximumPoint;

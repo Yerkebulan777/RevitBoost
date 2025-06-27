@@ -18,7 +18,7 @@ namespace LevelAssignment
 
         public class OptimizedFloorElementAssigner
         {
-            //public Dictionary<floorInfo, List<Element>> AssignElementsToFloors(Document doc, List<Level> levels)
+            //public Dictionary<FloorInfo, List<Element>> AssignElementsToFloors(Document doc, List<Level> levels)
             //{
             //    // 1. Подготовительный этап (выполняется один раз)
             //    var boundaryCalculator = new ProjectBoundaryCalculator();
@@ -31,7 +31,7 @@ namespace LevelAssignment
             //    var collector = new OptimizedElementCollector(doc);
             //    var verifier = new ElementFloorVerifier(doc, floors);
 
-            //    var result = new Dictionary<floorInfo, List<Element>>();
+            //    var result = new Dictionary<FloorInfo, List<Element>>();
 
             //    // 2. Основной цикл (оптимизирован для параллельной обработки)
             //    foreach (var floor in floors)

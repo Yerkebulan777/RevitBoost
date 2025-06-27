@@ -1,6 +1,6 @@
 ﻿namespace LevelAssignment
 {
-    public sealed record floorInfo
+    public sealed record FloorInfo
     {
         public readonly List<Level> ContainedLevels;
         public double InternalElevation { get; private set; }
@@ -10,7 +10,7 @@
         public int Index { get; private set; }
 
 
-        public floorInfo(int floorNumber, IEnumerable<Level> floorLevels)
+        public FloorInfo(int floorNumber, IEnumerable<Level> floorLevels)
         {
             ContainedLevels = [.. floorLevels.OrderBy(l => l.Elevation)];
             Level baseLevel = ContainedLevels.FirstOrDefault();
