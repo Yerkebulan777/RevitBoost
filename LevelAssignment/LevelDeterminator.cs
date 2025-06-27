@@ -1,4 +1,5 @@
-﻿namespace LevelAssignment
+﻿
+namespace LevelAssignment
 {
     /// <summary>
     /// Главный класс для определения уровней элементов
@@ -65,40 +66,30 @@
         /// <summary>
         /// Определение уровня на основе параметров элемента
         /// </summary>
-        private Level GetLevelFromParameters(Element element)
+        public bool GetLevelFromParameters(Element element, HashSet<ElementId> levelIds)
         {
-            try
-            {
-                // Проверяем параметр уровня основания
-                Parameter baseLevel = element.get_Parameter(BuiltInParameter.FAMILY_BASE_LEVEL_PARAM);
-                if (baseLevel?.AsElementId() != null && baseLevel.AsElementId() != ElementId.InvalidElementId)
-                {
-                    return _document.GetElement(baseLevel.AsElementId()) as Level;
-                }
 
-                // Проверяем параметр уровня размещения
-                Parameter placementLevel = element.get_Parameter(BuiltInParameter.LEVEL_PARAM);
-                if (placementLevel?.AsElementId() != null && placementLevel.AsElementId() != ElementId.InvalidElementId)
-                {
-                    return _document.GetElement(placementLevel.AsElementId()) as Level;
-                }
-
-                // Для стен проверяем базовый и верхний уровни
-                if (element is Wall wall)
-                {
-                    Parameter wallBaseLevel = wall.get_Parameter(BuiltInParameter.WALL_BASE_CONSTRAINT);
-                    if (wallBaseLevel?.AsElementId() != null && wallBaseLevel.AsElementId() != ElementId.InvalidElementId)
-                    {
-                        return _document.GetElement(wallBaseLevel.AsElementId()) as Level;
-                    }
-                }
-            }
-            catch (Exception)
+            // Этап 1: Проверка назначенного уровня
+            if (element.LevelId != ElementId.InvalidElementId)
             {
-                // В случае ошибки возвращаем null
+                return levelIds.Contains(element.LevelId);
             }
 
-            return null;
+            else if (element is FamilyInstance instance)
+            {
+                // Проверяем параметр уровня основания для семейных экземпляров
+                Parameter baseLevel = instance.get_Parameter(BuiltInParameter.FAMILY_BASE_LEVEL_PARAM);
+                return levelIds.Contains(baseLevel.AsElementId());
+            }
+
+            else if (element is HostObject host)
+            {
+                // Проверяем параметр уровня размещения для хост-объектов
+                Parameter hostLevel = host.get_Parameter(BuiltInParameter.LEVEL_PARAM);
+                return levelIds.Contains(hostLevel.AsElementId());
+            }
+
+            return false;
         }
 
         /// <summary>
