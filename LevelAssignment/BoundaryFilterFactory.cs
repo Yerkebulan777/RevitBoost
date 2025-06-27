@@ -4,16 +4,16 @@ namespace LevelAssignment
 {
     public static class BoundaryFilterFactory
     {
-        public static LogicalOrFilter CreateIntersectFilter(floorInfo floorData, Outline boundary, double offset, double clearance)
+        public static LogicalOrFilter CreateIntersectFilter(floorInfo floorInfo, Outline boundary, double offset, double clearance)
         {
             XYZ minPoint = boundary.MinimumPoint;
             XYZ maxPoint = boundary.MaximumPoint;
 
-            minPoint = Transform.Identity.OfPoint(new XYZ(minPoint.X, minPoint.Y, floorData.Height + clearance - offset));
+            minPoint = Transform.Identity.OfPoint(new XYZ(minPoint.X, minPoint.Y, floorInfo.Height + clearance - offset));
 
-            maxPoint = Transform.Identity.OfPoint(new XYZ(maxPoint.X, maxPoint.Y, floorData.Height + floorData.Height - offset));
+            maxPoint = Transform.Identity.OfPoint(new XYZ(maxPoint.X, maxPoint.Y, floorInfo.Height + floorInfo.Height - offset));
 
-            Solid floorSolid = SolidHelper.CreateSolidBoxByPoint(minPoint, maxPoint, floorData.Height);
+            Solid floorSolid = SolidHelper.CreateSolidBoxByPoint(minPoint, maxPoint, floorInfo.Height);
 
             Outline outline = new(minPoint, maxPoint);
 
