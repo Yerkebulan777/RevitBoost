@@ -182,7 +182,7 @@ namespace LevelAssignment
         }
 
         /// <summary>
-        /// Преобразует границы CropBox в проектные координаты
+        /// Преобразует границ CropBox в проектные координаты
         /// </summary>
         private Outline TransformCropBox(View view, double elevation)
         {
@@ -199,7 +199,7 @@ namespace LevelAssignment
         }
 
         /// <summary>
-        /// Преобразование mergedOutline вида в проектные координаты
+        /// Преобразование границ Outline в проектные координаты
         /// </summary>
         private Outline TransformViewOutline(View view, double elevation)
         {
