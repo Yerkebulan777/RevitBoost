@@ -15,9 +15,9 @@ namespace LevelAssignment
         /// <summary>
         /// Вычисляет модели этажей на основе уровней проекта
         /// </summary>
-        public List<FloorModel> GenerateFloorModels(List<Level> levels)
+        public List<floorInfo> GenerateFloorModels(List<Level> levels)
         {
-            List<FloorModel> floorModels = [];
+            List<floorInfo> floorModels = [];
 
             // Получаем маппинг уровней на номера этажей
             Dictionary<int, Level> levelNumMap = CalculateLevelNumberData(levels);
@@ -27,7 +27,7 @@ namespace LevelAssignment
             {
                 int floorNumber = group.Key; // Номер этажа (ключ группы)
                 List<Level> floorLevels = [.. group]; // Уровни только этого этажа
-                floorModels.Add(new FloorModel(floorNumber, floorLevels));
+                floorModels.Add(new floorInfo(floorNumber, floorLevels));
             }
 
             return floorModels;
