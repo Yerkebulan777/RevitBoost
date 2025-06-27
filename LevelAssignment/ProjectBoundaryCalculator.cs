@@ -14,15 +14,15 @@ namespace LevelAssignment
         public Outline ProjectBoundaryOutline { get; private set; }
 
         /// <summary>
-        /// Получение границ видов планов до 3 этажа
+        /// Вычисление общей границы проекта на основе планов этажей
         /// </summary>
-        public void CalculateBoundingPoints(Document doc, List<FloorModel> floorModels)
+        public void ComputeProjectBoundary(Document doc, ref List<FloorModel> floorModels)
         {
-            List<FloorModel> filteredFloors = [.. floorModels.Where(fm => fm.Index <= 3)];
-
             List<Outline> floorPlanOutlines = [];
 
-            foreach (FloorModel floorModel in filteredFloors)
+            HashSet<ElementId> viewsOnSheets = GetViewsOnValidSheets(doc);
+
+            foreach (FloorModel floorModel in floorModels)
             {
                 floorModel.Height = GetLevelHeight(floorModel, floorModels, out double elevation);
 
@@ -30,37 +30,48 @@ namespace LevelAssignment
                 {
                     foreach (ViewPlan floorPlan in GetViewPlansByLevel(doc, level))
                     {
-                        // Надо добавить проверку  нахождения на листе//
-
-                        //foreach (ElementId idVp in sheet.GetAllViewports())
-                        //{
-                        //    Viewport vp = doc.GetElement(idVp) as Viewport;
-                        //    if (vp is not null && vp.ViewId == floorPlan.Id)
-                        //    {
-                        //        // Пропускаем планы, которые уже находятся на листе
-                        //        continue;
-                        //    }
-                        //}
-
-                        Outline boundary = ExtractViewPlanBoundary(floorPlan, elevation);
-
-                        if (boundary is not null)
+                        if (!floorPlan.IsCallout && viewsOnSheets.Contains(floorPlan.Id))
                         {
-                            floorPlanOutlines.Add(boundary);
+                            Outline boundary = ExtractViewPlanBoundary(floorPlan, elevation);
+
+                            if (boundary is not null)
+                            {
+                                floorPlanOutlines.Add(boundary);
+                            }
                         }
                     }
                 }
-
-                // Также я бы подумал об высоте  floor Boundary
             }
 
-            ProjectBoundaryOutline = ProcessBoundaries(floorPlanOutlines);
+            ProjectBoundaryOutline = MergeOutlines(floorPlanOutlines);
+        }
+
+
+        /// <summary>
+        /// Обновление границ проекта на основе контуров
+        /// </summary>
+        internal Outline MergeOutlines(List<Outline> outlines)
+        {
+            foreach (Outline outline in outlines)
+            {
+                MinX = Math.Min(MinX, outline.MinimumPoint.X);
+                MaxX = Math.Max(MaxX, outline.MaximumPoint.X);
+                MinY = Math.Min(MinY, outline.MinimumPoint.Y);
+                MaxY = Math.Max(MaxY, outline.MaximumPoint.Y);
+                MinZ = Math.Min(MinZ, outline.MinimumPoint.Z);
+                MaxZ = Math.Max(MaxZ, outline.MaximumPoint.Z);
+            }
+
+            XYZ minPoint = new(MinX, MinY, MinZ);
+            XYZ maxPoint = new(MaxX, MaxY, MaxZ);
+
+            return new Outline(minPoint, maxPoint);
         }
 
         /// <summary>
         /// Получает высоту уровня относительно других уровней
         /// </summary>
-        public static double GetLevelHeight(FloorModel current, List<FloorModel> floors, out double elevation)
+        private double GetLevelHeight(FloorModel current, List<FloorModel> floors, out double elevation)
         {
             double result = 0;
 
@@ -91,24 +102,26 @@ namespace LevelAssignment
         }
 
         /// <summary>
-        /// Обработка границ
+        /// Получает все виды, которые находятся на листах
         /// </summary>
-        private Outline ProcessBoundaries(List<Outline> outlines)
+        private HashSet<ElementId> GetViewsOnValidSheets(Document doc)
         {
-            foreach (Outline outline in outlines)
+            HashSet<ElementId> validViews = [];
+
+            FilteredElementCollector collector = new(doc);
+            collector = collector.OfClass(typeof(ViewSheet));
+            collector = collector.WhereElementIsNotElementType();
+            collector = collector.OfCategory(BuiltInCategory.OST_Sheets);
+
+            foreach (ViewSheet sheet in collector.Cast<ViewSheet>())
             {
-                MinX = Math.Min(MinX, outline.MinimumPoint.X);
-                MaxX = Math.Max(MaxX, outline.MaximumPoint.X);
-                MinY = Math.Min(MinY, outline.MinimumPoint.Y);
-                MaxY = Math.Max(MaxY, outline.MaximumPoint.Y);
-                MinZ = Math.Min(MinZ, outline.MinimumPoint.Z);
-                MaxZ = Math.Max(MaxZ, outline.MaximumPoint.Z);
+                if (!sheet.IsPlaceholder && sheet.CanBePrinted)
+                {
+                    validViews.UnionWith(sheet.GetAllPlacedViews());
+                }
             }
 
-            XYZ minPoint = new(MinX, MinY, MinZ);
-            XYZ maxPoint = new(MaxX, MaxY, MaxZ);
-
-            return new Outline(minPoint, maxPoint);
+            return validViews;
         }
 
         /// <summary>
