@@ -86,6 +86,16 @@ namespace LevelAssignment
 
         }
 
+
+        public IList<Element> GetVisibleElements(View view, ICollection<ElementId> elementIds)
+        {
+            return new FilteredElementCollector(view.Document, view.Id)
+                .WherePasses(new ElementIdSetFilter(elementIds))
+                .WhereElementIsNotElementType()
+                .ToElements();
+        }
+
+
         /// <summary>
         /// Находит этаж по уровню
         /// </summary>
