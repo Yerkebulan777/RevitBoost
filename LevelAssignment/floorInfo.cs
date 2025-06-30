@@ -3,6 +3,7 @@
     public sealed record FloorInfo
     {
         public readonly List<Level> ContainedLevels;
+        public BoundingBoxXYZ BoundingBox { get; internal set; }
         public double InternalElevation { get; private set; }
         public double ProjectElevation { get; private set; }
         public string DisplayName { get; private set; }

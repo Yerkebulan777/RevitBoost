@@ -7,46 +7,15 @@ namespace LevelAssignment
     /// <summary>
     /// Главный класс для определения уровней элементов
     /// </summary>
-    public class ElementLevelDeterminator
+    public class LevelDeterminator
     {
         private readonly Document _document;
         private readonly List<Level> _levels;
 
-        public ElementLevelDeterminator(Document doc, List<Level> levels)
+        public LevelDeterminator(Document doc, List<Level> levels)
         {
             _document = doc;
             _levels = levels;
-        }
-
-        /// <summary>
-        /// Основной метод определения уровня элемента
-        /// </summary>
-        public LevelAssignmentResult DetermineElementLevel(Element element)
-        {
-            LevelAssignmentResult result = new(element);
-
-            try
-            {
-                // Этап 1: Проверка назначенного уровня
-
-                Level geometricLevel = GetLevelFromGeometry(element);
-
-                if (geometricLevel != null)
-                {
-                    result.Method = Determination.GeometricAnalysis;
-                    result.Confidence = 1;
-                    return result;
-                }
-
-
-
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error in geometric analysis for element {element.Id}: {ex.Message}");
-            }
-
-            return result;
         }
 
         /// <summary>
@@ -54,108 +23,129 @@ namespace LevelAssignment
         /// </summary>
         public bool IsOnLevel(Element element, ref HashSet<ElementId> levelIds)
         {
-            Parameter baseLevel;
+            Debug.Assert(!levelIds.Any(), "No levels provided for checking!");
 
-            if (!levelIds.Any())
+            Parameter levelParam;
+
+            if (levelIds.Any())
             {
-                Debug.Fail("No levels provided for checking!");
-                return false;
-            }
+                string categoryName = element.Category.Name;
 
-            string categoryName = element.Category.Name;
-
-            if (element.LevelId != ElementId.InvalidElementId)
-            {
-                Debug.WriteLine($"LEVEL_ID: {categoryName}");
-                return levelIds.Contains(element.LevelId);
-            }
-
-            if (element is Wall wall)
-            {
-                baseLevel = wall.get_Parameter(BuiltInParameter.WALL_BASE_CONSTRAINT);
-                if (baseLevel?.AsElementId() is ElementId id && levelIds.Contains(id))
+                if (element.LevelId != ElementId.InvalidElementId)
                 {
-                    Debug.WriteLine($"WALL_BASE_CONSTRAINT: {categoryName}");
+                    Debug.WriteLine($"LEVEL_ID: {categoryName}");
+                    return levelIds.Contains(element.LevelId);
+                }
+
+                if (element is Wall)
+                {
+                    levelParam = element.get_Parameter(BuiltInParameter.WALL_BASE_CONSTRAINT);
+                    if (levelParam?.AsElementId() is ElementId id && levelIds.Contains(id))
+                    {
+                        Debug.WriteLine($"WALL_BASE_CONSTRAINT: {categoryName}");
+                        return true;
+                    }
+                }
+
+                if (element is Stairs)
+                {
+                    levelParam = element.get_Parameter(BuiltInParameter.STAIRS_BASE_LEVEL_PARAM);
+                    if (levelParam?.AsElementId() is ElementId id && levelIds.Contains(id))
+                    {
+                        Debug.WriteLine($"STAIRS_BASE_LEVEL_PARAM: {categoryName}");
+                        return true;
+                    }
+                }
+
+                if (element is RoofBase)
+                {
+                    levelParam = element.get_Parameter(BuiltInParameter.ROOF_BASE_LEVEL_PARAM);
+                    if (levelParam?.AsElementId() is ElementId id && levelIds.Contains(id))
+                    {
+                        Debug.WriteLine($"ROOF_BASE_LEVEL_PARAM: {categoryName}");
+                        return true;
+                    }
+                }
+
+                levelParam = element.get_Parameter(BuiltInParameter.LEVEL_PARAM);
+                if (levelParam?.AsElementId() is ElementId baseId && levelIds.Contains(baseId))
+                {
+                    Debug.WriteLine($"LEVEL_PARAM: {categoryName}");
                     return true;
                 }
-            }
 
-            if (element is RoofBase)
-            {
-                baseLevel = element.get_Parameter(BuiltInParameter.ROOF_BASE_LEVEL_PARAM);
-                if (baseLevel?.AsElementId() is ElementId id && levelIds.Contains(id))
+                levelParam = element.get_Parameter(BuiltInParameter.SCHEDULE_LEVEL_PARAM);
+                if (levelParam?.AsElementId() is ElementId scheduleId && levelIds.Contains(scheduleId))
                 {
-                    Debug.WriteLine($"ROOF_BASE_LEVEL_PARAM: {categoryName}");
+                    Debug.WriteLine($"SCHEDULE_LEVEL_PARAM: {categoryName}");
                     return true;
                 }
-            }
 
-            if (element is Stairs)
-            {
-                baseLevel = element.get_Parameter(BuiltInParameter.STAIRS_BASE_LEVEL_PARAM);
-                if (baseLevel?.AsElementId() is ElementId id && levelIds.Contains(id))
+                levelParam = element.get_Parameter(BuiltInParameter.FAMILY_LEVEL_PARAM);
+                if (levelParam?.AsElementId() is ElementId familyId && levelIds.Contains(familyId))
                 {
-                    Debug.WriteLine($"STAIRS_BASE_LEVEL_PARAM: {categoryName}");
+                    Debug.WriteLine($"FAMILY_LEVEL_PARAM: {categoryName}");
                     return true;
                 }
+
+                throw new InvalidOperationException($"Не удалось определить уровень для {categoryName}!");
             }
 
-            baseLevel = element.get_Parameter(BuiltInParameter.LEVEL_PARAM);
-            if (baseLevel?.AsElementId() is ElementId baseId && levelIds.Contains(baseId))
-            {
-                Debug.WriteLine($"LEVEL_PARAM: {categoryName}");
-                return true;
-            }
-
-            baseLevel = element.get_Parameter(BuiltInParameter.SCHEDULE_LEVEL_PARAM);
-            if (baseLevel?.AsElementId() is ElementId scheduleId && levelIds.Contains(scheduleId))
-            {
-                Debug.WriteLine($"SCHEDULE_LEVEL_PARAM: {categoryName}");
-                return true;
-            }
-
-            baseLevel = element.get_Parameter(BuiltInParameter.FAMILY_LEVEL_PARAM);
-            if (baseLevel?.AsElementId() is ElementId familyId && levelIds.Contains(familyId))
-            {
-                Debug.WriteLine($"FAMILY_LEVEL_PARAM: {categoryName}");
-                return true;
-            }
-
-            throw new InvalidOperationException($"Не удалось определить уровень для {categoryName}!");
+            return false;
 
         }
 
         /// <summary>
-        /// Определение уровня на основе геометрического анализа
+        /// Находит этаж по уровню
         /// </summary>
-        private Level GetLevelFromGeometry(Element element)
+        public FloorInfo FindFloorByLevel(List<FloorInfo> floors, Level level)
         {
-            try
-            {
-                BoundingBoxXYZ bbox = element.get_BoundingBox(null);
-
-                if (bbox == null)
-                {
-                    return null;
-                }
-
-            }
-            catch (Exception)
-            {
-                // В случае ошибки возвращаем null
-            }
-
-            return null;
+            return floors.FirstOrDefault(fi => fi.ContainedLevels.Any(lvl => lvl.Id == level.Id));
         }
+
+        /// <summary>
+        /// Определяет этаж на основе геометрического анализа высоты элемента
+        /// </summary>
+        public bool DetermineFloorByGeometry(ElementSpatialData elementData, ref List<FloorInfo> sortedFloors)
+        {
+            // Поиск подходящего этажа по высоте
+            for (int idx = 0; idx < sortedFloors.Count - 1; idx++)
+            {
+
+                FloorInfo floor = sortedFloors[idx];
+
+                XYZ point = elementData.Centroid;
+
+                if (IsPointInVerticalBounds(point, floor.BoundingBox))
+                {
+                    return true;
+                }
+            }
+
+            throw new InvalidDataException($"Не удалось определить этаж для элемента {elementData.Element.Id} по геометрии!");
+        }
+
 
 
         /// <summary>
-        /// Пакетная обработка элементов
+        /// Checks if a point is within the vertical boundaries of a bounding box
         /// </summary>
-        public Dictionary<ElementId, LevelAssignmentResult> ProcessElements(IEnumerable<Element> elements)
+        internal static bool IsPointInVerticalBounds(XYZ point, BoundingBoxXYZ bbox)
         {
-            return elements.ToDictionary(elem => elem.Id, DetermineElementLevel);
+            return point.Z > bbox.Min.Z && point.Z < bbox.Max.Z;
         }
+
+
+    }
+
+    /// <summary>
+    /// Данные о пространственных характеристиках элемента
+    /// </summary>
+    public record ElementSpatialData
+    {
+        public XYZ Centroid { get; set; }
+        public Element Element { get; set; }
+        public BoundingBoxXYZ BoundingBox { get; set; }
     }
 
     /// <summary>
@@ -164,9 +154,10 @@ namespace LevelAssignment
     public record LevelAssignmentResult
     {
         public readonly Element Element;
-        public int Confidence { get; set; }
+        public float Confidence { get; set; }
+        public string ErrorMessage { get; set; }
         public Determination Method { get; set; }
-
+        public bool IsSuccess { get; set; }
         public LevelAssignmentResult(Element element)
         {
             Method = Determination.Failed;
@@ -174,6 +165,8 @@ namespace LevelAssignment
             Confidence = 0;
         }
     }
+
+
 
     public enum Determination
     {

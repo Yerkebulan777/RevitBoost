@@ -12,7 +12,7 @@ namespace LevelAssignment
         private readonly ElementAnalyzer _elementAnalyzer;
         private readonly LevelNumberCalculator _levelCalculator;
         private readonly ProjectBoundaryCalculator _boundaryCalculator;
-        private readonly ElementLevelDeterminator _levelDeterminator;
+        private readonly LevelDeterminator _levelDeterminator;
 
         public FloorAssignmentOrchestrator(Document document)
         {
@@ -50,6 +50,8 @@ namespace LevelAssignment
 
                 // Этап 2: Основной цикл(оптимизирован для параллельной обработки)
 
+                List<Element> targetElements = [];
+
                 foreach (FloorInfo floor in floorModels)
                 {
                     double height = floor.Height;
@@ -60,8 +62,7 @@ namespace LevelAssignment
 
                     LogicalAndFilter logicalAndFilter = new(categoryFilter, intersectFilter);
 
-                    FilteredElementCollector collector = CollectorHelper.GetInstancesByFilter(_document, parameter, logicalAndFilter);
-
+                    targetElements.AddRange(CollectorHelper.GetInstancesByFilter(_document, parameter, logicalAndFilter).ToElements());
                 }
 
                 // Этап 3: Сбор и анализ элементов
@@ -109,95 +110,6 @@ namespace LevelAssignment
 
 
         /// <summary>
-        /// Определяет принадлежность каждого элемента к этажу используя комбинированную стратегию
-        /// </summary>
-        private List<ElementFloorAssignment> ProcessElementAssignments(List<ElementSpatialData> spatialData, List<FloorInfo> floorModels)
-        {
-            List<ElementFloorAssignment> assignments = [];
-
-            foreach (ElementSpatialData elementData in spatialData)
-            {
-                ElementFloorAssignment assignment = new() { ElementData = elementData };
-
-                // Стратегия 1: Использование встроенного определителя уровней
-                LevelAssignmentResult levelResult = _levelDeterminator.DetermineElementLevel(elementData.Element);
-                if (levelResult.AssignedLevel != null)
-                {
-                    assignment.AssignedFloor = FindFloorByLevel(floorModels, levelResult.AssignedLevel);
-                    assignment.Method = AssignmentMethod.LevelDeterminator;
-                    assignment.Confidence = levelResult.Confidence;
-                }
-
-                // Стратегия 2: Геометрический анализ (если первая стратегия неуспешна)
-                if (assignment.AssignedFloor == null)
-                {
-                    assignment.AssignedFloor = DetermineFloorByGeometry(elementData, floorModels);
-                    assignment.Method = AssignmentMethod.GeometricAnalysis;
-                    assignment.Confidence = 0.7;
-                }
-
-                // Стратегия 3: Пространственное пересечение (резервная стратегия)
-                if (assignment.AssignedFloor == null && _boundaryCalculator.ProjectBoundaryOutline != null)
-                {
-                    assignment.AssignedFloor = DetermineFloorByIntersection(elementData, floorModels);
-                    assignment.Method = AssignmentMethod.SpatialIntersection;
-                    assignment.Confidence = 0.5;
-                }
-
-                assignments.Add(assignment);
-            }
-
-            return assignments;
-        }
-
-        /// <summary>
-        /// Определяет этаж на основе геометрического анализа высоты элемента
-        /// </summary>
-        private FloorInfo DetermineFloorByGeometry(ElementSpatialData elementData, List<FloorInfo> floors)
-        {
-            List<FloorInfo> sortedFloors = floors.OrderBy(f => f.InternalElevation).ToList();
-            double elementZ = elementData.MinZ;
-
-            // Поиск подходящего этажа по высоте
-            for (int i = 0; i < sortedFloors.Count - 1; i++)
-            {
-                double currentFloorHeight = sortedFloors[i].InternalElevation * 304.8; // Конвертация в мм
-                double nextFloorHeight = sortedFloors[i + 1].InternalElevation * 304.8;
-
-                if (elementZ >= currentFloorHeight && elementZ < nextFloorHeight)
-                {
-                    return sortedFloors[i];
-                }
-            }
-
-            // Элемент выше последнего этажа
-            if (elementZ >= sortedFloors.Last().InternalElevation * 304.8)
-            {
-                return sortedFloors.Last();
-            }
-
-            // Элемент ниже первого этажа
-            return sortedFloors.First();
-        }
-
-
-        private FloorInfo FindFloorByLevel(List<FloorInfo> floors, Level level)
-        {
-            return floors.FirstOrDefault(f => f.ContainedLevels.Any(l => l.Id == level.Id));
-        }
-
-        public List<Level> GetValidLevels(Document doc, double maxHeightInMeters = 100)
-        {
-            double maximum = UnitManager.MmToFoot(maxHeightInMeters * 1000);
-            ParameterValueProvider provider = new(new ElementId(BuiltInParameter.LEVEL_ELEV));
-            FilterDoubleRule rule = new(provider, new FilterNumericLess(), maximum, 5E-3);
-
-            return [.. new FilteredElementCollector(doc).OfClass(typeof(Level))
-                .WherePasses(new ElementParameterFilter(rule)).Cast<Level>()
-                .OrderBy(x => x.Elevation)];
-        }
-
-        /// <summary>
         /// Применяет результаты назначения, записывая значения в параметры элементов
         /// </summary>
         private void ApplyAssignmentResults(List<ElementFloorAssignment> assignments, Guid parameterGuid)
@@ -213,29 +125,5 @@ namespace LevelAssignment
         }
     }
 
-    // Вспомогательные классы для результатов
-    public class FloorAssignmentResults
-    {
-        public bool IsSuccess { get; set; }
-        public string ErrorMessage { get; set; }
-        public int ProcessedElements { get; set; }
-        public int SuccessfulAssignments { get; set; }
-        public List<FloorInfo> FloorModels { get; set; }
-    }
 
-    public class ElementFloorAssignment
-    {
-        public ElementSpatialData ElementData { get; set; }
-        public FloorInfo AssignedFloor { get; set; }
-        public AssignmentMethod Method { get; set; }
-        public double Confidence { get; set; }
-    }
-
-    public enum AssignmentMethod
-    {
-        LevelDeterminator,
-        GeometricAnalysis,
-        SpatialIntersection,
-        Failed
-    }
 }
