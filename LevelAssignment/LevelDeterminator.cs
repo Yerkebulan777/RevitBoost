@@ -87,11 +87,12 @@ namespace LevelAssignment
         }
 
         /// <summary>
-        /// Checks if a point is within the vertical boundaries of a bounding box
+        /// Определяет, находится ли точка в пределах BoundingBox
         /// </summary>
-        public bool IsPointInVerticalBounds(XYZ point, BoundingBoxXYZ bbox)
+        public bool IsPointContained(XYZ point, BoundingBoxXYZ bbox)
         {
-            return point.Z > bbox.Min.Z && point.Z < bbox.Max.Z;
+            Outline outline = new(bbox.Min, bbox.Max);
+            return outline.Contains(point, double.Epsilon);
         }
 
         /// <summary>
@@ -104,7 +105,7 @@ namespace LevelAssignment
             {
                 FloorInfo floor = sortedFloors[idx];
 
-                if (IsPointInVerticalBounds(elementData.Centroid, floor.BoundingBox))
+                if (IsPointContained(elementData.Centroid, floor.BoundingBox))
                 {
                     return true;
                 }

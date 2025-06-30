@@ -60,9 +60,12 @@ namespace LevelAssignment
 
                     LogicalOrFilter intersectFilter = CreateIntersectFilter(ProjectBoundary, elevation, height, offset, clearance);
 
-                    LogicalAndFilter logicalAndFilter = new LogicalAndFilter(categoryFilter, intersectFilter);
+                    IList<Element> intersectedElements = GetFilteredElements(_document, parameter, new LogicalAndFilter(categoryFilter, intersectFilter));
 
-                    targetElements.AddRange(CollectFilteredElements(_document, parameter, logicalAndFilter));
+                    targetElements.AddRange(intersectedElements);
+
+
+
                 }
 
                 /// Допиши оптимальный алгоритм для фильтрации элементов с учетом их параметров или геометрии
@@ -99,7 +102,7 @@ namespace LevelAssignment
         /// <summary>
         /// Нативная фильтрация элементов с заданным параметром
         /// </summary>
-        public IList<Element> CollectFilteredElements(Document doc, SharedParameterElement parameter, ElementFilter elementFilter)
+        public IList<Element> GetFilteredElements(Document doc, SharedParameterElement parameter, ElementFilter elementFilter)
         {
             return new FilteredElementCollector(doc)
                 .WhereHasSharedParameter(parameter)
