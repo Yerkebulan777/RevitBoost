@@ -143,7 +143,6 @@ namespace LevelAssignment
     }
 
 
-
     public enum Determination
     {
         ParameterBased,
