@@ -132,9 +132,11 @@ namespace LevelAssignment
     {
         public readonly Element Element;
         public float Confidence { get; set; }
-        public string ErrorMessage { get; set; }
+        public string Message { get; set; }
         public Determination Method { get; set; }
         public bool IsSuccess { get; set; }
+        public FloorInfo AssignedFloor { get; internal set; }
+
         public LevelAssignmentResult(Element element)
         {
             Method = Determination.Failed;
