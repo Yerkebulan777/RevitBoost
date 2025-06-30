@@ -30,56 +30,49 @@ namespace LevelAssignment
         {
             StringBuilder stringBuilder = new();
 
-            try
+            // Этап 1: Подготовка данных
+
+            double offset = UnitManager.MmToFoot(250);
+
+            double clearance = UnitManager.MmToFoot(100);
+
+            List<Level> levels = GetValidLevels(_document);
+
+            List<FloorInfo> floorModels = _floorInfoGenerator.GenerateFloorModels(levels);
+
+            Outline ProjectBoundary = _boundaryCalculator.ComputeProjectBoundary(_document, ref floorModels);
+
+            ElementMulticategoryFilter categoryFilter = new(CollectorHelper.GetModelCategoryIds(_document));
+
+            SharedParameterElement parameter = SharedParameterElement.Lookup(_document, targetParameterGuid);
+
+            // Этап 2: Основной цикл(надо оптимизировать для параллельной обработки)
+
+            List<Element> targetElements = [];
+
+            foreach (FloorInfo floor in floorModels)
             {
-                // Этап 1: Подготовка данных
+                double height = floor.Height;
 
-                double offset = UnitManager.MmToFoot(250);
+                double elevation = floor.InternalElevation;
 
-                double clearance = UnitManager.MmToFoot(100);
+                LogicalOrFilter intersectFilter = CreateIntersectFilter(ProjectBoundary, elevation, height, offset, clearance);
 
-                List<Level> levels = GetValidLevels(_document);
+                IList<Element> intersectedElements = GetFilteredElements(_document, parameter, new LogicalAndFilter(categoryFilter, intersectFilter));
 
-                List<FloorInfo> floorModels = _floorInfoGenerator.GenerateFloorModels(levels);
-
-                Outline ProjectBoundary = _boundaryCalculator.ComputeProjectBoundary(_document, ref floorModels);
-
-                ElementMulticategoryFilter categoryFilter = new(CollectorHelper.GetModelCategoryIds(_document));
-
-                SharedParameterElement parameter = SharedParameterElement.Lookup(_document, targetParameterGuid);
-
-                // Этап 2: Основной цикл(оптимизирован для параллельной обработки)
-
-                List<Element> targetElements = [];
-
-                foreach (FloorInfo floor in floorModels)
-                {
-                    double height = floor.Height;
-
-                    double elevation = floor.InternalElevation;
-
-                    LogicalOrFilter intersectFilter = CreateIntersectFilter(ProjectBoundary, elevation, height, offset, clearance);
-
-                    IList<Element> intersectedElements = GetFilteredElements(_document, parameter, new LogicalAndFilter(categoryFilter, intersectFilter));
-
-                    targetElements.AddRange(intersectedElements);
+                targetElements.AddRange(intersectedElements);
 
 
 
-                }
-
-                /// Допиши оптимальный алгоритм для фильтрации элементов с учетом их параметров или геометрии
-
-                // Этап 5: Все результаты собери в StringBuilder:
-                //results.ProcessedElements = targetElements.Count;
-                //results.SuccessfulAssignments = assignmentResults.Count(r => r.AssignedFloor != null);
-                //results.FloorModels = floorModels;
-                //results.IsSuccess = true;
             }
-            catch (Exception ex)
-            {
-                _ = stringBuilder.AppendLine($"Ошибка при выполнении полного цикла назначения: {ex.Message}");
-            }
+
+            /// Допиши оптимальный алгоритм для фильтрации элементов с учетом их параметров или геометрии
+
+            // Этап 5: Все результаты собери в StringBuilder:
+            //results.ProcessedElements = targetElements.Count;
+            //results.SuccessfulAssignments = assignmentResults.Count(r => r.AssignedFloor != null);
+            //results.FloorModels = floorModels;
+            //results.IsSuccess = true;
 
             return stringBuilder.ToString();
         }
