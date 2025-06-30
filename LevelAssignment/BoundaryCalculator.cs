@@ -2,7 +2,7 @@
 
 namespace LevelAssignment
 {
-    internal sealed class BoundaryAnalyzer
+    internal sealed class BoundaryCalculator
     {
         private double MinX { get; set; } = double.MaxValue;
         private double MaxX { get; set; } = double.MinValue;

@@ -86,22 +86,12 @@ namespace LevelAssignment
 
         }
 
-
-        public IList<Element> GetVisibleElements(View view, ICollection<ElementId> elementIds)
-        {
-            return new FilteredElementCollector(view.Document, view.Id)
-                .WherePasses(new ElementIdSetFilter(elementIds))
-                .WhereElementIsNotElementType()
-                .ToElements();
-        }
-
-
         /// <summary>
-        /// Находит этаж по уровню
+        /// Checks if a point is within the vertical boundaries of a bounding box
         /// </summary>
-        public FloorInfo FindFloorByLevel(List<FloorInfo> floors, Level level)
+        public bool IsPointInVerticalBounds(XYZ point, BoundingBoxXYZ bbox)
         {
-            return floors.FirstOrDefault(fi => fi.ContainedLevels.Any(lvl => lvl.Id == level.Id));
+            return point.Z > bbox.Min.Z && point.Z < bbox.Max.Z;
         }
 
         /// <summary>
@@ -110,27 +100,17 @@ namespace LevelAssignment
         public bool DetermineFloorByGeometry(ElementSpatialData elementData, ref List<FloorInfo> sortedFloors)
         {
             // Поиск подходящего этажа по высоте
-            for (int idx = 0; idx < sortedFloors.Count - 1; idx++)
+            for (int idx = 0; idx < sortedFloors.Count; idx++)
             {
                 FloorInfo floor = sortedFloors[idx];
 
-                XYZ point = elementData.Centroid;
-
-                if (IsPointInVerticalBounds(point, floor.BoundingBox))
+                if (IsPointInVerticalBounds(elementData.Centroid, floor.BoundingBox))
                 {
                     return true;
                 }
             }
 
-            throw new InvalidDataException($"Не удалось определить этаж для элемента {elementData.Element.Id} по геометрии!");
-        }
-
-        /// <summary>
-        /// Checks if a point is within the vertical boundaries of a bounding box
-        /// </summary>
-        internal static bool IsPointInVerticalBounds(XYZ point, BoundingBoxXYZ bbox)
-        {
-            return point.Z > bbox.Min.Z && point.Z < bbox.Max.Z;
+            throw new InvalidDataException($"Не удалось определить этаж для элемента по геометрии!");
         }
     }
 

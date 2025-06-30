@@ -10,16 +10,16 @@ namespace LevelAssignment
     public class FloorAssignmentOrchestrator
     {
         private readonly Document _document;
-        private readonly FloorInfoGenerator _levelCalculator;
-        private readonly BoundaryAnalyzer _boundaryCalculator;
+        private readonly FloorInfoGenerator _floorInfoGenerator;
+        private readonly BoundaryCalculator _boundaryCalculator;
         private readonly LevelDeterminator _levelDeterminator;
 
         public FloorAssignmentOrchestrator(Document document)
         {
             _document = document ?? throw new ArgumentNullException(nameof(document));
 
-            _levelCalculator = new FloorInfoGenerator();
-            _boundaryCalculator = new BoundaryAnalyzer();
+            _floorInfoGenerator = new FloorInfoGenerator();
+            _boundaryCalculator = new BoundaryCalculator();
             _levelDeterminator = new LevelDeterminator();
         }
 
@@ -40,9 +40,9 @@ namespace LevelAssignment
 
                 List<Level> levels = GetValidLevels(_document);
 
-                List<FloorInfo> floorModels = _levelCalculator.GenerateFloorModels(levels);
+                List<FloorInfo> floorModels = _floorInfoGenerator.GenerateFloorModels(levels);
 
-                Outline ProjectBoundaryOutline = _boundaryCalculator.ComputeProjectBoundary(_document, ref floorModels);
+                Outline ProjectBoundary = _boundaryCalculator.ComputeProjectBoundary(_document, ref floorModels);
 
                 ElementMulticategoryFilter categoryFilter = new(CollectorHelper.GetModelCategoryIds(_document));
 
@@ -58,11 +58,11 @@ namespace LevelAssignment
 
                     double elevation = floor.InternalElevation;
 
-                    LogicalOrFilter intersectFilter = CreateIntersectFilter(ProjectBoundaryOutline, elevation, height, offset, clearance);
+                    LogicalOrFilter intersectFilter = CreateIntersectFilter(ProjectBoundary, elevation, height, offset, clearance);
 
-                    LogicalAndFilter logicalAndFilter = new(categoryFilter, intersectFilter);
+                    LogicalAndFilter logicalAndFilter = new LogicalAndFilter(categoryFilter, intersectFilter);
 
-                    targetElements.AddRange(CollectorHelper.GetInstancesByFilter(_document, parameter, logicalAndFilter).ToElements());
+                    targetElements.AddRange(CollectFilteredElements(_document, parameter, logicalAndFilter));
                 }
 
                 /// Допиши оптимальный алгоритм для фильтрации элементов с учетом их параметров или геометрии
@@ -75,7 +75,7 @@ namespace LevelAssignment
             }
             catch (Exception ex)
             {
-                stringBuilder.AppendLine($"Ошибка при выполнении полного цикла назначения: {ex.Message}");
+                _ = stringBuilder.AppendLine($"Ошибка при выполнении полного цикла назначения: {ex.Message}");
             }
 
             return stringBuilder.ToString();
@@ -93,6 +93,20 @@ namespace LevelAssignment
             return [.. new FilteredElementCollector(doc).OfClass(typeof(Level))
         .WherePasses(new ElementParameterFilter(rule)).Cast<Level>()
         .OrderBy(x => x.Elevation)];
+        }
+
+
+        /// <summary>
+        /// Нативная фильтрация элементов с заданным параметром
+        /// </summary>
+        public IList<Element> CollectFilteredElements(Document doc, SharedParameterElement parameter, ElementFilter elementFilter)
+        {
+            return new FilteredElementCollector(doc)
+                .WhereHasSharedParameter(parameter)
+                .WhereElementIsViewIndependent()
+                .WhereElementIsNotElementType()
+                .WherePasses(elementFilter)
+                .ToElements();
         }
 
         /// <summary>

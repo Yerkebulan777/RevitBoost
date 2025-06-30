@@ -116,19 +116,11 @@ namespace RevitUtils
         }
 
 
-        /// <summary>
-        /// Нативная фильтрация элементов с заданным параметром
-        /// </summary>
-        public static FilteredElementCollector GetInstancesByFilter(Document doc, SharedParameterElement parameter, ElementFilter elementFilter)
+        public static FilteredElementCollector WhereHasSharedParameter(this FilteredElementCollector collector, SharedParameterElement sharedParameter)
         {
-            HasValueFilterRule hasValueRule = new(parameter.Id);
-            ElementParameterFilter parameterFilter = new(hasValueRule);
-
-            return new FilteredElementCollector(doc)
-                .WherePasses(parameterFilter)
-                .WherePasses(elementFilter)
-                .WhereElementIsViewIndependent()
-                .WhereElementIsNotElementType();
+            HasValueFilterRule rule = new(sharedParameter.Id);
+            ElementParameterFilter filter = new(rule);
+            return collector.WherePasses(filter);
         }
 
 
