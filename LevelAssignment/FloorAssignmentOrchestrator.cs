@@ -9,7 +9,6 @@ namespace LevelAssignment
     public class FloorAssignmentOrchestrator
     {
         private readonly Document _document;
-        private readonly ElementAnalyzer _elementAnalyzer;
         private readonly LevelNumberCalculator _levelCalculator;
         private readonly ProjectBoundaryCalculator _boundaryCalculator;
         private readonly LevelDeterminator _levelDeterminator;
@@ -17,10 +16,9 @@ namespace LevelAssignment
         public FloorAssignmentOrchestrator(Document document)
         {
             _document = document ?? throw new ArgumentNullException(nameof(document));
-            _elementAnalyzer = new ElementAnalyzer(document);
             _levelCalculator = new LevelNumberCalculator();
             _boundaryCalculator = new ProjectBoundaryCalculator();
-            _levelDeterminator = new ElementLevelDeterminator(document);
+            _levelDeterminator = new  LevelDeterminator(document);
         }
 
         /// <summary>

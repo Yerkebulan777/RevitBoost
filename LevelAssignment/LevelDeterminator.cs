@@ -10,12 +10,9 @@ namespace LevelAssignment
     public class LevelDeterminator
     {
         private readonly Document _document;
-        private readonly List<Level> _levels;
-
-        public LevelDeterminator(Document doc, List<Level> levels)
+        public LevelDeterminator(Document doc)
         {
             _document = doc;
-            _levels = levels;
         }
 
         /// <summary>
