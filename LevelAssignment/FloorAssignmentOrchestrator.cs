@@ -68,7 +68,7 @@ namespace LevelAssignment
                 /// Допиши оптимальный алгоритм для фильтрации элементов с учетом их параметров или геометрии
 
                 // Этап 5: Применение результатов
-                ApplyAssignmentResults(assignmentResults, targetParameterGuid);
+ 
 
                 results.ProcessedElements = targetElements.Count;
                 results.SuccessfulAssignments = assignmentResults.Count(r => r.AssignedFloor != null);
@@ -104,21 +104,8 @@ namespace LevelAssignment
         }
 
 
-        /// <summary>
-        /// Применяет результаты назначения, записывая значения в параметры элементов
-        /// </summary>
-        private void ApplyAssignmentResults(List<ElementFloorAssignment> assignments, Guid parameterGuid)
-        {
-            foreach (ElementFloorAssignment assignment in assignments.Where(a => a.AssignedFloor != null))
-            {
-                Parameter parameter = assignment.ElementData.Element.get_Parameter(parameterGuid);
-                if (parameter != null && !parameter.IsReadOnly)
-                {
-                    _ = parameter.Set(assignment.AssignedFloor.Index);
-                }
-            }
-        }
+
+
+
     }
-
-
 }
