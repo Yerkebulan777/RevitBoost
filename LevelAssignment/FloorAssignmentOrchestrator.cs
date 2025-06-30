@@ -65,11 +65,7 @@ namespace LevelAssignment
                     targetElements.AddRange(CollectorHelper.GetInstancesByFilter(_document, parameter, logicalAndFilter).ToElements());
                 }
 
-                // Этап 3: Сбор и анализ элементов
-                List<ElementSpatialData> spatialData = _elementAnalyzer.CalculateElementsSpatialData(targetElements);
-
-                // Этап 4: Определение принадлежности элементов к этажам
-                List<ElementFloorAssignment> assignmentResults = ProcessElementAssignments(spatialData, floorModels);
+                /// Допиши оптимальный алгоритм для фильтрации элементов с учетом их параметров или геометрии
 
                 // Этап 5: Применение результатов
                 ApplyAssignmentResults(assignmentResults, targetParameterGuid);
