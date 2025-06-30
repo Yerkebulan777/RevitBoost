@@ -2,6 +2,7 @@
 {
     public sealed record FloorInfo
     {
+
         public readonly List<Level> ContainedLevels;
         public BoundingBoxXYZ BoundingBox { get; internal set; }
         public double InternalElevation { get; private set; }

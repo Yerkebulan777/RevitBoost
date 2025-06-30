@@ -9,12 +9,6 @@ namespace LevelAssignment
     /// </summary>
     public class LevelDeterminator
     {
-        private readonly Document _document;
-        public LevelDeterminator(Document doc)
-        {
-            _document = doc;
-        }
-
         /// <summary>
         /// Определение принадлежность к уровню 
         /// </summary>
@@ -30,7 +24,7 @@ namespace LevelAssignment
 
                 if (element.LevelId != ElementId.InvalidElementId)
                 {
-                    Debug.WriteLine($"LEVEL_ID: {categoryName}");
+                    Debug.WriteLine($"0 LEVEL_ID: {categoryName}");
                     return levelIds.Contains(element.LevelId);
                 }
 
@@ -39,7 +33,7 @@ namespace LevelAssignment
                     levelParam = element.get_Parameter(BuiltInParameter.WALL_BASE_CONSTRAINT);
                     if (levelParam?.AsElementId() is ElementId id && levelIds.Contains(id))
                     {
-                        Debug.WriteLine($"WALL_BASE_CONSTRAINT: {categoryName}");
+                        Debug.WriteLine($"1 WALL_BASE_CONSTRAINT: {categoryName}");
                         return true;
                     }
                 }
@@ -49,7 +43,7 @@ namespace LevelAssignment
                     levelParam = element.get_Parameter(BuiltInParameter.STAIRS_BASE_LEVEL_PARAM);
                     if (levelParam?.AsElementId() is ElementId id && levelIds.Contains(id))
                     {
-                        Debug.WriteLine($"STAIRS_BASE_LEVEL_PARAM: {categoryName}");
+                        Debug.WriteLine($"1 STAIRS_BASE_LEVEL_PARAM: {categoryName}");
                         return true;
                     }
                 }
@@ -59,7 +53,7 @@ namespace LevelAssignment
                     levelParam = element.get_Parameter(BuiltInParameter.ROOF_BASE_LEVEL_PARAM);
                     if (levelParam?.AsElementId() is ElementId id && levelIds.Contains(id))
                     {
-                        Debug.WriteLine($"ROOF_BASE_LEVEL_PARAM: {categoryName}");
+                        Debug.WriteLine($"1 ROOF_BASE_LEVEL_PARAM: {categoryName}");
                         return true;
                     }
                 }
@@ -67,21 +61,21 @@ namespace LevelAssignment
                 levelParam = element.get_Parameter(BuiltInParameter.LEVEL_PARAM);
                 if (levelParam?.AsElementId() is ElementId baseId && levelIds.Contains(baseId))
                 {
-                    Debug.WriteLine($"LEVEL_PARAM: {categoryName}");
+                    Debug.WriteLine($"1 LEVEL_PARAM: {categoryName}");
                     return true;
                 }
 
                 levelParam = element.get_Parameter(BuiltInParameter.SCHEDULE_LEVEL_PARAM);
                 if (levelParam?.AsElementId() is ElementId scheduleId && levelIds.Contains(scheduleId))
                 {
-                    Debug.WriteLine($"SCHEDULE_LEVEL_PARAM: {categoryName}");
+                    Debug.WriteLine($"2 SCHEDULE_LEVEL_PARAM: {categoryName}");
                     return true;
                 }
 
                 levelParam = element.get_Parameter(BuiltInParameter.FAMILY_LEVEL_PARAM);
                 if (levelParam?.AsElementId() is ElementId familyId && levelIds.Contains(familyId))
                 {
-                    Debug.WriteLine($"FAMILY_LEVEL_PARAM: {categoryName}");
+                    Debug.WriteLine($"3 FAMILY_LEVEL_PARAM: {categoryName}");
                     return true;
                 }
 
@@ -108,7 +102,6 @@ namespace LevelAssignment
             // Поиск подходящего этажа по высоте
             for (int idx = 0; idx < sortedFloors.Count - 1; idx++)
             {
-
                 FloorInfo floor = sortedFloors[idx];
 
                 XYZ point = elementData.Centroid;
@@ -122,8 +115,6 @@ namespace LevelAssignment
             throw new InvalidDataException($"Не удалось определить этаж для элемента {elementData.Element.Id} по геометрии!");
         }
 
-
-
         /// <summary>
         /// Checks if a point is within the vertical boundaries of a bounding box
         /// </summary>
@@ -131,8 +122,6 @@ namespace LevelAssignment
         {
             return point.Z > bbox.Min.Z && point.Z < bbox.Max.Z;
         }
-
-
     }
 
     /// <summary>

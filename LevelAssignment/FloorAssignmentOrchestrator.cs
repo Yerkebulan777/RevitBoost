@@ -1,4 +1,5 @@
 ﻿using RevitUtils;
+using System.Text;
 
 namespace LevelAssignment
 {
@@ -9,24 +10,25 @@ namespace LevelAssignment
     public class FloorAssignmentOrchestrator
     {
         private readonly Document _document;
-        private readonly LevelNumberCalculator _levelCalculator;
-        private readonly ProjectBoundaryCalculator _boundaryCalculator;
+        private readonly FloorInfoGenerator _levelCalculator;
+        private readonly BoundaryAnalyzer _boundaryCalculator;
         private readonly LevelDeterminator _levelDeterminator;
 
         public FloorAssignmentOrchestrator(Document document)
         {
             _document = document ?? throw new ArgumentNullException(nameof(document));
-            _levelCalculator = new LevelNumberCalculator();
-            _boundaryCalculator = new ProjectBoundaryCalculator();
-            _levelDeterminator = new  LevelDeterminator(document);
+
+            _levelCalculator = new FloorInfoGenerator();
+            _boundaryCalculator = new BoundaryAnalyzer();
+            _levelDeterminator = new  LevelDeterminator();
         }
 
         /// <summary>
         /// Выполняет полный цикл анализа и назначения элементов к этажам
         /// </summary>
-        public FloorAssignmentResults ExecuteFullAssignment(Guid targetParameterGuid)
+        public string ExecuteFullAssignment(Guid targetParameterGuid)
         {
-            FloorAssignmentResults results = new();
+            StringBuilder stringBuilder = new();
 
             try
             {
@@ -79,11 +81,10 @@ namespace LevelAssignment
             }
             catch (Exception ex)
             {
-                results.IsSuccess = false;
-                results.ErrorMessage = ex.Message;
+                stringBuilder.AppendLine($"Ошибка при выполнении полного цикла назначения: {ex.Message}");
             }
 
-            return results;
+            return stringBuilder.ToString();
         }
 
 
