@@ -20,7 +20,7 @@ namespace LevelAssignment
 
             _levelCalculator = new FloorInfoGenerator();
             _boundaryCalculator = new BoundaryAnalyzer();
-            _levelDeterminator = new  LevelDeterminator();
+            _levelDeterminator = new LevelDeterminator();
         }
 
         /// <summary>
@@ -81,7 +81,23 @@ namespace LevelAssignment
             return stringBuilder.ToString();
         }
 
+        /// <summary>
+        /// Получает список уровней, которые имеют высоту меньше заданного максимума
+        /// </summary>
+        internal List<Level> GetValidLevels(Document doc, double maxHeightInMeters = 100)
+        {
+            double maximum = UnitManager.MmToFoot(maxHeightInMeters * 1000);
+            ParameterValueProvider provider = new(new ElementId(BuiltInParameter.LEVEL_ELEV));
+            FilterDoubleRule rule = new(provider, new FilterNumericLess(), maximum, 5E-3);
 
+            return [.. new FilteredElementCollector(doc).OfClass(typeof(Level))
+        .WherePasses(new ElementParameterFilter(rule)).Cast<Level>()
+        .OrderBy(x => x.Elevation)];
+        }
+
+        /// <summary>
+        /// Создает фильтр пересекающиеся с заданной 3D-границей и диапазоном высот.
+        /// </summary>
         private LogicalOrFilter CreateIntersectFilter(Outline boundary, double elevation, double height, double offset, double clearance)
         {
             XYZ minPoint = boundary.MinimumPoint;
@@ -100,8 +116,6 @@ namespace LevelAssignment
 
             return new LogicalOrFilter(boundingBoxFilter, solidFilter);
         }
-
-
 
 
 

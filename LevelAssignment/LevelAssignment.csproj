@@ -33,6 +33,7 @@
         <TargetFramework>net8.0-windows</TargetFramework>
     </PropertyGroup>
     <ItemGroup>
+      <Compile Remove="SetBILevel.cs" />
       <Compile Remove="SetBILevelForParking.cs" />
     </ItemGroup>
 
