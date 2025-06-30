@@ -67,13 +67,11 @@ namespace LevelAssignment
 
                 /// Допиши оптимальный алгоритм для фильтрации элементов с учетом их параметров или геометрии
 
-                // Этап 5: Применение результатов
- 
-
-                results.ProcessedElements = targetElements.Count;
-                results.SuccessfulAssignments = assignmentResults.Count(r => r.AssignedFloor != null);
-                results.FloorModels = floorModels;
-                results.IsSuccess = true;
+                // Этап 5: Все результаты собери в StringBuilder:
+                //results.ProcessedElements = targetElements.Count;
+                //results.SuccessfulAssignments = assignmentResults.Count(r => r.AssignedFloor != null);
+                //results.FloorModels = floorModels;
+                //results.IsSuccess = true;
             }
             catch (Exception ex)
             {
