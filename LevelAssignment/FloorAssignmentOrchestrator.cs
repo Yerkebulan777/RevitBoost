@@ -3,10 +3,6 @@ using System.Text;
 
 namespace LevelAssignment
 {
-    /// <summary>
-    /// Главный координатор системы определения принадлежности элементов к этажам
-    /// Объединяет все компоненты для выполнения полного цикла анализа и назначения
-    /// </summary>
     public class FloorAssignmentOrchestrator
     {
         private readonly Document _document;
@@ -28,9 +24,9 @@ namespace LevelAssignment
         /// </summary>
         public string ExecuteFullAssignment(Guid targetParameterGuid)
         {
-            StringBuilder stringBuilder = new();
+            StringBuilder result = new();
 
-            // Этап 1: Подготовка данных
+            // Подготовка данных
 
             double offset = UnitManager.MmToFoot(250);
 
@@ -46,21 +42,32 @@ namespace LevelAssignment
 
             SharedParameterElement parameter = SharedParameterElement.Lookup(_document, targetParameterGuid);
 
-            // Этап 2: Основной цикл(надо оптимизировать для параллельной обработки)
+            ICollection<ElementId> elemIds = BuildFilteredElementCollector(parameter, categoryFilter).ToElementIds();
+
+            ElementIdSetFilter elementIdSetFilter = new(elemIds);
+
+            result.AppendLine($"Найдено элементов: {elemIds.Count}");
 
             List<Element> targetElements = [];
 
             foreach (FloorInfo floor in floorModels)
             {
-                double height = floor.Height;
+                result.AppendLine($"Этаж: {floor.Index} Высота этажа: {floor.Height}");
 
-                double elevation = floor.InternalElevation;
+                LogicalOrFilter intersectFilter = CreateIntersectFilter(ProjectBoundary, floor, offset, clearance);
 
-                LogicalOrFilter intersectFilter = CreateIntersectFilter(ProjectBoundary, elevation, height, offset, clearance);
+                LogicalAndFilter logicalAndFilter = new LogicalAndFilter(elementIdSetFilter, intersectFilter);
 
-                IList<Element> intersectedElements = GetFilteredElements(_document, parameter, new LogicalAndFilter(categoryFilter, intersectFilter));
+                IList<Element> intersectedElements = GetFilteredElements(_document, parameter, logicalAndFilter);
+
+                result.AppendLine($"Найдено элементов: {intersectedElements.Count}");
 
                 targetElements.AddRange(intersectedElements);
+
+                foreach (Element element in intersectedElements)
+                {
+                    result.AppendLine($"Элемент: {element.Id} Категория: {element.Category.Name}");
+                }
 
 
 
@@ -76,7 +83,7 @@ namespace LevelAssignment
             //  = floorModels;
             //  = true;
 
-            return stringBuilder.ToString();
+            return result.ToString();
         }
 
         /// <summary>
@@ -93,7 +100,6 @@ namespace LevelAssignment
         .OrderBy(x => x.Elevation)];
         }
 
-
         /// <summary>
         /// Нативная фильтрация элементов с заданным параметром
         /// </summary>
@@ -108,12 +114,28 @@ namespace LevelAssignment
         }
 
         /// <summary>
+        /// Получение всех элементов за один запрос
+        /// </summary>
+        private FilteredElementCollector BuildFilteredElementCollector(SharedParameterElement parameter, ElementFilter filter)
+        {
+            return new FilteredElementCollector(_document)
+                .WhereHasSharedParameter(parameter)
+                .WhereElementIsViewIndependent()
+                .WhereElementIsNotElementType()
+                .WherePasses(filter);
+        }
+
+        /// <summary>
         /// Создает фильтр пересекающиеся с заданной 3D-границей и диапазоном высот.
         /// </summary>
-        private LogicalOrFilter CreateIntersectFilter(Outline boundary, double elevation, double height, double offset, double clearance)
+        private LogicalOrFilter CreateIntersectFilter(Outline boundary, FloorInfo floor, double offset, double clearance)
         {
+            double height = floor.Height;
+
             XYZ minPoint = boundary.MinimumPoint;
             XYZ maxPoint = boundary.MaximumPoint;
+
+            double elevation = floor.InternalElevation;
 
             minPoint = Transform.Identity.OfPoint(new XYZ(minPoint.X, minPoint.Y, elevation + clearance - offset));
 
@@ -129,230 +151,128 @@ namespace LevelAssignment
             return new LogicalOrFilter(boundingBoxFilter, solidFilter);
         }
 
-        /// <summary>
-        /// Выполняет полный цикл анализа и назначения элементов к этажам
-        /// </summary>
-        public string ExecuteFullAssignment(Guid targetParameterGuid)
-        {
-            StringBuilder stringBuilder = new();
 
-            // Этап 1: Подготовка данных
-            (_, List<FloorInfo> floorModels, Outline projectBoundary, SharedParameterElement parameter) = PrepareData(targetParameterGuid);
 
-            // Этап 2: Получение всех целевых элементов один раз
-            List<Element> candidateElements = GetAllCandidateElements(parameter);
-            _ = stringBuilder.AppendLine($"Найдено кандидатов: {candidateElements.Count}");
-
-            // Этап 3: Пакетная обработка элементов
-            List<LevelAssignmentResult> assignmentResults = ProcessElementsInBatches(candidateElements, floorModels, projectBoundary);
-
-            // Этап 4: Формирование статистики
-            string stats = GenerateStatistics(assignmentResults, floorModels);
-            _ = stringBuilder.Append(stats);
-
-            return stringBuilder.ToString();
-        }
+        #region AI methods
 
         /// <summary>
-        /// Подготовка всех необходимых данных
+        /// Обработка всех элементов
         /// </summary>
-        private (List<Level> levels, List<FloorInfo> floorModels, Outline boundary, SharedParameterElement parameter)
-            PrepareData(Guid targetParameterGuid)
+        private List<AssignmentStatus> ProcessAllElements(List<Element> elements, List<FloorInfo> floors)
         {
-            List<Level> levels = GetValidLevels(_document);
-            List<FloorInfo> floorModels = _floorInfoGenerator.GenerateFloorModels(levels);
-            Outline projectBoundary = _boundaryCalculator.ComputeProjectBoundary(_document, ref floorModels);
-            SharedParameterElement parameter = SharedParameterElement.Lookup(_document, targetParameterGuid);
+            List<AssignmentStatus> results = [];
+            HashSet<ElementId> processed = [];
 
-            return (levels, floorModels, projectBoundary, parameter);
-        }
-
-        /// <summary>
-        /// Получение всех элементов-кандидатов за один запрос
-        /// </summary>
-        private List<Element> GetAllCandidateElements(SharedParameterElement parameter)
-        {
-            ElementMulticategoryFilter categoryFilter = new(CollectorHelper.GetModelCategoryIds(_document));
-
-            return [.. new FilteredElementCollector(_document)
-                .WhereHasSharedParameter(parameter)
-                .WhereElementIsViewIndependent()
-                .WhereElementIsNotElementType()
-                .WherePasses(categoryFilter)];
-        }
-
-        /// <summary>
-        /// Обработка элементов пакетами для оптимизации памяти
-        /// </summary>
-        private List<LevelAssignmentResult> ProcessElementsInBatches(List<Element> elements, List<FloorInfo> floorModels)
-        {
-            const int BATCH_SIZE = 1000; // Размер пакета для обработки
-            List<LevelAssignmentResult> results = new(elements.Count);
-            HashSet<ElementId> processedElements = new(elements.Count);
-
-            for (int i = 0; i < elements.Count; i += BATCH_SIZE)
+            foreach (Element element in elements)
             {
-                IEnumerable<Element> batch = elements.Skip(i).Take(BATCH_SIZE);
-                List<LevelAssignmentResult> batchResults = ProcessBatch(batch, floorModels, processedElements);
-                results.AddRange(batchResults);
-
-                // Принудительная очистка памяти каждого пакета
-                if (i % BATCH_SIZE == 0)
-                {
-                    GC.Collect();
-                    GC.WaitForPendingFinalizers();
-                }
-            }
-
-            return results;
-        }
-
-        /// <summary>
-        /// Обработка одного пакета элементов
-        /// </summary>
-        private List<LevelAssignmentResult> ProcessBatch(IEnumerable<Element> batch, List<FloorInfo> floorModels, HashSet<ElementId> processedElements)
-        {
-            List<LevelAssignmentResult> results = [];
-
-            foreach (Element element in batch)
-            {
-                // Избегаем дублирования
-                if (!processedElements.Add(element.Id))
+                if (processed.Contains(element.Id))
                 {
                     continue;
                 }
 
-                LevelAssignmentResult result = DetermineElementFloor(element, floorModels);
+                AssignmentStatus result = AssignElementToFloor(element, floors);
                 results.Add(result);
+                _ = processed.Add(element.Id);
             }
 
             return results;
         }
 
         /// <summary>
-        /// Определение этажа для элемента с использованием многоуровневой стратегии
+        /// Назначение элемента к этажу
         /// </summary>
-        private LevelAssignmentResult DetermineElementFloor(Element element, List<FloorInfo> floorModels)
+        private AssignmentStatus AssignElementToFloor(Element element, List<FloorInfo> floors)
         {
-            LevelAssignmentResult result = new(element);
+            AssignmentStatus result = new(element);
 
-            // Стратегия 1: Определение по параметрам уровня
-            if (TryDetermineByLevelParameters(element, floorModels, result))
+            // Способ 1: По параметрам уровня
+            if (TryAssignByLevel(element, floors, result))
             {
                 return result;
             }
 
-            // Стратегия 2: Геометрический анализ
-            if (TryDetermineByGeometry(element, floorModels, result))
+            // Способ 2: По геометрии
+            if (TryAssignByGeometry(element, floors, result))
             {
                 return result;
             }
 
-            // Стратегия 3: Пространственный анализ
-            result.Method = Determination.Failed;
-            result.Message = "Не удалось определить этаж!";
+            // Не удалось назначить
+            result.Message = "Не удалось определить этаж";
             return result;
         }
 
         /// <summary>
-        /// Определение по параметрам уровня (самый быстрый метод)
+        /// Попытка назначения по параметрам уровня
         /// </summary>
-        private bool TryDetermineByLevelParameters(Element element, List<FloorInfo> floorModels, LevelAssignmentResult result)
+        private bool TryAssignByLevel(Element element, List<FloorInfo> floors, AssignmentStatus result)
         {
-            foreach (FloorInfo floor in floorModels)
+            foreach (FloorInfo floor in floors)
             {
                 HashSet<ElementId> levelIds = floor.ContainedLevels.Select(l => l.Id).ToHashSet();
 
                 if (_levelDeterminator.IsOnLevel(element, ref levelIds))
                 {
+                    result.IsSuccess = true;
                     result.Method = Determination.ParameterBased;
-                    result.AssignedFloor = floor;
                     result.Confidence = 0.9f;
                     return true;
                 }
             }
+
             return false;
         }
 
         /// <summary>
-        /// Определение по геометрии элемента
+        /// Попытка назначения по геометрии
         /// </summary>
-        private bool TryDetermineByGeometry(Element element, List<FloorInfo> floorModels, LevelAssignmentResult result)
+        private bool TryAssignByGeometry(Element element, List<FloorInfo> floors, AssignmentStatus result)
         {
-            try
+            BoundingBoxXYZ bbox = element.get_BoundingBox(null);
+            if (bbox == null)
             {
-                BoundingBoxXYZ bbox = element.get_BoundingBox(null);
-                if (bbox == null)
-                {
-                    return false;
-                }
-
-                ElementSpatialData elementData = new()
-                {
-                    Element = element,
-                    BoundingBox = bbox,
-                    Centroid = (bbox.Min + bbox.Max) / 2
-                };
-
-                List<FloorInfo> sortedFloors = floorModels.OrderBy(f => f.InternalElevation).ToList();
-
-                if (_levelDeterminator.DetermineFloorByGeometry(elementData, ref sortedFloors))
-                {
-                    // Находим наиболее подходящий этаж
-                    FloorInfo matchingFloor = FindBestMatchingFloor(elementData, floorModels);
-                    if (matchingFloor != null)
-                    {
-                        result.IsSuccess = true;
-                        result.Method = Determination.GeometricAnalysis;
-                        result.Confidence = 0.7f;
-                        result.AssignedFloor = matchingFloor;
-                        return true;
-                    }
-                }
+                return false;
             }
-            catch (Exception ex)
+
+            XYZ center = (bbox.Min + bbox.Max) / 2;
+
+            foreach (FloorInfo floor in floors)
             {
-                result.Message = $"Ошибка геометрического анализа: {ex.Message}";
+                if (_levelDeterminator.IsPointContained(center, floor.BoundingBox))
+                {
+                    result.IsSuccess = true;
+                    result.Method = Determination.GeometricAnalysis;
+                    result.Confidence = 0.7f;
+                    return true;
+                }
             }
 
             return false;
         }
 
         /// <summary>
-        /// Поиск наиболее подходящего этажа для элемента
+        /// Добавление статистики в результат
         /// </summary>
-        private FloorInfo FindBestMatchingFloor(ElementSpatialData elementData, List<FloorInfo> floorModels)
+        private void AddStatistics(StringBuilder result, List<AssignmentStatus> assignments, List<FloorInfo> floors)
         {
-            return floorModels
-                .Where(floor => _levelDeterminator.IsPointContained(elementData.Centroid, floor.BoundingBox))
-                .OrderBy(floor => Math.Abs(floor.InternalElevation - elementData.Centroid.Z))
-                .FirstOrDefault();
+            int successful = assignments.Count(a => a.IsSuccess);
+            int failed = assignments.Count - successful;
+
+            _ = result.AppendLine($"Успешно назначено: {successful}");
+            _ = result.AppendLine($"Не удалось назначить: {failed}");
+            _ = result.AppendLine($"Всего этажей: {floors.Count}");
+
+            // Статистика по методам
+            int byParameter = assignments.Count(a => a.Method == Determination.ParameterBased);
+            int byGeometry = assignments.Count(a => a.Method == Determination.GeometricAnalysis);
+
+            _ = result.AppendLine($"По параметрам уровня: {byParameter}");
+            _ = result.AppendLine($"По геометрии: {byGeometry}");
         }
 
-        /// <summary>
-        /// Формирование статистики результатов
-        /// </summary>
-        private string GenerateStatistics(List<LevelAssignmentResult> results, List<FloorInfo> floorModels)
-        {
-            StringBuilder stats = new();
+        #endregion
 
-            _ = stats.AppendLine($"Всего обработано элементов: {results.Count}");
-            _ = stats.AppendLine($"Успешно назначено: {results.Count(r => r.IsSuccess)}");
-            _ = stats.AppendLine($"Не удалось назначить: {results.Count(r => !r.IsSuccess)}");
-            _ = stats.AppendLine($"Всего этажей: {floorModels.Count}");
 
-            // Статистика по методам определения
-            Dictionary<Determination, int> methodStats = results.Where(r => r.IsSuccess)
-                .GroupBy(r => r.Method)
-                .ToDictionary(g => g.Key, g => g.Count());
-
-            foreach (var (method, count) in methodStats)
-            {
-                _ = stats.AppendLine($"{method}: {count} элементов");
-            }
-
-            return stats.ToString();
-        }
 
     }
 }

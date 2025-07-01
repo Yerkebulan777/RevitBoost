@@ -98,7 +98,7 @@ namespace LevelAssignment
         /// <summary>
         /// Определяет этаж на основе геометрического анализа высоты элемента
         /// </summary>
-        public bool DetermineFloorByGeometry(ElementSpatialData elementData, ref List<FloorInfo> sortedFloors)
+        public bool DetermineFloorByGeometry(GeometryInfo elementData, ref List<FloorInfo> sortedFloors)
         {
             // Поиск подходящего этажа по высоте
             for (int idx = 0; idx < sortedFloors.Count; idx++)
@@ -115,43 +115,15 @@ namespace LevelAssignment
         }
     }
 
+
     /// <summary>
     /// Данные о пространственных характеристиках элемента
     /// </summary>
-    public record ElementSpatialData
+    public record GeometryInfo
     {
         public XYZ Centroid { get; set; }
         public Element Element { get; set; }
         public BoundingBoxXYZ BoundingBox { get; set; }
-    }
-
-    /// <summary>
-    /// Результат определения уровня элемента
-    /// </summary>
-    public record LevelAssignmentResult
-    {
-        public readonly Element Element;
-        public float Confidence { get; set; }
-        public string Message { get; set; }
-        public Determination Method { get; set; }
-        public bool IsSuccess { get; set; }
-        public FloorInfo AssignedFloor { get; internal set; }
-
-        public LevelAssignmentResult(Element element)
-        {
-            Method = Determination.Failed;
-            Element = element;
-            Confidence = 0;
-        }
-    }
-
-
-    public enum Determination
-    {
-        ParameterBased,
-        GeometricAnalysis,
-        SpatialAnalysis,
-        Failed,
     }
 
 
