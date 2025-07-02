@@ -45,10 +45,8 @@ namespace LevelAssignment
 
             ModelCategoryFilter = new ElementMulticategoryFilter(CollectorHelper.GetModelCategoryIds(_document));
 
-            if (LevelSharedParameter is null)
-            {
-                return $"Общий параметр {sharedParameterGuid} не найден в проекте!";
-            }
+            result.AppendLine($"Общий параметр найден: {LevelSharedParameter?.Name}");
+            result.AppendLine($"Общее количество этажей: {floorModels?.Count}");
 
             foreach (FloorInfo floor in floorModels)
             {
@@ -120,9 +118,10 @@ namespace LevelAssignment
 
                         _ = trx.Commit();
                     }
-                    catch
+                    catch (Exception ex)
                     {
                         _ = trx.RollBack();
+                        Debug.WriteLine($"Ошибка при установке параметра уровня: {ex.Message}");
                         throw;
                     }
                 }
