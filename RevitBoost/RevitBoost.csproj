@@ -45,10 +45,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Nice3point.Revit.Build.Tasks" Version="2.*" />
-		<PackageReference Include="Nice3point.Revit.Toolkit" Version="$(RevitVersion).*" />
-		<PackageReference Include="Nice3point.Revit.Extensions" Version="$(RevitVersion).*" />
-		
+
 		<PackageReference Include="Revit_All_Main_Versions_API_x64" Version="$(RevitVersion).*-*" />
 
 		<PackageReference Include="PolySharp" Version="1.15.0">
