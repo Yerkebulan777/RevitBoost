@@ -2,7 +2,8 @@
 using RevitBoost.Commands;
 using System.IO;
 using System.Windows.Media.Imaging;
-
+using PushButton = Autodesk.Revit.UI.PushButton;
+using RibbonPanel = Autodesk.Revit.UI.RibbonPanel;
 
 namespace RevitBoost
 {
@@ -25,11 +26,11 @@ namespace RevitBoost
 
         private void CreateRibbon()
         {
-            Autodesk.Revit.UI.RibbonPanel panel = Application.CreatePanel("Commands", "RevitBoost");
+            RibbonPanel panel = Application.CreatePanel("Commands", "RevitBoost");
 
-            Autodesk.Revit.UI.PushButton lintelButton = panel.AddPushButton<LintelLabelingCommand>("Lintel Assignment");
+            PushButton lintelButton = panel.AddPushButton<LintelLabelingCommand>("Lintel Assignment");
 
-            Autodesk.Revit.UI.PushButton levelButton = panel.AddPushButton<LevelAssignmentCommand>("Level Assignment");
+            PushButton levelButton = panel.AddPushButton<LevelAssignmentCommand>("Level Assignment");
 
             string basePath = Path.Combine(Directory.GetCurrentDirectory(), "Resources", "Icons");
 

@@ -23,17 +23,17 @@ namespace RevitBoost
             try
             {
                 // Создание базового построителя хоста
-                var builder = new HostApplicationBuilder(new HostApplicationBuilderSettings
+                HostApplicationBuilder builder = new(new HostApplicationBuilderSettings
                 {
                     ContentRootPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly()!.Location),
                     DisableDefaults = true
                 });
 
                 // Минимальная настройка логирования
-                builder.Services.AddLogging(config =>
+                _ = builder.Services.AddLogging(config =>
                 {
-                    config.ClearProviders();
-                    config.AddSimpleConsole(options =>
+                    _ = config.ClearProviders();
+                    _ = config.AddSimpleConsole(options =>
                     {
                         options.SingleLine = true;
                     });
@@ -80,9 +80,11 @@ namespace RevitBoost
 
         private static void OnUnhandledException(object sender, UnhandledExceptionEventArgs args)
         {
-            var exception = (Exception)args.ExceptionObject;
+            Exception exception = (Exception)args.ExceptionObject;
             Debug.WriteLine($"Необработанное исключение: {exception}");
         }
+
+
 
     }
 }
