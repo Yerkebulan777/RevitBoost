@@ -1,30 +1,19 @@
 ﻿using Autodesk.Revit.UI;
 using CommonUtils;
-using Nice3point.Revit.Toolkit.External;
 using RevitBoost.Commands;
+using System.Reflection;
 
 namespace RevitBoost
 {
     /// <summary>
     ///     Application entry point
     /// </summary>
-    [UsedImplicitly]
-    public class Application : ExternalApplication
+
+    public class Application : IExternalApplication
     {
-        public override void OnStartup()
-        {
-            Host.Start();
-            CreateRibbon();
-        }
-
-        public override void OnShutdown()
-        {
-            Host.Stop();
-        }
-
         private void CreateRibbon()
         {
-            RibbonPanel panel = Application.CreatePanel("Commands", "RevitBoost");
+            RibbonPanel panel = CreatePanel("Commands", "RevitBoost");
 
             PushButton lintelButton = panel.AddPushButton<LintelLabelingCommand>("Lintel Assignment");
             PushButton levelButton = panel.AddPushButton<LevelAssignmentCommand>("Level Assignment");
@@ -48,7 +37,7 @@ namespace RevitBoost
                 System.Diagnostics.Debug.WriteLine("🎉 Иконки успешно применены к кнопкам ribbon!");
 
                 // Опционально: показываем успех пользователю
-                _ = TaskDialog.Show("Успех", "Иконки успешно загружены и применены!");
+                TaskDialog.Show("Успех", "Иконки успешно загружены и применены!");
             }
             else
             {
@@ -56,10 +45,42 @@ namespace RevitBoost
 
                 // Можно показать пользователю информацию о проблеме
                 string message = "Некоторые иконки не удалось загрузить:\n" + testResult;
-                _ = TaskDialog.Show("Информация об иконках", message);
+                TaskDialog.Show("Информация об иконках", message);
             }
         }
 
+        public RibbonPanel CreatePanel(UIControlledApplication application, string panelName)
+        {
+            foreach (RibbonPanel panel in application.GetRibbonPanels(Tab.AddIns))
+            {
+                if (panel.Name == panelName)
+                {
+                    return panel;
+                }
+            }
 
+            return application.CreateRibbonPanel(panelName);
+        }
+
+        public PushButton AddPushButton<TCommand>(string buttonText) where TCommand : IExternalCommand, new()
+        {
+            Type command = typeof(TCommand);
+            PushButtonData pushButtonData = new(command.FullName, buttonText, Assembly.GetAssembly(command)!.Location, command.FullName);
+            return  ...;
+        }
+
+
+        public Result OnStartup(UIControlledApplication application)
+        {
+            Host.Start();
+            CreateRibbon();
+            return Result.Succeeded;
+        }
+
+        public Result OnShutdown(UIControlledApplication application)
+        {
+            Host.Stop();
+            return Result.Succeeded;
+        }
     }
 }

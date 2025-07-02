@@ -100,15 +100,15 @@ namespace LevelAssignment
                     {
                         calculatedNumber = isHeightValid ? 100 : 101;
 
-                        if (levelName.Contains("Чердак", StringComparison.OrdinalIgnoreCase))
+                        if (levelName.Contains("Чердак"))
                         {
                             calculatedNumber = specialFloorNumbers[0]; // 99
                         }
-                        if (levelName.Contains("Крыша", StringComparison.OrdinalIgnoreCase))
+                        if (levelName.Contains("Крыша"))
                         {
                             calculatedNumber = specialFloorNumbers[1]; // 100
                         }
-                        if (levelName.Contains("Будка", StringComparison.OrdinalIgnoreCase))
+                        if (levelName.Contains("Будка"))
                         {
                             calculatedNumber = specialFloorNumbers[2]; // 101
                         }
