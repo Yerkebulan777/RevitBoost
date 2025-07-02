@@ -1,4 +1,5 @@
 ﻿using Autodesk.Revit.UI;
+using System.IO;
 using System.Reflection;
 using System.Text;
 
@@ -22,9 +23,11 @@ namespace CommonUtils
 
                 // Основная информация о сборке
                 _ = report.AppendLine("=== ДИАГНОСТИКА ВСТРАИВАНИЯ РЕСУРСОВ ===");
-                _ = report.AppendLine($"Путь к сборке: {assemblyPath}");
-                _ = report.AppendLine($"Размер сборки: {GetFileSizeInKB(assemblyPath)} KB");
+                _ = report.AppendLine($"Имя сборки: {Path.GetFileName(assemblyPath)}");
+                _ = report.AppendLine($"Путь к сборке: {Directory.GetParent(assemblyPath)}");
                 _ = report.AppendLine($"Время создания: {GetFileCreationTime(assemblyPath)}");
+                _ = report.AppendLine($"Размер сборки: {GetFileSizeInKB(assemblyPath)} KB");
+
                 _ = report.AppendLine();
 
                 if (resources.Length == 0)
