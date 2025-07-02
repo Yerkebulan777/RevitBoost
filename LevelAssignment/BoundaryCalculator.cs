@@ -1,4 +1,5 @@
 ﻿using RevitUtils;
+using System.Diagnostics;
 
 namespace LevelAssignment
 {
@@ -27,6 +28,11 @@ namespace LevelAssignment
                 foreach (ElementId levelId in floorModel.ContainedLevelIds)
                 {
                     Level level = doc.GetElement(levelId) as Level;
+
+                    if (level is null)
+                    {
+                        Debug.Fail($"Уровень {levelId.IntegerValue} не найден!");
+                    }
 
                     foreach (ViewPlan floorPlan in GetViewPlansByLevel(doc, level))
                     {
