@@ -1,4 +1,5 @@
-﻿using RevitUtils;
+﻿using Autodesk.Revit.DB;
+using RevitUtils;
 using System.Diagnostics;
 
 namespace LintelMaster
@@ -30,16 +31,16 @@ namespace LintelMaster
                 throw new ArgumentException("Family name cannot be empty");
             }
 
-            var result = new SortedDictionary<SizeKey, List<LintelData>>();
+            SortedDictionary<SizeKey, List<LintelData>> result = new();
             const BuiltInCategory bic = BuiltInCategory.OST_StructuralFraming;
 
-            var instances = CollectorHelper.GetInstancesByFamilyName(doc, bic, familyName);
+            List<FamilyInstance> instances = CollectorHelper.GetInstancesByFamilyName(doc, bic, familyName);
 
             foreach (FamilyInstance instance in instances)
             {
                 try
                 {
-                    var lintelData = ProcessSingleLintel(instance);
+                    LintelData lintelData = ProcessSingleLintel(instance);
                     if (lintelData != null)
                     {
                         if (!result.TryGetValue(lintelData.GroupKey, out List<LintelData> group))
@@ -75,13 +76,13 @@ namespace LintelMaster
                 return null;
             }
 
-            var dimensions = ExtractOpeningSize(parentInstance);
+            (int thick, int width, int height)? dimensions = ExtractOpeningSize(parentInstance);
             if (dimensions == null)
             {
                 return null;
             }
 
-            var (thickMm, widthMm, heightMm) = dimensions.Value;
+            (int thickMm, int widthMm, int heightMm) = dimensions.Value;
             return new LintelData(instance, thickMm, widthMm, heightMm);
         }
 
@@ -177,12 +178,7 @@ namespace LintelMaster
         /// </summary>
         public double? GetHostWallThickness(FamilyInstance instance)
         {
-            if (instance?.IsValidObject != true)
-            {
-                return null;
-            }
-
-            return instance.Host is Wall hostWall && hostWall.Width > 0 ? hostWall.Width : (double?)null;
+            return instance?.IsValidObject != true ? null : instance.Host is Wall hostWall && hostWall.Width > 0 ? hostWall.Width : (double?)null;
         }
     }
 }
