@@ -94,5 +94,10 @@
         <!-- Includes all PNG files from the Icons folder -->
         <EmbeddedResource Include="Resources\Icons\*.png" />
     </ItemGroup>
+
+    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+        <Exec Command="xcopy &quot;$(TargetPath)&quot; &quot;$(AppData)\Autodesk\Revit\Addins\2025\&quot; /Y" />
+        <Exec Command="xcopy &quot;$(ProjectDir)RevitBoost.addin&quot; &quot;$(AppData)\Autodesk\Revit\Addins\2025\&quot; /Y" />
+    </Target>
     
 </Project>
