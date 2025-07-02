@@ -28,6 +28,8 @@ namespace RevitBoost
 
         private void CreateRibbon()
         {
+            ResourceDiagnostic.ShowCompleteResourceInfo();
+
             RibbonPanel panel = Application.CreatePanel("Commands", "RevitBoost");
 
             var lintelButton = panel.AddPushButton<LintelLabelingCommand>("Lintel Assignment");
@@ -45,8 +47,7 @@ namespace RevitBoost
             }
             else
             {
-                // Используем встроенные иконки Revit как fallback
-                System.Diagnostics.Trace.WriteLine("Using default Revit icons as fallback");
+                TaskDialog.Show("RevitBoost", "Icons not found, using default Revit icons.");
             }
         }
 
