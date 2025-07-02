@@ -7,7 +7,20 @@ namespace RevitBoost
 {
     public class Application : IExternalApplication
     {
-        private void CreateRibbon(UIControlledApplication application)
+        public Result OnStartup(UIControlledApplication application)
+        {
+            Host.Start();
+            CreateRibbon(application);
+            return Result.Succeeded;
+        }
+
+        public Result OnShutdown(UIControlledApplication application)
+        {
+            Host.Stop();
+            return Result.Succeeded;
+        }
+
+        private static void CreateRibbon(UIControlledApplication application)
         {
             RibbonPanel panel = RibbonHelper.CreatePanel(application, "RevitBoost");
 
@@ -44,24 +57,6 @@ namespace RevitBoost
                 _ = TaskDialog.Show("Информация об иконках", message);
             }
         }
-
-
-
-
-        public Result OnStartup(UIControlledApplication application)
-        {
-            Host.Start();
-            CreateRibbon(application);
-            return Result.Succeeded;
-        }
-
-
-        public Result OnShutdown(UIControlledApplication application)
-        {
-            Host.Stop();
-            return Result.Succeeded;
-        }
-
 
     }
 }
