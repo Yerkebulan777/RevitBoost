@@ -1,4 +1,5 @@
 ﻿using RevitUtils;
+using System.Diagnostics;
 using System.Text;
 
 namespace LevelAssignment
@@ -44,6 +45,11 @@ namespace LevelAssignment
 
             ModelCategoryFilter = new ElementMulticategoryFilter(CollectorHelper.GetModelCategoryIds(_document));
 
+            if (LevelSharedParameter is null)
+            {
+                return $"Общий параметр {sharedParameterGuid} не найден в проекте!";
+            }
+
             foreach (FloorInfo floor in floorModels)
             {
                 try
@@ -55,9 +61,18 @@ namespace LevelAssignment
 
                     elemIdSet = [.. floor.CreateLevelFilteredCollector(_document).ToElementIds()];
 
-                    elemIdSet.UnionWith(floor.CreateExcludedCollector(_document, elemIdSet).Where(i => floor.IsElementContained(in i)).Select(i => i.Id));
+#pragma warning disable S3267 // Loops should be simplified with "LINQ" expressions
 
-                    levelAssignmentCount = ApplyLevelParameter(_document, elemIdSet, floor.Index);
+                    foreach (Element element in floor.CreateExcludedCollector(_document, elemIdSet))
+                    {
+                        if (floor.IsElementContained(in element))
+                        {
+                            _ = elemIdSet.Add(element.Id);
+                        }
+                    }
+
+#pragma warning restore S3267 // Loops should be simplified with "LINQ" expressions
+
                 }
                 catch (Exception ex)
                 {
@@ -69,14 +84,8 @@ namespace LevelAssignment
                     _ = result.AppendLine($"Количество эементов с назначенным этажем: {levelAssignmentCount}");
                     _ = result.AppendLine($"Общее количество всех элементов: {elemIdSet.Count}");
 
-                    // Очистка памяти каждые 1000 назначений
-                    if (levelAssignmentCount % 1000 == 0)
-                    {
-                        GC.Collect();
-                        Thread.Sleep(100);
-                        GC.WaitForPendingFinalizers();
-                        _ = result.AppendLine($"Выполняется сбор мусора...");
-                    }
+                    levelAssignmentCount = ApplyLevelParameter(_document, elemIdSet, floor.Index);
+
                 }
             }
 
@@ -90,23 +99,31 @@ namespace LevelAssignment
         {
             int count = 0;
 
-            using Transaction trx = new(doc);
-
-            TransactionStatus status = trx.Start($"Установка номера этажа {levelValue}");
-
-            InternalDefinition levelParamGuid = LevelSharedParameter.GetDefinition();
-
-            if (status == TransactionStatus.Started)
+            using (Transaction trx = new(doc, $"Установка номера этажа {levelValue}"))
             {
-                foreach (ElementId elementId in elemIdSet)
+                if (trx.Start() == TransactionStatus.Started)
                 {
-                    Element element = doc.GetElement(elementId);
-
-                    Parameter param = element?.get_Parameter(levelParamGuid);
-
-                    if (param?.Set(levelValue) == true)
+                    try
                     {
-                        count++;
+                        InternalDefinition levelParamGuid = LevelSharedParameter.GetDefinition();
+
+                        foreach (ElementId elementId in elemIdSet)
+                        {
+                            Element element = doc.GetElement(elementId);
+                            Parameter param = element?.get_Parameter(levelParamGuid);
+
+                            if (param?.Set(levelValue) == true)
+                            {
+                                count++;
+                            }
+                        }
+
+                        _ = trx.Commit();
+                    }
+                    catch
+                    {
+                        _ = trx.RollBack();
+                        throw;
                     }
                 }
             }
