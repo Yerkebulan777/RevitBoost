@@ -9,7 +9,7 @@ namespace RevitBoost
     {
         private void CreateRibbon(UIControlledApplication application)
         {
-            RibbonPanel panel = CreatePanel(application, "Commands", "RevitBoost");
+            RibbonPanel panel = RibbonHelper.CreatePanel(application, "RevitBoost");
 
             PushButton lintelButton = panel.AddPushButton<LintelLabelingCommand>("Lintel Assignment");
             PushButton levelButton = panel.AddPushButton<LevelAssignmentCommand>("Level Assignment");
@@ -45,18 +45,7 @@ namespace RevitBoost
             }
         }
 
-        public RibbonPanel CreatePanel(UIControlledApplication application, string tabName, string panelName)
-        {
-            foreach (RibbonPanel panel in application.GetRibbonPanels(Tab.AddIns))
-            {
-                if (panel.Name == panelName)
-                {
-                    return panel;
-                }
-            }
 
-            return application.CreateRibbonPanel(tabName, panelName);
-        }
 
 
         public Result OnStartup(UIControlledApplication application)

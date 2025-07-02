@@ -15,7 +15,6 @@ namespace RevitBoost.Commands
     {
         private static readonly Guid PARAMETER_GUID = new Guid("4673f045-9574-471f-9677-ac538a9e9a2d");
 
-
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             Document doc = commandData.Application.ActiveUIDocument.Document;
