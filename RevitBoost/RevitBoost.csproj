@@ -93,9 +93,9 @@
 	  <ProjectReference Include="..\RevitUtils\RevitUtils.csproj" />
 	</ItemGroup>
 
-	<ItemGroup>
-		<Resource Include="Resources\Icons\RibbonIcon16.png" />
-		<Resource Include="Resources\Icons\RibbonIcon32.png" />
-	</ItemGroup>
+    <ItemGroup>
+        <EmbeddedResource Include="Resources\Icons\RibbonIcon16.png" />
+        <EmbeddedResource Include="Resources\Icons\RibbonIcon32.png" />
+    </ItemGroup>
 
 </Project>
