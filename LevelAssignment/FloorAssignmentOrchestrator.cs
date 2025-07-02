@@ -50,29 +50,22 @@ namespace LevelAssignment
                 floor.ModelCategoryFilter = modelCategoryFilter;
                 floor.LevelSharedParameter = levelSharedParameter;
                 floor.CreateIntersectFilter(projectBoundary, elevationOffset, verticalClearance);
-                
+
                 _ = result.AppendLine($"Этаж: {floor.Index} Высота этажа: {floor.Height}");
 
-                ICollection<ElementId> elemIds =  floor.CreateFilteredElementCollector(_document).ToElementIds();
-
-                var logicAndFilter = new LogicalAndFilter(   modelCategoryFilter, new ExclusionFilter(elemIds));
+                ICollection<ElementId> elemIds = floor.CreateLevelFilteredElementCollector(_document).ToElementIds();
 
                 _ = result.AppendLine($"Найдено элементов: {elemIds.Count}");
 
+                floor.ElementExclusionFilter = new ExclusionFilter(elemIds);
 
-
+                floor.CreateExcludedElementsCollector(_document).ToElementIds();
 
             }
 
             // Допиши оптимальный алгоритм для фильтрации элементов с учетом их параметров или геометрии
             // Стоит ли делать все итерации (проверки) в одном цикле или лучше разделить на этапы?
             // Оптимально ли будет использоваться память при большом количестве элементов?
-
-            //  Все результаты собери в StringBuilder:
-            //  = targetElements.Count;
-            //  = assignmentResults.Count(r => r.AssignedFloor != null);
-            //  = floorModels;
-            //  = true;
 
             return result.ToString();
         }
@@ -90,36 +83,6 @@ namespace LevelAssignment
         .WherePasses(new ElementParameterFilter(rule)).Cast<Level>()
         .OrderBy(x => x.Elevation)];
         }
-
-
-
-
-        /// <summary>
-        /// Создает фильтр пересекающиеся с заданной 3D-границей и диапазоном высот.
-        /// </summary>
-        private LogicalOrFilter CreateIntersectFilter(Outline boundary, FloorInfo floor, double offset, double clearance)
-        {
-            double height = floor.Height;
-
-            XYZ minPoint = boundary.MinimumPoint;
-            XYZ maxPoint = boundary.MaximumPoint;
-
-            double elevation = floor.InternalElevation;
-
-            minPoint = Transform.Identity.OfPoint(new XYZ(minPoint.X, minPoint.Y, elevation + clearance - offset));
-
-            maxPoint = Transform.Identity.OfPoint(new XYZ(maxPoint.X, maxPoint.Y, elevation + height - offset));
-
-            Solid floorSolid = SolidHelper.CreateSolidBoxByPoint(minPoint, maxPoint, height);
-
-            Outline outline = new(minPoint, maxPoint);
-
-            ElementIntersectsSolidFilter solidFilter = new(floorSolid);
-            BoundingBoxIntersectsFilter boundingBoxFilter = new(outline);
-
-            return new LogicalOrFilter(boundingBoxFilter, solidFilter);
-        }
-
 
         #region AI methods
 

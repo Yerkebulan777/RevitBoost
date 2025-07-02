@@ -8,7 +8,8 @@ namespace LevelAssignment
         public SharedParameterElement LevelSharedParameter { get; internal set; }
         public ElementFilter GeometryIntersectionFilter { get; internal set; }
         public ElementFilter ModelCategoryFilter { get; internal set; }
-        public ElementFilter LevelFilter { get; internal set; }
+        public ElementFilter AggregatedLevelFilter { get; internal set; }
+        public ElementFilter ElementExclusionFilter { get; internal set; }
         public BoundingBoxXYZ BoundingBox { get; internal set; }
         public double InternalElevation { get; private set; }
         public double ProjectElevation { get; private set; }
@@ -49,7 +50,7 @@ namespace LevelAssignment
                 allLevelFilters.AddRange(singleLevelFilters);
             }
 
-            LevelFilter = new LogicalOrFilter(allLevelFilters);
+            AggregatedLevelFilter = new LogicalOrFilter(allLevelFilters);
         }
 
         /// <summary>
@@ -79,17 +80,31 @@ namespace LevelAssignment
         }
 
         /// <summary>
-        /// Получение всех элементов за один запрос
+        /// Создает фильтр для элементов на заданных уровнях
         /// </summary>
-        public FilteredElementCollector CreateFilteredElementCollector(Document doc)
+        public FilteredElementCollector CreateLevelFilteredElementCollector(Document doc)
         {
             string sharedParameterName = LevelSharedParameter?.Name;
 
             return new FilteredElementCollector(doc)
-                        .WherePasses(LevelFilter)
-                        .WherePasses(ModelCategoryFilter)
-                        .WherePasses(GeometryIntersectionFilter)
-                        .WhereSharedParameterApplicable(sharedParameterName);
+                    .WherePasses(ModelCategoryFilter)
+                    .WherePasses(AggregatedLevelFilter)
+                    .WherePasses(GeometryIntersectionFilter)
+                    .WhereSharedParameterApplicable(sharedParameterName);
+        }
+
+        /// <summary>
+        /// Создает фильтр исключая заданные элементы
+        /// </summary>
+        public FilteredElementCollector CreateExcludedElementsCollector(Document doc)
+        {
+            string sharedParameterName = LevelSharedParameter?.Name;
+
+            return new FilteredElementCollector(doc)
+                    .WherePasses(ModelCategoryFilter)
+                    .WherePasses(ElementExclusionFilter)
+                    .WherePasses(GeometryIntersectionFilter)
+                    .WhereSharedParameterApplicable(sharedParameterName);
         }
 
         /// <summary>
