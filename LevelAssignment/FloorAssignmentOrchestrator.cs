@@ -94,6 +94,8 @@ namespace LevelAssignment
         public string ApplyLevelParameter(Document doc, HashSet<ElementId> elemIdSet, int levelValue)
         {
             int assignedCount = 0;
+            int readOnlyParameterCount = 0;
+            int notModifiableCount = 0;
 
             StringBuilder result = new();
 
@@ -105,25 +107,42 @@ namespace LevelAssignment
                     {
                         InternalDefinition levelParamGuid = LevelSharedParameter.GetDefinition();
 
-                        result.AppendLine($"Shared parameter: {levelParamGuid?.Name}");
+                        _ = result.AppendLine($"Shared parameter: {levelParamGuid?.Name}");
 
                         foreach (ElementId elementId in elemIdSet)
                         {
                             Element element = doc.GetElement(elementId);
                             Parameter param = element?.get_Parameter(levelParamGuid);
 
-                            if (param is not null && !param.IsReadOnly)
+                            if (param is not null)
                             {
+                                if (param.IsReadOnly)
+                                {
+                                    readOnlyParameterCount++;
+                                    continue;
+                                }
+
+                                if (!param.UserModifiable)
+                                {
+                                    notModifiableCount++;
+                                    continue;
+                                }
+
                                 if (param.Set(levelValue))
                                 {
                                     assignedCount++;
+                                    continue;
                                 }
-                                else
-                                {
-                                    string elementName = element.Name;
-                                    string category = element.Category.Name;
-                                    result.AppendLine($"Failed for element {elementName} in category {category}");
-                                }
+
+                                string elementName = element.Name;
+                                string category = element.Category.Name;
+
+                                _ = result.AppendLine($"Failed to set parameter for element {elementName} in category {category}");
+
+                            }
+                            else
+                            {
+                                _ = result.AppendLine($"Parameter not found for element {element.Name}");
                             }
                         }
 
@@ -137,7 +156,9 @@ namespace LevelAssignment
                 }
             }
 
-            result.AppendLine($"Total elements assigned to level {levelValue}: {assignedCount}");
+            _ = result.AppendLine($"Total elements assigned to level {levelValue}: {assignedCount}");
+            _ = result.AppendLine($"Read-only elements: {readOnlyParameterCount}");
+            _ = result.AppendLine($"Not modifiable elements: {notModifiableCount}");
 
             return result.ToString();
         }
