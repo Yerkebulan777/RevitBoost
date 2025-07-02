@@ -1,5 +1,4 @@
 ﻿using RevitUtils;
-using System.Diagnostics;
 
 namespace LevelAssignment
 {
