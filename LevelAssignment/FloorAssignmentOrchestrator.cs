@@ -3,26 +3,23 @@ using System.Text;
 
 namespace LevelAssignment
 {
-    public class FloorAssignmentOrchestrator
+    public sealed class FloorAssignmentOrchestrator
     {
-        private double elevationOffset;
-        private double verticalClearance;
         private readonly Document _document;
         private readonly FloorInfoGenerator _floorInfoGenerator;
         private readonly BoundaryCalculator _boundaryCalculator;
-        private readonly LevelDeterminator _levelDeterminator;
+
         public FloorAssignmentOrchestrator(Document document)
         {
             _document = document ?? throw new ArgumentNullException(nameof(document));
 
             _floorInfoGenerator = new FloorInfoGenerator();
             _boundaryCalculator = new BoundaryCalculator();
-            _levelDeterminator = new LevelDeterminator();
         }
 
-        private Outline projectBoundary { get; set; }
-        private ElementMulticategoryFilter modelCategoryFilter { get; set; }
-        private SharedParameterElement levelSharedParameter { get; set; }
+        private Outline ProjectBoundary { get; set; }
+        private ElementMulticategoryFilter ModelCategoryFilter { get; set; }
+        private SharedParameterElement LevelSharedParameter { get; set; }
 
         /// <summary>
         /// Выполняет полный цикл анализа и назначения элементов к этажам
@@ -31,41 +28,34 @@ namespace LevelAssignment
         {
             StringBuilder result = new();
 
-            elevationOffset = UnitManager.MmToFoot(250);
-            verticalClearance = UnitManager.MmToFoot(100);
+            double elevationOffset = UnitManager.MmToFoot(250);
+            double verticalClearance = UnitManager.MmToFoot(100);
 
             List<Level> levels = GetValidLevels(_document);
 
             List<FloorInfo> floorModels = _floorInfoGenerator.GenerateFloorModels(levels);
 
-            levelSharedParameter = SharedParameterElement.Lookup(_document, targetParameterGuid);
+            LevelSharedParameter = SharedParameterElement.Lookup(_document, targetParameterGuid);
 
-            projectBoundary = _boundaryCalculator.ComputeProjectBoundary(_document, ref floorModels);
+            ProjectBoundary = _boundaryCalculator.ComputeProjectBoundary(_document, ref floorModels);
 
-            modelCategoryFilter = new ElementMulticategoryFilter(CollectorHelper.GetModelCategoryIds(_document));
+            ModelCategoryFilter = new ElementMulticategoryFilter(CollectorHelper.GetModelCategoryIds(_document));
 
             foreach (FloorInfo floor in floorModels)
             {
                 floor.AggregateLevelFilter();
-                floor.ModelCategoryFilter = modelCategoryFilter;
-                floor.LevelSharedParameter = levelSharedParameter;
-                floor.CreateIntersectFilter(projectBoundary, elevationOffset, verticalClearance);
+                floor.ModelCategoryFilter = ModelCategoryFilter;
+                floor.LevelSharedParameter = LevelSharedParameter;
+                floor.CreateIntersectFilter(ProjectBoundary, elevationOffset, verticalClearance);
+
+                HashSet<ElementId> elemIdSet = [.. floor.CreateLevelFilteredCollector(_document).ToElementIds()];
+
+                elemIdSet.UnionWith(floor.CreateExcludedCollector(_document, elemIdSet).Where(i => floor.IsElementContained(in i)).Select(i => i.Id));
 
                 _ = result.AppendLine($"Этаж: {floor.Index} Высота этажа: {floor.Height}");
 
-                ICollection<ElementId> elemIds = floor.CreateLevelFilteredElementCollector(_document).ToElementIds();
-
-                _ = result.AppendLine($"Найдено элементов: {elemIds.Count}");
-
-                floor.ElementExclusionFilter = new ExclusionFilter(elemIds);
-
-                floor.CreateExcludedElementsCollector(_document).ToElementIds();
-
+                _ = result.AppendLine($"Найдено элементов: {elemIdSet.Count}");
             }
-
-            // Допиши оптимальный алгоритм для фильтрации элементов с учетом их параметров или геометрии
-            // Стоит ли делать все итерации (проверки) в одном цикле или лучше разделить на этапы?
-            // Оптимально ли будет использоваться память при большом количестве элементов?
 
             return result.ToString();
         }
@@ -83,6 +73,7 @@ namespace LevelAssignment
         .WherePasses(new ElementParameterFilter(rule)).Cast<Level>()
         .OrderBy(x => x.Elevation)];
         }
+
 
 
     }

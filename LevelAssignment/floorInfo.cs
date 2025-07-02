@@ -82,29 +82,27 @@ namespace LevelAssignment
         /// <summary>
         /// Создает фильтр для элементов на заданных уровнях
         /// </summary>
-        public FilteredElementCollector CreateLevelFilteredElementCollector(Document doc)
+        public FilteredElementCollector CreateLevelFilteredCollector(Document doc)
         {
-            string sharedParameterName = LevelSharedParameter?.Name;
-
             return new FilteredElementCollector(doc)
                     .WherePasses(ModelCategoryFilter)
                     .WherePasses(AggregatedLevelFilter)
                     .WherePasses(GeometryIntersectionFilter)
-                    .WhereSharedParameterApplicable(sharedParameterName);
+                    .WhereSharedParameterApplicable(LevelSharedParameter.Name);
         }
 
         /// <summary>
         /// Создает фильтр исключая заданные элементы
         /// </summary>
-        public FilteredElementCollector CreateExcludedElementsCollector(Document doc)
+        public FilteredElementCollector CreateExcludedCollector(Document doc, ICollection<ElementId> elementIds)
         {
-            string sharedParameterName = LevelSharedParameter?.Name;
+            ElementExclusionFilter = new ExclusionFilter(elementIds);
 
             return new FilteredElementCollector(doc)
                     .WherePasses(ModelCategoryFilter)
                     .WherePasses(ElementExclusionFilter)
                     .WherePasses(GeometryIntersectionFilter)
-                    .WhereSharedParameterApplicable(sharedParameterName);
+                    .WhereSharedParameterApplicable(LevelSharedParameter.Name);
         }
 
         /// <summary>
@@ -117,6 +115,27 @@ namespace LevelAssignment
             FilterElementIdRule filterRule = new(valueProvider, evalutor, levelId);
 
             return new ElementParameterFilter(filterRule);
+        }
+
+        /// <summary>
+        /// Определяет этаж на основе геометрического анализа высоты элемента
+        /// </summary>
+        public bool IsElementContained(in Element element)
+        {
+            BoundingBoxXYZ bbox = element.get_BoundingBox(null);
+
+            XYZ center = (bbox.Min + bbox.Max) * 0.5;
+
+            return IsPointContained(center, BoundingBox);
+        }
+
+        /// <summary>
+        /// Определяет, находится ли точка в пределах BoundingBox
+        /// </summary>
+        private bool IsPointContained(XYZ point, BoundingBoxXYZ bbox)
+        {
+            Outline outline = new(bbox.Min, bbox.Max);
+            return outline.Contains(point, double.Epsilon);
         }
 
 
