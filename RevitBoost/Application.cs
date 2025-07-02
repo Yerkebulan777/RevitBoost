@@ -29,19 +29,47 @@ namespace RevitBoost
             RibbonPanel panel = Application.CreatePanel("Commands", "RevitBoost");
 
             PushButton lintelButton = panel.AddPushButton<LintelLabelingCommand>("Lintel Assignment");
-
             PushButton levelButton = panel.AddPushButton<LevelAssignmentCommand>("Level Assignment");
 
-            string basePath = Path.Combine(Directory.GetCurrentDirectory(), "Resources", "Icons");
+            try
+            {
+                // Загружаем иконки из embedded ресурсов
+                BitmapImage smallIcon = LoadEmbeddedImage("/RevitBoost;component/Resources/Icons/RibbonIcon16.png");
+                BitmapImage largeIcon = LoadEmbeddedImage("/RevitBoost;component/Resources/Icons/RibbonIcon32.png");
 
-            Uri smallImageUri = new(Path.Combine(basePath, "RibbonIcon16.png"), UriKind.RelativeOrAbsolute);
-            Uri largeImageUri = new(Path.Combine(basePath, "RibbonIcon32.png"), UriKind.RelativeOrAbsolute);
+                if (smallIcon != null && largeIcon != null)
+                {
+                    lintelButton.Image = smallIcon;
+                    lintelButton.LargeImage = largeIcon;
 
-            lintelButton.Image = new BitmapImage(smallImageUri);
-            lintelButton.LargeImage = new BitmapImage(largeImageUri);
+                    levelButton.Image = smallIcon;
+                    levelButton.LargeImage = largeIcon;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading icons: {ex.Message}");
+                // Плагин продолжит работать без иконок
+            }
+        }
 
-            levelButton.Image = new BitmapImage(smallImageUri);
-            levelButton.LargeImage = new BitmapImage(largeImageUri);
+        private BitmapImage LoadEmbeddedImage(string resourcePath)
+        {
+            try
+            {
+                var uri = new Uri($"pack://application:,,,{resourcePath}", UriKind.Absolute);
+                var bitmap = new BitmapImage();
+                bitmap.BeginInit();
+                bitmap.UriSource = uri;
+                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                bitmap.EndInit();
+                bitmap.Freeze(); // Важно для многопоточности
+                return bitmap;
+            }
+            catch
+            {
+                return null;
+            }
         }
 
 
