@@ -2,7 +2,6 @@
 using CommonUtils;
 using Nice3point.Revit.Toolkit.External;
 using RevitBoost.Commands;
-using System.IO;
 using System.Windows.Media.Imaging;
 using PushButton = Autodesk.Revit.UI.PushButton;
 using RibbonPanel = Autodesk.Revit.UI.RibbonPanel;
@@ -28,15 +27,19 @@ namespace RevitBoost
 
         private void CreateRibbon()
         {
-            ResourceDiagnostic.ShowCompleteResourceInfo();
+            // Сначала запускаем расширенную диагностику
+            EnhancedResourceDiagnostic.DiagnoseEmbeddingIssues();
 
             RibbonPanel panel = Application.CreatePanel("Commands", "RevitBoost");
 
-            var lintelButton = panel.AddPushButton<LintelLabelingCommand>("Lintel Assignment");
-            var levelButton = panel.AddPushButton<LevelAssignmentCommand>("Level Assignment");
+            PushButton lintelButton = panel.AddPushButton<LintelLabelingCommand>("Lintel Assignment");
+            PushButton levelButton = panel.AddPushButton<LevelAssignmentCommand>("Level Assignment");
 
-            var smallIcon = IconHelper.GetIcon("RibbonIcon16.png");
-            var largeIcon = IconHelper.GetIcon("RibbonIcon32.png");
+            lintelButton.ToolTip = "Назначение перемычек";
+            levelButton.ToolTip = "Назначение этажей";
+
+            BitmapImage smallIcon = IconHelper.GetIcon("RibbonIcon16.png");
+            BitmapImage largeIcon = IconHelper.GetIcon("RibbonIcon32.png");
 
             if (smallIcon != null && largeIcon != null)
             {
@@ -47,7 +50,7 @@ namespace RevitBoost
             }
             else
             {
-                TaskDialog.Show("RevitBoost", "Icons not found, using default Revit icons.");
+                _ = TaskDialog.Show("RevitBoost", "Icons not found, using default Revit icons.");
             }
         }
 

@@ -97,5 +97,5 @@
         <EmbeddedResource Include="Resources\Icons\RibbonIcon16.png" />
         <EmbeddedResource Include="Resources\Icons\RibbonIcon32.png" />
     </ItemGroup>
-
+    
 </Project>
