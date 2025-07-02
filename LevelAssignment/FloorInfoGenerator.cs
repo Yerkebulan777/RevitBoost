@@ -15,14 +15,14 @@ namespace LevelAssignment
         /// <summary>
         /// Вычисляет модели этажей на основе уровней проекта
         /// </summary>
-        public List<FloorInfo> GenerateFloorModels(List<Level> levels)
+        public List<FloorInfo> GenerateFloorModels(Document doc)
         {
             List<FloorInfo> floorModels = [];
 
-            // Получаем маппинг уровней на номера этажей
+            List<Level> levels = GetValidLevels(doc);
+
             Dictionary<int, Level> levelNumMap = CalculateLevelNumberData(levels);
 
-            // Группируем уровни по номерам этажей
             foreach (IGrouping<int, Level> group in GroupLevelsByFloorNumber(levelNumMap))
             {
                 int floorNumber = group.Key; // Номер этажа (ключ группы)
@@ -31,6 +31,20 @@ namespace LevelAssignment
             }
 
             return floorModels;
+        }
+
+        /// <summary>
+        /// Получает список уровней, которые имеют высоту меньше заданного максимума
+        /// </summary>
+        internal List<Level> GetValidLevels(Document doc, double maxHeightInMeters = 100)
+        {
+            double maximum = UnitManager.MmToFoot(maxHeightInMeters * 1000);
+            ParameterValueProvider provider = new(new ElementId(BuiltInParameter.LEVEL_ELEV));
+            FilterDoubleRule rule = new(provider, new FilterNumericLess(), maximum, 5E-3);
+
+            return [.. new FilteredElementCollector(doc).OfClass(typeof(Level))
+                .WherePasses(new ElementParameterFilter(rule)).Cast<Level>()
+                .OrderBy(x => x.Elevation)];
         }
 
         /// <summary>

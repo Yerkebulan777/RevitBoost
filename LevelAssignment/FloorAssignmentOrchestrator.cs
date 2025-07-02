@@ -17,25 +17,25 @@ namespace LevelAssignment
             _boundaryCalculator = new BoundaryCalculator();
         }
 
+
         private Outline ProjectBoundary { get; set; }
         private ElementMulticategoryFilter ModelCategoryFilter { get; set; }
         private SharedParameterElement LevelSharedParameter { get; set; }
 
+
         /// <summary>
         /// Выполняет полный цикл анализа и назначения элементов к этажам
         /// </summary>
-        public string ExecuteFullAssignment(Guid targetParameterGuid)
+        public string ExecuteFullAssignment(Guid sharedParameterGuid)
         {
             StringBuilder result = new();
 
             double elevationOffset = UnitManager.MmToFoot(250);
             double verticalClearance = UnitManager.MmToFoot(100);
 
-            List<Level> levels = GetValidLevels(_document);
+            List<FloorInfo> floorModels = _floorInfoGenerator.GenerateFloorModels(_document);
 
-            List<FloorInfo> floorModels = _floorInfoGenerator.GenerateFloorModels(levels);
-
-            LevelSharedParameter = SharedParameterElement.Lookup(_document, targetParameterGuid);
+            LevelSharedParameter = SharedParameterElement.Lookup(_document, sharedParameterGuid);
 
             ProjectBoundary = _boundaryCalculator.ComputeProjectBoundary(_document, ref floorModels);
 
@@ -58,20 +58,6 @@ namespace LevelAssignment
             }
 
             return result.ToString();
-        }
-
-        /// <summary>
-        /// Получает список уровней, которые имеют высоту меньше заданного максимума
-        /// </summary>
-        internal List<Level> GetValidLevels(Document doc, double maxHeightInMeters = 100)
-        {
-            double maximum = UnitManager.MmToFoot(maxHeightInMeters * 1000);
-            ParameterValueProvider provider = new(new ElementId(BuiltInParameter.LEVEL_ELEV));
-            FilterDoubleRule rule = new(provider, new FilterNumericLess(), maximum, 5E-3);
-
-            return [.. new FilteredElementCollector(doc).OfClass(typeof(Level))
-        .WherePasses(new ElementParameterFilter(rule)).Cast<Level>()
-        .OrderBy(x => x.Elevation)];
         }
 
 
