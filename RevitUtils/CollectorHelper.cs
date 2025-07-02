@@ -104,21 +104,17 @@ namespace RevitUtils
             return collector;
         }
 
-        /// <summary>
-        /// Получает видимые элементы в указанном виде используя FilteredElementCollector
-        /// </summary>
-        public static FilteredElementCollector GetInstancesInView(Document doc, View view, List<ElementId> categoryIds)
+
+        public static FilteredElementCollector WhereHasParameterValue(this FilteredElementCollector collector, Parameter parameter)
         {
-            return new FilteredElementCollector(doc, view.Id)
-                .WherePasses(new ElementMulticategoryFilter(categoryIds))
-                .WhereElementIsViewIndependent()
-                .WhereElementIsNotElementType();
+            HasValueFilterRule rule = new(parameter.Id);
+            ElementParameterFilter filter = new(rule);
+            return collector.WherePasses(filter);
         }
 
-
-        public static FilteredElementCollector WhereHasSharedParameter(this FilteredElementCollector collector, SharedParameterElement sharedParameter)
+        public static FilteredElementCollector WhereSharedParameterApplicable(this FilteredElementCollector collector, string parameterName)
         {
-            HasValueFilterRule rule = new(sharedParameter.Id);
+            SharedParameterApplicableRule rule = new(parameterName);
             ElementParameterFilter filter = new(rule);
             return collector.WherePasses(filter);
         }

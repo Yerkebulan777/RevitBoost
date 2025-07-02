@@ -24,7 +24,7 @@ namespace LevelAssignment
             {
                 floorModel.Height = GetLevelHeight(floorModel, floorModels, out double elevation);
 
-                foreach (Level level in floorModel.ContainedLevels)
+                foreach (Level level in floorModel.ContainedLevelIds)
                 {
                     foreach (ViewPlan floorPlan in GetViewPlansByLevel(doc, level))
                     {

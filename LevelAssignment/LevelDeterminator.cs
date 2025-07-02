@@ -1,5 +1,4 @@
-﻿
-using Autodesk.Revit.DB.Architecture;
+﻿using Autodesk.Revit.DB.Architecture;
 using System.Diagnostics;
 
 namespace LevelAssignment
@@ -85,6 +84,7 @@ namespace LevelAssignment
             return false;
 
         }
+
 
         /// <summary>
         /// Определяет, находится ли точка в пределах BoundingBox

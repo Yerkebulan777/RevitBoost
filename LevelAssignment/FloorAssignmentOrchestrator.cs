@@ -5,11 +5,12 @@ namespace LevelAssignment
 {
     public class FloorAssignmentOrchestrator
     {
+        private double elevationOffset;
+        private double verticalClearance;
         private readonly Document _document;
         private readonly FloorInfoGenerator _floorInfoGenerator;
         private readonly BoundaryCalculator _boundaryCalculator;
         private readonly LevelDeterminator _levelDeterminator;
-
         public FloorAssignmentOrchestrator(Document document)
         {
             _document = document ?? throw new ArgumentNullException(nameof(document));
@@ -19,6 +20,10 @@ namespace LevelAssignment
             _levelDeterminator = new LevelDeterminator();
         }
 
+        private Outline projectBoundary { get; set; }
+        private ElementMulticategoryFilter modelCategoryFilter { get; set; }
+        private SharedParameterElement levelSharedParameter { get; set; }
+
         /// <summary>
         /// Выполняет полный цикл анализа и назначения элементов к этажам
         /// </summary>
@@ -26,48 +31,34 @@ namespace LevelAssignment
         {
             StringBuilder result = new();
 
-            // Подготовка данных
-
-            double offset = UnitManager.MmToFoot(250);
-
-            double clearance = UnitManager.MmToFoot(100);
+            elevationOffset = UnitManager.MmToFoot(250);
+            verticalClearance = UnitManager.MmToFoot(100);
 
             List<Level> levels = GetValidLevels(_document);
 
             List<FloorInfo> floorModels = _floorInfoGenerator.GenerateFloorModels(levels);
 
-            Outline ProjectBoundary = _boundaryCalculator.ComputeProjectBoundary(_document, ref floorModels);
+            levelSharedParameter = SharedParameterElement.Lookup(_document, targetParameterGuid);
 
-            ElementMulticategoryFilter categoryFilter = new(CollectorHelper.GetModelCategoryIds(_document));
+            projectBoundary = _boundaryCalculator.ComputeProjectBoundary(_document, ref floorModels);
 
-            SharedParameterElement parameter = SharedParameterElement.Lookup(_document, targetParameterGuid);
-
-            ICollection<ElementId> elemIds = BuildFilteredElementCollector(parameter, categoryFilter).ToElementIds();
-
-            ElementIdSetFilter elementIdSetFilter = new(elemIds);
-
-            result.AppendLine($"Найдено элементов: {elemIds.Count}");
-
-            List<Element> targetElements = [];
+            modelCategoryFilter = new ElementMulticategoryFilter(CollectorHelper.GetModelCategoryIds(_document));
 
             foreach (FloorInfo floor in floorModels)
             {
-                result.AppendLine($"Этаж: {floor.Index} Высота этажа: {floor.Height}");
+                floor.AggregateLevelFilter();
+                floor.ModelCategoryFilter = modelCategoryFilter;
+                floor.LevelSharedParameter = levelSharedParameter;
+                floor.CreateIntersectFilter(projectBoundary, elevationOffset, verticalClearance);
+                
+                _ = result.AppendLine($"Этаж: {floor.Index} Высота этажа: {floor.Height}");
 
-                LogicalOrFilter intersectFilter = CreateIntersectFilter(ProjectBoundary, floor, offset, clearance);
+                ICollection<ElementId> elemIds =  floor.CreateFilteredElementCollector(_document).ToElementIds();
 
-                LogicalAndFilter logicalAndFilter = new LogicalAndFilter(elementIdSetFilter, intersectFilter);
+                var logicAndFilter = new LogicalAndFilter(   modelCategoryFilter, new ExclusionFilter(elemIds));
 
-                IList<Element> intersectedElements = GetFilteredElements(_document, parameter, logicalAndFilter);
+                _ = result.AppendLine($"Найдено элементов: {elemIds.Count}");
 
-                result.AppendLine($"Найдено элементов: {intersectedElements.Count}");
-
-                targetElements.AddRange(intersectedElements);
-
-                foreach (Element element in intersectedElements)
-                {
-                    result.AppendLine($"Элемент: {element.Id} Категория: {element.Category.Name}");
-                }
 
 
 
@@ -100,30 +91,8 @@ namespace LevelAssignment
         .OrderBy(x => x.Elevation)];
         }
 
-        /// <summary>
-        /// Нативная фильтрация элементов с заданным параметром
-        /// </summary>
-        public IList<Element> GetFilteredElements(Document doc, SharedParameterElement parameter, ElementFilter elementFilter)
-        {
-            return new FilteredElementCollector(doc)
-                .WhereHasSharedParameter(parameter)
-                .WhereElementIsViewIndependent()
-                .WhereElementIsNotElementType()
-                .WherePasses(elementFilter)
-                .ToElements();
-        }
 
-        /// <summary>
-        /// Получение всех элементов за один запрос
-        /// </summary>
-        private FilteredElementCollector BuildFilteredElementCollector(SharedParameterElement parameter, ElementFilter filter)
-        {
-            return new FilteredElementCollector(_document)
-                .WhereHasSharedParameter(parameter)
-                .WhereElementIsViewIndependent()
-                .WhereElementIsNotElementType()
-                .WherePasses(filter);
-        }
+
 
         /// <summary>
         /// Создает фильтр пересекающиеся с заданной 3D-границей и диапазоном высот.
@@ -150,7 +119,6 @@ namespace LevelAssignment
 
             return new LogicalOrFilter(boundingBoxFilter, solidFilter);
         }
-
 
 
         #region AI methods
@@ -209,7 +177,7 @@ namespace LevelAssignment
         {
             foreach (FloorInfo floor in floors)
             {
-                HashSet<ElementId> levelIds = floor.ContainedLevels.Select(l => l.Id).ToHashSet();
+                HashSet<ElementId> levelIds = floor.ContainedLevelIds.Select(l => l.Id).ToHashSet();
 
                 if (_levelDeterminator.IsOnLevel(element, ref levelIds))
                 {
@@ -240,7 +208,6 @@ namespace LevelAssignment
             {
                 if (_levelDeterminator.IsPointContained(center, floor.BoundingBox))
                 {
-                    result.IsSuccess = true;
                     result.Method = Determination.GeometricAnalysis;
                     result.Confidence = 0.7f;
                     return true;
