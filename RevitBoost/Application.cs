@@ -1,4 +1,5 @@
-﻿using Nice3point.Revit.Toolkit.External;
+﻿using Autodesk.Revit.UI;
+using Nice3point.Revit.Toolkit.External;
 using RevitBoost.Commands;
 using System.IO;
 using System.Windows.Media.Imaging;
@@ -34,12 +35,16 @@ namespace RevitBoost
             BitmapImage smallIcon = LoadEmbeddedIcon("RibbonIcon16.png");
             BitmapImage largeIcon = LoadEmbeddedIcon("RibbonIcon32.png");
 
-            if (smallIcon != null && largeIcon != null)
+            if (smallIcon is not null && largeIcon is not null)
             {
                 levelButton.Image = smallIcon;
                 lintelButton.Image = smallIcon;
                 levelButton.LargeImage = largeIcon;
                 lintelButton.LargeImage = largeIcon;
+            }
+            else
+            {
+                TaskDialog.Show("Error", "Failed to load embedded icons. Please ensure the resources are correctly embedded in the assembly!");
             }
         }
 
@@ -47,7 +52,6 @@ namespace RevitBoost
         {
             try
             {
-                // Получаем текущую сборку
                 System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
 
                 string fullResourceName = $"RevitBoost.Resources.Icons.{resourceName}";
@@ -61,13 +65,13 @@ namespace RevitBoost
                     bitmap.StreamSource = stream;
                     bitmap.CacheOption = BitmapCacheOption.OnLoad;
                     bitmap.EndInit();
-                    bitmap.Freeze(); // Важно для потокобезопасности
+                    bitmap.Freeze();
                     return bitmap;
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error loading embedded icon {resourceName}: {ex.Message}");
+                TaskDialog.Show("Error", $"Failed to load embedded icon: {resourceName}. {ex.Message}");
             }
 
             return null;
