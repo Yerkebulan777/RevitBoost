@@ -27,7 +27,6 @@ namespace RevitBoost
             PushButton lintelButton = panel.AddPushButton<LintelLabelingCommand>("Lintel Assignment");
             PushButton levelButton = panel.AddPushButton<LevelAssignmentCommand>("Level Assignment");
 
-            // Тестируем доступность иконок для диагностики
             string testResult = IconHelper.TestIconAvailability();
             System.Diagnostics.Debug.WriteLine(testResult);
 
