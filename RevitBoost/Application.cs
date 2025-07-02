@@ -25,15 +25,25 @@ namespace RevitBoost
 
         private void CreateRibbon()
         {
-            var panel = Application.CreatePanel("Commands", "RevitBoost");
-            var button = panel.AddPushButton<LintelLabelingCommand>("Execute");
-            var basePath = Path.Combine(Directory.GetCurrentDirectory(), "Resources", "Icons");
+            Autodesk.Revit.UI.RibbonPanel panel = Application.CreatePanel("Commands", "RevitBoost");
 
-            var smallImageUri = new Uri(Path.Combine(basePath, "RibbonIcon16.png"), UriKind.RelativeOrAbsolute);
-            var largeImageUri = new Uri(Path.Combine(basePath, "RibbonIcon32.png"), UriKind.RelativeOrAbsolute);
+            Autodesk.Revit.UI.PushButton lintelButton = panel.AddPushButton<LintelLabelingCommand>("Lintel Assignment");
 
-            button.Image = new BitmapImage(smallImageUri);
-            button.LargeImage = new BitmapImage(largeImageUri);
+            Autodesk.Revit.UI.PushButton levelButton = panel.AddPushButton<LevelAssignmentCommand>("Level Assignment");
+
+            string basePath = Path.Combine(Directory.GetCurrentDirectory(), "Resources", "Icons");
+
+            Uri smallImageUri = new(Path.Combine(basePath, "RibbonIcon16.png"), UriKind.RelativeOrAbsolute);
+            Uri largeImageUri = new(Path.Combine(basePath, "RibbonIcon32.png"), UriKind.RelativeOrAbsolute);
+
+            lintelButton.Image = new BitmapImage(smallImageUri);
+            lintelButton.LargeImage = new BitmapImage(largeImageUri);
+
+            levelButton.Image = new BitmapImage(smallImageUri);
+            levelButton.LargeImage = new BitmapImage(largeImageUri);
         }
+
+
+
     }
 }
