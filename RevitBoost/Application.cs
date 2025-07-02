@@ -2,9 +2,6 @@
 using CommonUtils;
 using Nice3point.Revit.Toolkit.External;
 using RevitBoost.Commands;
-using System.Windows.Media.Imaging;
-using PushButton = Autodesk.Revit.UI.PushButton;
-using RibbonPanel = Autodesk.Revit.UI.RibbonPanel;
 
 namespace RevitBoost
 {
@@ -27,33 +24,41 @@ namespace RevitBoost
 
         private void CreateRibbon()
         {
-            // Сначала запускаем расширенную диагностику
-            EnhancedResourceDiagnostic.DiagnoseEmbeddingIssues();
-
             RibbonPanel panel = Application.CreatePanel("Commands", "RevitBoost");
 
             PushButton lintelButton = panel.AddPushButton<LintelLabelingCommand>("Lintel Assignment");
             PushButton levelButton = panel.AddPushButton<LevelAssignmentCommand>("Level Assignment");
 
-            lintelButton.ToolTip = "Назначение перемычек";
-            levelButton.ToolTip = "Назначение этажей";
+            // Тестируем доступность иконок для диагностики
+            string testResult = IconHelper.TestIconAvailability();
+            System.Diagnostics.Debug.WriteLine(testResult);
 
-            BitmapImage smallIcon = IconHelper.GetIcon("RibbonIcon16.png");
-            BitmapImage largeIcon = IconHelper.GetIcon("RibbonIcon32.png");
+            // Загружаем иконки используя правильные имена ресурсов
+            System.Windows.Media.Imaging.BitmapImage smallIcon = IconHelper.GetSmallIcon();
+            System.Windows.Media.Imaging.BitmapImage largeIcon = IconHelper.GetLargeIcon();
 
             if (smallIcon != null && largeIcon != null)
             {
+                // Применяем иконки к кнопкам
                 levelButton.Image = smallIcon;
                 lintelButton.Image = smallIcon;
                 levelButton.LargeImage = largeIcon;
                 lintelButton.LargeImage = largeIcon;
+
+                System.Diagnostics.Debug.WriteLine("🎉 Иконки успешно применены к кнопкам ribbon!");
+
+                // Опционально: показываем успех пользователю
+                _ = TaskDialog.Show("Успех", "Иконки успешно загружены и применены!");
             }
             else
             {
-                _ = TaskDialog.Show("RevitBoost", "Icons not found, using default Revit icons.");
+                System.Diagnostics.Debug.WriteLine("⚠️ Не все иконки удалось загрузить, используются стандартные");
+
+                // Можно показать пользователю информацию о проблеме
+                string message = "Некоторые иконки не удалось загрузить:\n" + testResult;
+                _ = TaskDialog.Show("Информация об иконках", message);
             }
         }
-
 
 
     }

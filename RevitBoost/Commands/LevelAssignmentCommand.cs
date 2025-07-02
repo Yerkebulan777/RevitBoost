@@ -12,7 +12,7 @@ namespace RevitBoost.Commands
     [Transaction(TransactionMode.Manual)]
     public class LevelAssignmentCommand : ExternalCommand
     {
-        private static readonly Guid BI_FLOOR_PARAMETER_GUID = new("12345678-1234-1234-1234-123456789ABC");
+        private static readonly Guid PARAMETER_GUID = new Guid("4673f045-9574-471f-9677-ac538a9e9a2d");
 
         public override void Execute()
         {
@@ -33,7 +33,7 @@ namespace RevitBoost.Commands
 
                 // Выполняем полное назначение элементов к этажам
                 _ = resultBuilder.AppendLine("=== НАЗНАЧЕНИЕ ЭЛЕМЕНТОВ К ЭТАЖАМ ===");
-                _ = resultBuilder.AppendLine(orchestrator.Execute(BI_FLOOR_PARAMETER_GUID));
+                _ = resultBuilder.AppendLine(orchestrator.Execute(PARAMETER_GUID));
 
                 ShowResult("Назначение завершено", resultBuilder.ToString());
             }
@@ -57,7 +57,7 @@ namespace RevitBoost.Commands
         private bool Validate(Document doc, StringBuilder log)
         {
             // Проверяем наличие общего параметра в проекте
-            SharedParameterElement sharedParam = SharedParameterElement.Lookup(doc, BI_FLOOR_PARAMETER_GUID);
+            SharedParameterElement sharedParam = SharedParameterElement.Lookup(doc, PARAMETER_GUID);
             if (sharedParam == null)
             {
                 _ = log.AppendLine("Общий параметр 'BI_этаж' не найден в проекте");
