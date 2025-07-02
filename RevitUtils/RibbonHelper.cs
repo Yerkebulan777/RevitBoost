@@ -5,29 +5,27 @@ namespace RevitUtils
 {
     public static class RibbonHelper
     {
-        public static RibbonPanel CreatePanel(UIControlledApplication application, string panelName)
+        public static RibbonPanel CreatePanel(UIControlledApplication application, string panelName, string tabName)
         {
-            foreach (RibbonPanel panel in application.GetRibbonPanels(Tab.AddIns))
+            RibbonPanel resultPanel = null;
+            application.CreateRibbonTab(tabName);
+
+            foreach (RibbonPanel ribbonPanel in application.GetRibbonPanels(tabName))
             {
-                if (panel.Name == panelName)
+                if (ribbonPanel.Name.Equals(panelName))
                 {
-                    return panel;
+                    resultPanel = ribbonPanel;
+                    break;
                 }
             }
 
-            return application.CreateRibbonPanel(panelName);
+            return resultPanel ?? application.CreateRibbonPanel(tabName, panelName);
         }
 
-
-        /// <summary>
-        /// Добавляет кнопку для команды, наследующейся от Nice3point ExternalCommand
-        /// </summary>
         public static PushButton AddPushButton<TCommand>(this RibbonPanel panel, string buttonText) where TCommand : IExternalCommand, new()
         {
             Type commandType = typeof(TCommand);
             string buttonName = commandType.FullName;
-
-            // Безопасное получение пути к сборке
             Assembly assembly = Assembly.GetAssembly(commandType);
             string assemblyPath = assembly?.Location ?? assembly?.CodeBase;
 
@@ -45,5 +43,36 @@ namespace RevitUtils
 
             return panel.AddItem(buttonData) as PushButton;
         }
+
+        public static PulldownButton AddPullDownButton(this RibbonPanel panel, string internalName, string buttonText)
+        {
+            PulldownButtonData itemData = new PulldownButtonData(internalName, buttonText);
+            return (PulldownButton)panel.AddItem(itemData);
+        }
+
+
+        public static SplitButton AddSplitButton(this RibbonPanel panel, string internalName, string buttonText)
+        {
+            SplitButtonData itemData = new SplitButtonData(internalName, buttonText);
+            return (SplitButton)panel.AddItem(itemData);
+        }
+
+
+        public static RadioButtonGroup AddRadioButtonGroup(this RibbonPanel panel, string internalName)
+        {
+            RadioButtonGroupData itemData = new RadioButtonGroupData(internalName);
+            return (RadioButtonGroup)panel.AddItem(itemData);
+        }
+
+
+        public static ComboBox AddComboBox(this RibbonPanel panel, string internalName)
+        {
+            ComboBoxData itemData = new ComboBoxData(internalName);
+            return (ComboBox)panel.AddItem(itemData);
+        }
+
+
+
+
     }
 }

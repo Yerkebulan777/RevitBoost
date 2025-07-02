@@ -22,7 +22,7 @@ namespace RevitBoost
 
         private static void CreateRibbon(UIControlledApplication application)
         {
-            RibbonPanel panel = RibbonHelper.CreatePanel(application, "RevitBoost");
+            RibbonPanel panel = RibbonHelper.CreatePanel(application, "Commands", "RevitBoost");
 
             PushButton lintelButton = panel.AddPushButton<LintelLabelingCommand>("Lintel Assignment");
             PushButton levelButton = panel.AddPushButton<LevelAssignmentCommand>("Level Assignment");
