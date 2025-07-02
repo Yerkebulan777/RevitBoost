@@ -3,13 +3,13 @@ using System.Text;
 
 namespace LevelAssignment
 {
-    public sealed class FloorAssignmentOrchestrator
+    public sealed class LevelAssignmentProcessor
     {
         private readonly Document _document;
         private readonly FloorInfoGenerator _floorInfoGenerator;
         private readonly BoundaryCalculator _boundaryCalculator;
 
-        public FloorAssignmentOrchestrator(Document document)
+        public LevelAssignmentProcessor(Document document)
         {
             _document = document ?? throw new ArgumentNullException(nameof(document));
 
@@ -26,7 +26,7 @@ namespace LevelAssignment
         /// <summary>
         /// Выполняет полный цикл анализа и назначения элементов к этажам
         /// </summary>
-        public string ExecuteFullAssignment(Guid sharedParameterGuid)
+        public string Execute(Guid sharedParameterGuid)
         {
             StringBuilder result = new();
 

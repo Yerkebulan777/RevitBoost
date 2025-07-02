@@ -92,6 +92,7 @@
 	
 	<ItemGroup>
 	  <ProjectReference Include="..\CommonUtils\CommonUtils.csproj" />
+	  <ProjectReference Include="..\LevelAssignment\LevelAssignment.csproj" />
 	  <ProjectReference Include="..\LintelMaster\LintelMaster.csproj" />
 	  <ProjectReference Include="..\RevitUtils\RevitUtils.csproj" />
 	</ItemGroup>
