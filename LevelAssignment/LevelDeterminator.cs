@@ -1,5 +1,4 @@
-﻿using Autodesk.Revit.DB.Architecture;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace LevelAssignment
 {
@@ -9,82 +8,28 @@ namespace LevelAssignment
     public class LevelDeterminator
     {
         /// <summary>
-        /// Определение принадлежность к уровню 
+        /// Определяет этаж на основе геометрического анализа высоты элемента
         /// </summary>
-        public bool IsOnLevel(Element element, ref HashSet<ElementId> levelIds)
+        public bool IsElementOnFloorByGeometry(int Index, Element element, IList<FloorInfo> sortedFloors)
         {
-            Debug.Assert(!levelIds.Any(), "No levels provided for checking!");
+            BoundingBoxXYZ bbox = element.get_BoundingBox(null);
 
-            Parameter levelParam;
+            XYZ center = (bbox.Min + bbox.Max) * 0.5;
 
-            if (levelIds.Any())
+            for (int idx = 0; idx < sortedFloors.Count; idx++)
             {
-                string categoryName = element.Category.Name;
+                FloorInfo floor = sortedFloors[idx];
 
-                if (element.LevelId != ElementId.InvalidElementId)
-                {
-                    Debug.WriteLine($"0 LEVEL_ID: {categoryName}");
-                    return levelIds.Contains(element.LevelId);
-                }
+                BoundingBoxXYZ bounding = floor.BoundingBox;
 
-                if (element is Wall)
+                if (floor.Index >= Index && IsPointContained(center, bounding))
                 {
-                    levelParam = element.get_Parameter(BuiltInParameter.WALL_BASE_CONSTRAINT);
-                    if (levelParam?.AsElementId() is ElementId id && levelIds.Contains(id))
-                    {
-                        Debug.WriteLine($"1 WALL_BASE_CONSTRAINT: {categoryName}");
-                        return true;
-                    }
-                }
-
-                if (element is Stairs)
-                {
-                    levelParam = element.get_Parameter(BuiltInParameter.STAIRS_BASE_LEVEL_PARAM);
-                    if (levelParam?.AsElementId() is ElementId id && levelIds.Contains(id))
-                    {
-                        Debug.WriteLine($"1 STAIRS_BASE_LEVEL_PARAM: {categoryName}");
-                        return true;
-                    }
-                }
-
-                if (element is RoofBase)
-                {
-                    levelParam = element.get_Parameter(BuiltInParameter.ROOF_BASE_LEVEL_PARAM);
-                    if (levelParam?.AsElementId() is ElementId id && levelIds.Contains(id))
-                    {
-                        Debug.WriteLine($"1 ROOF_BASE_LEVEL_PARAM: {categoryName}");
-                        return true;
-                    }
-                }
-
-                levelParam = element.get_Parameter(BuiltInParameter.LEVEL_PARAM);
-                if (levelParam?.AsElementId() is ElementId baseId && levelIds.Contains(baseId))
-                {
-                    Debug.WriteLine($"1 LEVEL_PARAM: {categoryName}");
                     return true;
                 }
-
-                levelParam = element.get_Parameter(BuiltInParameter.SCHEDULE_LEVEL_PARAM);
-                if (levelParam?.AsElementId() is ElementId scheduleId && levelIds.Contains(scheduleId))
-                {
-                    Debug.WriteLine($"2 SCHEDULE_LEVEL_PARAM: {categoryName}");
-                    return true;
-                }
-
-                levelParam = element.get_Parameter(BuiltInParameter.FAMILY_LEVEL_PARAM);
-                if (levelParam?.AsElementId() is ElementId familyId && levelIds.Contains(familyId))
-                {
-                    Debug.WriteLine($"3 FAMILY_LEVEL_PARAM: {categoryName}");
-                    return true;
-                }
-
-                throw new InvalidOperationException($"Не удалось определить уровень для {categoryName}!");
             }
 
-            return false;
-
+            throw new InvalidDataException($"Не удалось определить этаж для элемента по геометрии!");
         }
-
 
         /// <summary>
         /// Определяет, находится ли точка в пределах BoundingBox
@@ -94,37 +39,9 @@ namespace LevelAssignment
             Outline outline = new(bbox.Min, bbox.Max);
             return outline.Contains(point, double.Epsilon);
         }
-
-        /// <summary>
-        /// Определяет этаж на основе геометрического анализа высоты элемента
-        /// </summary>
-        public bool DetermineFloorByGeometry(GeometryInfo elementData, ref List<FloorInfo> sortedFloors)
-        {
-            // Поиск подходящего этажа по высоте
-            for (int idx = 0; idx < sortedFloors.Count; idx++)
-            {
-                FloorInfo floor = sortedFloors[idx];
-
-                if (IsPointContained(elementData.Centroid, floor.BoundingBox))
-                {
-                    return true;
-                }
-            }
-
-            throw new InvalidDataException($"Не удалось определить этаж для элемента по геометрии!");
-        }
     }
 
 
-    /// <summary>
-    /// Данные о пространственных характеристиках элемента
-    /// </summary>
-    public record GeometryInfo
-    {
-        public XYZ Centroid { get; set; }
-        public Element Element { get; set; }
-        public BoundingBoxXYZ BoundingBox { get; set; }
-    }
 
 
 

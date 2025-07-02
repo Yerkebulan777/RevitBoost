@@ -24,8 +24,10 @@ namespace LevelAssignment
             {
                 floorModel.Height = GetLevelHeight(floorModel, floorModels, out double elevation);
 
-                foreach (Level level in floorModel.ContainedLevelIds)
+                foreach (ElementId levelId in floorModel.ContainedLevelIds)
                 {
+                    Level level = doc.GetElement(levelId) as Level;
+
                     foreach (ViewPlan floorPlan in GetViewPlansByLevel(doc, level))
                     {
                         if (!floorPlan.IsCallout && viewsOnSheets.Contains(floorPlan.Id))
@@ -172,7 +174,7 @@ namespace LevelAssignment
         /// <summary>
         /// Получает все планы этажей для указанного уровня
         /// </summary>
-        List<ViewPlan> GetViewPlansByLevel(Document doc, Level level)
+        private List<ViewPlan> GetViewPlansByLevel(Document doc, Level level)
         {
             return [.. new FilteredElementCollector(doc)
                 .OfClass(typeof(ViewPlan)).OfType<ViewPlan>()
