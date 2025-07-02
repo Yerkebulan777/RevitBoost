@@ -5,7 +5,6 @@ namespace LevelAssignment
 {
     public sealed class FloorAssignmentOrchestrator
     {
-        private readonly int levelAssignmentCount;
         private readonly Document _document;
         private readonly FloorInfoGenerator _floorInfoGenerator;
         private readonly BoundaryCalculator _boundaryCalculator;
@@ -44,8 +43,8 @@ namespace LevelAssignment
 
             ModelCategoryFilter = new ElementMulticategoryFilter(CollectorHelper.GetModelCategoryIds(_document));
 
-            _ = result.AppendLine($"Общий параметр найден: {LevelSharedParameter?.Name}");
-            _ = result.AppendLine($"Общее количество этажей: {floorModels?.Count}");
+            _ = result.AppendLine($"General parameter: {LevelSharedParameter?.Name}");
+            _ = result.AppendLine($"Total number of floors: {floorModels?.Count}");
 
             foreach (FloorInfo floor in floorModels)
             {
@@ -73,14 +72,12 @@ namespace LevelAssignment
                 }
                 catch (Exception ex)
                 {
-                    _ = result.AppendLine($"Ошибка при обработке этажа: {ex.Message}");
+                    _ = result.AppendLine($"Error during floor processing: {ex.Message}");
                 }
                 finally
                 {
-                    _ = result.AppendLine($"Этаж: {floor.DisplayName} {floor.Index} Высота этажа: {floor.Height}");
-
-                    _ = result.AppendLine($"Общее количество всех найденных элементов: {elemIdSet.Count}");
-
+                    _ = result.AppendLine($"Floor: {floor.DisplayName} {floor.Index} Height: {floor.Height}");
+                    _ = result.AppendLine($"The total number of all elements found:{elemIdSet.Count}");
                     _ = result.AppendLine(ApplyLevelParameter(_document, elemIdSet, floor.Index));
                 }
             }
@@ -94,8 +91,8 @@ namespace LevelAssignment
         public string ApplyLevelParameter(Document doc, HashSet<ElementId> elemIdSet, int levelValue)
         {
             int assignedCount = 0;
-            int readOnlyParameterCount = 0;
             int notModifiableCount = 0;
+            int readOnlyParameterCount = 0;
 
             StringBuilder result = new();
 
@@ -146,19 +143,28 @@ namespace LevelAssignment
                             }
                         }
 
-                        _ = trx.Commit();
+                        if (TransactionStatus.Committed != trx.Commit())
+                        {
+                            _ = result.AppendLine("Transaction could not be committed");
+                        }
                     }
                     catch (Exception ex)
                     {
-                        _ = trx.RollBack();
                         _ = result.AppendLine($"Error during transaction: {ex.Message}");
+                    }
+                    finally
+                    {
+                        if (!trx.HasEnded())
+                        {
+                            _ = trx.RollBack();
+                        }
+
+                        _ = result.AppendLine($"Total elements assigned: {assignedCount}");
+                        _ = result.AppendLine($"Read-only elements: {readOnlyParameterCount}");
+                        _ = result.AppendLine($"Not modifiable elements: {notModifiableCount}");
                     }
                 }
             }
-
-            _ = result.AppendLine($"Total elements assigned to level {levelValue}: {assignedCount}");
-            _ = result.AppendLine($"Read-only elements: {readOnlyParameterCount}");
-            _ = result.AppendLine($"Not modifiable elements: {notModifiableCount}");
 
             return result.ToString();
         }
