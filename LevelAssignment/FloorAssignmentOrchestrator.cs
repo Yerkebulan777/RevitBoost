@@ -86,7 +86,7 @@ namespace LevelAssignment
         /// <summary>
         /// Устанавливает значение параметра BI_этаж для элементов
         /// </summary>
-        public int ApplyLevelParameter(Document doc, HashSet<ElementId> elemIdSet, in float levelValue)
+        public int ApplyLevelParameter(Document doc, HashSet<ElementId> elemIdSet, int levelValue)
         {
             int count = 0;
 
@@ -104,9 +104,8 @@ namespace LevelAssignment
 
                     Parameter param = element?.get_Parameter(levelParamGuid);
 
-                    if (param is not null && !param.IsReadOnly && param.Set(levelValue))
+                    if (param?.Set(levelValue) == true)
                     {
-                        element.Dispose();
                         count++;
                     }
                 }
