@@ -1,7 +1,7 @@
 ﻿using Autodesk.Revit.Attributes;
+using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using LevelAssignment;
-using Nice3point.Revit.Toolkit.External;
 using System.Text;
 
 namespace RevitBoost.Commands
@@ -10,13 +10,15 @@ namespace RevitBoost.Commands
     /// Команда для автоматического назначения элементов к этажам
     /// </summary>
     [Transaction(TransactionMode.Manual)]
-    public class LevelAssignmentCommand : ExternalCommand
+    public class LevelAssignmentCommand : IExternalCommand
     {
         private static readonly Guid PARAMETER_GUID = new Guid("4673f045-9574-471f-9677-ac538a9e9a2d");
 
-        public override void Execute()
+
+        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
-            Document doc = Document;
+            Document doc = commandData.Application.ActiveUIDocument.Document;
+
             StringBuilder resultBuilder = new();
 
             try
@@ -25,7 +27,7 @@ namespace RevitBoost.Commands
                 if (!Validate(doc, resultBuilder))
                 {
                     ShowResult("Ошибка валидации", resultBuilder.ToString());
-                    return;
+                    return Result.Failed;
                 }
 
                 // Создаём оркестратор для назначения этажей
@@ -49,6 +51,8 @@ namespace RevitBoost.Commands
 
                 ShowResult("Ошибка выполнения", resultBuilder.ToString());
             }
+
+            return Result.Succeeded;
         }
 
         /// <summary>
@@ -83,5 +87,7 @@ namespace RevitBoost.Commands
 
             _ = dialog.Show();
         }
+
+
     }
 }

@@ -1,7 +1,7 @@
 ﻿using Autodesk.Revit.Attributes;
+using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using LintelMaster;
-using Nice3point.Revit.Toolkit.External;
 using System.Text;
 
 namespace RevitBoost.Commands
@@ -10,11 +10,11 @@ namespace RevitBoost.Commands
     /// Команда для маркировки перемычек
     /// </summary>
     [Transaction(TransactionMode.Manual)]
-    public class LintelLabelingCommand : ExternalCommand
+    public class LintelLabelingCommand : IExternalCommand
     {
-        public override void Execute()
+        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
-            Document doc = Document;
+            Document doc = commandData.Application.ActiveUIDocument.Document;
 
             GroupingConfig config = new()
             {
@@ -36,7 +36,9 @@ namespace RevitBoost.Commands
                 stringBuilder.AppendLine($"Группа: {group.Key} ({group.Value.Count})");
             }
 
-            TaskDialog.Show("УРА!",  stringBuilder.ToString());
+            TaskDialog.Show("УРА!", stringBuilder.ToString());
+
+            return Result.Succeeded;
         }
     }
 
