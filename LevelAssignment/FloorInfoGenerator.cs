@@ -139,9 +139,7 @@ namespace LevelAssignment
         /// </summary>
         internal bool IsValidFloorNumber(string levelName, int totalLevels, out int number)
         {
-            bool hasNumber = TryParseNumber(levelName, out number);
-
-            return hasNumber && (number < totalLevels || specialFloorNumbers.Contains(number));
+            return TryParseNumber(levelName, out number) && (number < totalLevels || specialFloorNumbers.Contains(number));
         }
 
         /// <summary>
@@ -149,11 +147,16 @@ namespace LevelAssignment
         /// </summary>
         private bool TryParseNumber(string levelName, out int number)
         {
-            number = 0;
-
             Match match = levelNumberRegex.Match(levelName.Trim());
 
-            return match.Success && int.TryParse(match.Value, out number);
+            if (match.Success && int.TryParse(match.Value, out number))
+            {
+                Debug.WriteLine($"Extracted number: {number}");
+                return true;
+            }
+
+            number = 0;
+            return false;
         }
 
         /// <summary>
