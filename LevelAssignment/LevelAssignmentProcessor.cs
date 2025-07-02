@@ -77,7 +77,8 @@ namespace LevelAssignment
                 }
                 finally
                 {
-                    _ = result.AppendLine($"Floor: {floor.DisplayName} {floor.Index} Height: {floor.Height}");
+                    _ = result.AppendLine($"Floor: {floor.DisplayName} ({floor.Index}) ");
+                    _ = result.AppendLine($"Floor height: {UnitManager.FootToMm(floor.Height)}");
                     _ = result.AppendLine($"The total number of all elements found:{elemIdSet.Count}");
                     _ = result.AppendLine(ApplyLevelParameter(_document, elemIdSet, floor.Index));
                 }
