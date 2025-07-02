@@ -1,4 +1,6 @@
-﻿namespace RevitUtils
+﻿using Autodesk.Revit.DB;
+
+namespace RevitUtils
 {
     public static class UnitManager
     {
@@ -43,13 +45,10 @@
 
         public static string GetDysplayUnitType(Parameter param)
         {
-#if REVIT2019 || REVIT2020
-                return LabelUtils.GetLabelFor(param.Definition.UnitType);
-#elif REVIT2021 || REVIT2022
-                return LabelUtils.GetLabelForSpec(param.Definition.GetSpecTypeId());
-#elif REVIT2023 || REVIT2024 || REVIT2025
             return LabelUtils.GetLabelForSpec(param.Definition.GetDataType());
-#endif
         }
+
+
+
     }
 }

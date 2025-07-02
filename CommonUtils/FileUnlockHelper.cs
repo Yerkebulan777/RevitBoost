@@ -108,7 +108,7 @@ namespace CommonUtils
             try
             {
                 FileVersionInfo versionInfo = FileVersionInfo.GetVersionInfo(filePath);
-                return versionInfo.CompanyName?.Contains("Microsoft", StringComparison.OrdinalIgnoreCase) == true;
+                return versionInfo.CompanyName?.Contains("Microsoft") == true;
             }
             catch
             {
@@ -206,7 +206,7 @@ namespace CommonUtils
 
             foreach (string line in lines)
             {
-                if (line.Contains("pid:", StringComparison.OrdinalIgnoreCase))
+                if (line.Contains("pid:"))
                 {
                     int pidStart = line.IndexOf("pid:", StringComparison.OrdinalIgnoreCase) + 4;
                     int pidEnd = line.IndexOf(' ', pidStart);

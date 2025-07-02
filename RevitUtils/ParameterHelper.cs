@@ -1,4 +1,5 @@
-﻿using RevitUtils.Logging;
+﻿using Autodesk.Revit.DB;
+using RevitUtils.Logging;
 
 namespace RevitUtils
 {
@@ -60,11 +61,9 @@ namespace RevitUtils
             return false;
         }
 
-
         /// <summary>
         /// Получает числовое значение параметра по BuiltInParameter
         /// </summary>
-        /// <returns>Значение параметра в внутренних единицах Revit или 0 если параметр не найден</returns>
         public static double GetParamValueAsDouble(Element element, BuiltInParameter paramId)
         {
             if (element is null || !element.IsValidObject)
@@ -84,11 +83,9 @@ namespace RevitUtils
             return parameter?.HasValue == true && parameter.StorageType == StorageType.Double ? parameter.AsDouble() : 0;
         }
 
-
         /// <summary>
         /// Получает числовое значение параметра по имени
         /// </summary>
-        /// <returns>Значение параметра в внутренних единицах Revit или 0 если параметр не найден</returns>
         public static double GetParamValueAsDouble(Element element, string paramName)
         {
             if (element is null || !element.IsValidObject)
@@ -107,7 +104,6 @@ namespace RevitUtils
 
             return parameter?.HasValue == true && parameter.StorageType == StorageType.Double ? parameter.AsDouble() : 0;
         }
-
 
 
     }

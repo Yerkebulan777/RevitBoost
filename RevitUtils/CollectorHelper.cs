@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using Autodesk.Revit.DB;
+using System.Diagnostics;
 using Document = Autodesk.Revit.DB.Document;
 
 
@@ -24,13 +25,8 @@ namespace RevitUtils
             ElementId typeParamId = new(BuiltInParameter.ELEM_TYPE_PARAM);
             ElementId symbolParamId = new(BuiltInParameter.SYMBOL_NAME_PARAM);
 
-#if REVIT2019 || REVIT2021 || REVIT2022
-            FilterRule typeRule = ParameterFilterRuleFactory.CreateEqualsRule(typeParamId, symbolName, false);
-            FilterRule symbolRule = ParameterFilterRuleFactory.CreateEqualsRule(symbolParamId, symbolName, false);
-#elif REVIT2023 || REVIT2024 || REVIT2025
             FilterRule typeRule = ParameterFilterRuleFactory.CreateEqualsRule(typeParamId, symbolName);
             FilterRule symbolRule = ParameterFilterRuleFactory.CreateEqualsRule(symbolParamId, symbolName);
-#endif
 
             ElementParameterFilter typeFilter = new(typeRule);
             ElementParameterFilter symbolFilter = new(symbolRule);

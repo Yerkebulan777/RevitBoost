@@ -5,6 +5,7 @@ using Directory = System.IO.Directory;
 using DirectoryInfo = System.IO.DirectoryInfo;
 using File = System.IO.File;
 using Path = System.IO.Path;
+using Autodesk.Revit.DB;
 
 namespace RevitUtils
 {

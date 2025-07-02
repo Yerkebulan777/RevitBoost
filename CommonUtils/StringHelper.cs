@@ -8,7 +8,9 @@ namespace CommonUtils
 {
     public static class StringHelper
     {
-        public static string ReplaceInvalidChars(string textLine)
+
+
+        public static string ReplaceInvalidChars(this string textLine)
         {
             char[] invalidChars = Path.GetInvalidFileNameChars();
 
@@ -32,7 +34,7 @@ namespace CommonUtils
         }
 
 
-        public static string NormalizeLength(string textLine, int lenght = 100)
+        public static string NormalizeLength(this string textLine, int lenght = 100)
         {
             if (!string.IsNullOrEmpty(textLine) && textLine.Length > lenght)
             {
@@ -48,7 +50,7 @@ namespace CommonUtils
         }
 
 
-        public static void CopyToClipboard(string text)
+        public static void CopyToClipboard(this string text)
         {
             if (!string.IsNullOrEmpty(text))
             {
@@ -62,7 +64,7 @@ namespace CommonUtils
                 }
             }
         }
+
+
     }
-
-
 }

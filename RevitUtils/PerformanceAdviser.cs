@@ -1,4 +1,6 @@
-﻿namespace RevitUtils;
+﻿using Autodesk.Revit.DB;
+
+namespace RevitUtils;
 
 internal class FlippedDoorCheck : IPerformanceAdviserRule
 {
