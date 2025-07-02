@@ -119,6 +119,35 @@ namespace RevitUtils
             return collector.WherePasses(filter);
         }
 
+        /// <summary>
+        ///     Retrieve ducts and pipes intersecting a given host.
+        /// </summary>
+        public static FilteredElementCollector GetMepClashes(HostObject host)
+        {
+            Document doc = host.Document;
+
+            List<BuiltInCategory> cats = new()
+            {
+                BuiltInCategory.OST_DuctCurves,
+                BuiltInCategory.OST_PipeCurves
+            };
+
+            ElementMulticategoryFilter mepfilter = new(cats);
+
+            BoundingBoxXYZ bb = host.get_BoundingBox(null);
+            Outline o = new(bb.Min, bb.Max);
+
+            BoundingBoxIsInsideFilter bbfilter = new(o);
+
+            FilteredElementCollector clashingElements
+                = new FilteredElementCollector(doc)
+                    .WhereElementIsNotElementType()
+                    .WherePasses(mepfilter)
+                    .WherePasses(bbfilter);
+
+            return clashingElements;
+        }
+
 
 
     }
