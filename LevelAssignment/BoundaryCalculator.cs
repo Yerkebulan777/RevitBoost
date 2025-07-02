@@ -27,22 +27,18 @@ namespace LevelAssignment
 
                 foreach (ElementId levelId in floorModel.ContainedLevelIds)
                 {
-                    Level level = doc.GetElement(levelId) as Level;
-
-                    if (level is null)
+                    if (doc.GetElement(levelId) is Level level)
                     {
-                        Debug.Fail($"Уровень {levelId.IntegerValue} не найден!");
-                    }
-
-                    foreach (ViewPlan floorPlan in GetViewPlansByLevel(doc, level))
-                    {
-                        if (!floorPlan.IsCallout && viewsOnSheets.Contains(floorPlan.Id))
+                        foreach (ViewPlan floorPlan in GetViewPlansByLevel(doc, level))
                         {
-                            Outline boundary = ExtractViewPlanBoundary(floorPlan, elevation);
-
-                            if (boundary is not null)
+                            if (!floorPlan.IsCallout && viewsOnSheets.Contains(floorPlan.Id))
                             {
-                                floorPlanOutlines.Add(boundary);
+                                Outline boundary = ExtractViewPlanBoundary(floorPlan, elevation);
+
+                                if (boundary is not null)
+                                {
+                                    floorPlanOutlines.Add(boundary);
+                                }
                             }
                         }
                     }
