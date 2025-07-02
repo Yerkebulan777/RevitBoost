@@ -51,6 +51,7 @@ namespace LevelAssignment
             {
                 try
                 {
+                    _ = result.AppendLine();
                     floor.AggregateLevelFilter();
                     floor.ModelCategoryFilter = ModelCategoryFilter;
                     floor.LevelSharedParameter = LevelSharedParameter;
