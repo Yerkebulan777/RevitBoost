@@ -5,6 +5,7 @@ namespace LevelAssignment
 {
     public sealed class FloorAssignmentOrchestrator
     {
+        private int levelAssignmentCount;
         private readonly Document _document;
         private readonly FloorInfoGenerator _floorInfoGenerator;
         private readonly BoundaryCalculator _boundaryCalculator;
@@ -17,7 +18,7 @@ namespace LevelAssignment
             _boundaryCalculator = new BoundaryCalculator();
         }
 
-        private int levelAssignmentCount = 0;
+
         private Outline ProjectBoundaryOutline { get; set; }
         private ElementMulticategoryFilter ModelCategoryFilter { get; set; }
         private SharedParameterElement LevelSharedParameter { get; set; }
