@@ -94,8 +94,8 @@
 	</ItemGroup>
 
     <ItemGroup>
-        <EmbeddedResource Include="Resources\Icons\RibbonIcon16.png" />
-        <EmbeddedResource Include="Resources\Icons\RibbonIcon32.png" />
+        <!-- Includes all PNG files from the Icons folder -->
+        <EmbeddedResource Include="Resources\Icons\*.png" />
     </ItemGroup>
     
 </Project>
