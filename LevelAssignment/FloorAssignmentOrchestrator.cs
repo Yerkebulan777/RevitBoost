@@ -1,5 +1,4 @@
 ﻿using RevitUtils;
-using System.Diagnostics;
 using System.Text;
 
 namespace LevelAssignment
@@ -29,9 +28,9 @@ namespace LevelAssignment
         /// </summary>
         public string ExecuteFullAssignment(Guid sharedParameterGuid)
         {
-
-
             StringBuilder result = new();
+
+            HashSet<ElementId> elemIdSet = [];
 
             double elevationOffset = UnitManager.MmToFoot(250);
             double verticalClearance = UnitManager.MmToFoot(100);
@@ -53,28 +52,29 @@ namespace LevelAssignment
                     floor.LevelSharedParameter = LevelSharedParameter;
                     floor.CreateIntersectFilter(ProjectBoundaryOutline, elevationOffset, verticalClearance);
 
-                    HashSet<ElementId> elemIdSet = [.. floor.CreateLevelFilteredCollector(_document).ToElementIds()];
+                    elemIdSet = [.. floor.CreateLevelFilteredCollector(_document).ToElementIds()];
 
                     elemIdSet.UnionWith(floor.CreateExcludedCollector(_document, elemIdSet).Where(i => floor.IsElementContained(in i)).Select(i => i.Id));
 
                     levelAssignmentCount = ApplyLevelParameter(_document, elemIdSet, floor.Index);
-
-                    _ = result.AppendLine($"Этаж: {floor.Index} Высота этажа: {floor.Height}");
-
-                    _ = result.AppendLine($"Общее количество всех элементов: {elemIdSet.Count}");
-
-                    _ = result.AppendLine($"Количество эементов с назначенным этажем: {levelAssignmentCount}");
                 }
                 catch (Exception ex)
                 {
-                    Debug.Fail($"Ошибка при обработке этажа {floor.Index}: {ex.Message}");
+                    result.AppendLine($"Ошибка при обработке этажа: {ex.Message}");
                 }
                 finally
                 {
+                    result.AppendLine($"Этаж: {floor.DisplayName} {floor.Index} Высота этажа: {floor.Height}");
+                    result.AppendLine($"Количество эементов с назначенным этажем: {levelAssignmentCount}");
+                    result.AppendLine($"Общее количество всех элементов: {elemIdSet.Count}");
+
+                    // Очистка памяти каждые 1000 назначений
                     if (levelAssignmentCount % 1000 == 0)
                     {
                         GC.Collect();
+                        Thread.Sleep(100);
                         GC.WaitForPendingFinalizers();
+                        result.AppendLine($"Выполняется сбор мусора...");
                     }
                 }
             }
