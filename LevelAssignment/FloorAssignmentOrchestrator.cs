@@ -1,12 +1,11 @@
 ﻿using RevitUtils;
-using System.Diagnostics;
 using System.Text;
 
 namespace LevelAssignment
 {
     public sealed class FloorAssignmentOrchestrator
     {
-        private int levelAssignmentCount;
+        private readonly int levelAssignmentCount;
         private readonly Document _document;
         private readonly FloorInfoGenerator _floorInfoGenerator;
         private readonly BoundaryCalculator _boundaryCalculator;
@@ -45,8 +44,8 @@ namespace LevelAssignment
 
             ModelCategoryFilter = new ElementMulticategoryFilter(CollectorHelper.GetModelCategoryIds(_document));
 
-            result.AppendLine($"Общий параметр найден: {LevelSharedParameter?.Name}");
-            result.AppendLine($"Общее количество этажей: {floorModels?.Count}");
+            _ = result.AppendLine($"Общий параметр найден: {LevelSharedParameter?.Name}");
+            _ = result.AppendLine($"Общее количество этажей: {floorModels?.Count}");
 
             foreach (FloorInfo floor in floorModels)
             {
@@ -79,11 +78,10 @@ namespace LevelAssignment
                 finally
                 {
                     _ = result.AppendLine($"Этаж: {floor.DisplayName} {floor.Index} Высота этажа: {floor.Height}");
-                    _ = result.AppendLine($"Количество эементов с назначенным этажем: {levelAssignmentCount}");
-                    _ = result.AppendLine($"Общее количество всех элементов: {elemIdSet.Count}");
 
-                    levelAssignmentCount = ApplyLevelParameter(_document, elemIdSet, floor.Index);
+                    _ = result.AppendLine($"Общее количество всех найденных элементов: {elemIdSet.Count}");
 
+                    _ = result.AppendLine(ApplyLevelParameter(_document, elemIdSet, floor.Index));
                 }
             }
 
@@ -93,26 +91,39 @@ namespace LevelAssignment
         /// <summary>
         /// Устанавливает значение параметра BI_этаж для элементов
         /// </summary>
-        public int ApplyLevelParameter(Document doc, HashSet<ElementId> elemIdSet, int levelValue)
+        public string ApplyLevelParameter(Document doc, HashSet<ElementId> elemIdSet, int levelValue)
         {
-            int count = 0;
+            int assignedCount = 0;
 
-            using (Transaction trx = new(doc, $"Установка номера этажа {levelValue}"))
+            StringBuilder result = new();
+
+            using (Transaction trx = new(doc, $"Setting the floor number {levelValue}"))
             {
-                if (trx.Start() == TransactionStatus.Started)
+                if (TransactionStatus.Started == trx?.Start())
                 {
                     try
                     {
                         InternalDefinition levelParamGuid = LevelSharedParameter.GetDefinition();
+
+                        result.AppendLine($"Shared parameter: {levelParamGuid?.Name}");
 
                         foreach (ElementId elementId in elemIdSet)
                         {
                             Element element = doc.GetElement(elementId);
                             Parameter param = element?.get_Parameter(levelParamGuid);
 
-                            if (param?.Set(levelValue) == true)
+                            if (param is not null && !param.IsReadOnly)
                             {
-                                count++;
+                                if (param.Set(levelValue))
+                                {
+                                    assignedCount++;
+                                }
+                                else
+                                {
+                                    string elementName = element.Name;
+                                    string category = element.Category.Name;
+                                    result.AppendLine($"Failed for element {elementName} in category {category}");
+                                }
                             }
                         }
 
@@ -121,13 +132,14 @@ namespace LevelAssignment
                     catch (Exception ex)
                     {
                         _ = trx.RollBack();
-                        Debug.WriteLine($"Ошибка при установке параметра уровня: {ex.Message}");
-                        throw;
+                        _ = result.AppendLine($"Error during transaction: {ex.Message}");
                     }
                 }
             }
 
-            return count;
+            result.AppendLine($"Total elements assigned to level {levelValue}: {assignedCount}");
+
+            return result.ToString();
         }
 
 
