@@ -4,7 +4,6 @@ namespace RevitUtils
 {
     public static class UnitManager
     {
-        private const double epsilon = 0.003;
         private const double inchToMm = 25.4;
         private const double footToMm = 12 * inchToMm;
         private const double footToMeter = footToMm * 0.001;
@@ -45,7 +44,7 @@ namespace RevitUtils
 
         public static string GetDysplayUnitType(Parameter param)
         {
-            return LabelUtils.GetLabelForSpec(param.Definition.GetDataType());
+            return LabelUtils.GetLabelForSpec(param.GetUnitTypeId());
         }
 
 
