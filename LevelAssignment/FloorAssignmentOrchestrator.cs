@@ -60,13 +60,13 @@ namespace LevelAssignment
                 }
                 catch (Exception ex)
                 {
-                    result.AppendLine($"Ошибка при обработке этажа: {ex.Message}");
+                    _ = result.AppendLine($"Ошибка при обработке этажа: {ex.Message}");
                 }
                 finally
                 {
-                    result.AppendLine($"Этаж: {floor.DisplayName} {floor.Index} Высота этажа: {floor.Height}");
-                    result.AppendLine($"Количество эементов с назначенным этажем: {levelAssignmentCount}");
-                    result.AppendLine($"Общее количество всех элементов: {elemIdSet.Count}");
+                    _ = result.AppendLine($"Этаж: {floor.DisplayName} {floor.Index} Высота этажа: {floor.Height}");
+                    _ = result.AppendLine($"Количество эементов с назначенным этажем: {levelAssignmentCount}");
+                    _ = result.AppendLine($"Общее количество всех элементов: {elemIdSet.Count}");
 
                     // Очистка памяти каждые 1000 назначений
                     if (levelAssignmentCount % 1000 == 0)
@@ -74,7 +74,7 @@ namespace LevelAssignment
                         GC.Collect();
                         Thread.Sleep(100);
                         GC.WaitForPendingFinalizers();
-                        result.AppendLine($"Выполняется сбор мусора...");
+                        _ = result.AppendLine($"Выполняется сбор мусора...");
                     }
                 }
             }
