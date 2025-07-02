@@ -1,4 +1,5 @@
-﻿using RevitUtils;
+﻿using Autodesk.Revit.DB;
+using RevitUtils;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 
@@ -26,8 +27,8 @@ namespace LevelAssignment
             foreach (IGrouping<int, Level> group in GroupLevelsByFloorNumber(levelNumMap))
             {
                 int floorNumber = group.Key; // Номер этажа (ключ группы)
-                List<Level> floorLevels = [.. group]; // Уровни только этого этажа
-                floorModels.Add(new FloorInfo(floorNumber, floorLevels));
+                List<Level> sortedLevels = group.OrderBy(x => x.Elevation).ToList();
+                floorModels.Add(new FloorInfo(floorNumber, sortedLevels));
             }
 
             return floorModels;

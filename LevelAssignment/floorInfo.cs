@@ -1,4 +1,5 @@
-﻿using RevitUtils;
+﻿using Autodesk.Revit.DB;
+using RevitUtils;
 
 namespace LevelAssignment
 {
@@ -18,7 +19,7 @@ namespace LevelAssignment
         public int Index { get; private set; }
 
 
-        public FloorInfo(int floorNumber, IEnumerable<Level> sortedLevels)
+        public FloorInfo(int floorNumber, List<Level> sortedLevels)
         {
             ContainedLevelIds = [.. sortedLevels.Select(l => l.Id)];
             Level baseLevel = sortedLevels.FirstOrDefault();
@@ -26,7 +27,6 @@ namespace LevelAssignment
             InternalElevation = baseLevel.Elevation;
             DisplayName = baseLevel.Name;
             Index = floorNumber;
-
         }
 
         /// <summary>
