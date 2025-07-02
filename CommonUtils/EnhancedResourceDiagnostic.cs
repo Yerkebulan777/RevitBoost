@@ -32,8 +32,7 @@ namespace CommonUtils
 
                 if (resources.Length == 0)
                 {
-                    _ = report.AppendLine("ПРОБЛЕМА ПОДТВЕРЖДЕНА: Ресурсы не встроены!");
-                    _ = report.AppendLine();
+                    _ = report.AppendLine("Ресурсы не встроены!");
                     _ = report.AppendLine("Возможные причины:");
                     _ = report.AppendLine("1. Файлы не существуют в указанном пути");
                     _ = report.AppendLine("2. Build Action не установлен в 'Embedded Resource'");
