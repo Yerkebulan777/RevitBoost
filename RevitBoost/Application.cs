@@ -30,7 +30,6 @@ namespace RevitBoost
             string testResult = IconHelper.TestIconAvailability();
             System.Diagnostics.Debug.WriteLine(testResult);
 
-            // Загружаем иконки используя правильные имена ресурсов
             System.Windows.Media.Imaging.BitmapImage smallIcon = IconHelper.GetSmallIcon();
             System.Windows.Media.Imaging.BitmapImage largeIcon = IconHelper.GetLargeIcon();
 
@@ -44,7 +43,6 @@ namespace RevitBoost
 
                 System.Diagnostics.Debug.WriteLine("🎉 Иконки успешно применены к кнопкам ribbon!");
 
-                // Опционально: показываем успех пользователю
                 _ = TaskDialog.Show("Успех", "Иконки успешно загружены и применены!");
             }
             else
@@ -56,6 +54,8 @@ namespace RevitBoost
                 _ = TaskDialog.Show("Информация об иконках", message);
             }
         }
+
+
 
     }
 }
