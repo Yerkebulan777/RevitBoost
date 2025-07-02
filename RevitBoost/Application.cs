@@ -66,13 +66,13 @@ namespace RevitBoost
             return Result.Succeeded;
         }
 
+
         public Result OnShutdown(UIControlledApplication application)
         {
             Host.Stop();
             return Result.Succeeded;
         }
+
+
     }
-
-
-
 }

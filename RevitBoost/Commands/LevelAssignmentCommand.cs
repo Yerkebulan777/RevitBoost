@@ -1,6 +1,7 @@
 ﻿using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
+using CommonUtils;
 using LevelAssignment;
 using System.Text;
 
@@ -50,6 +51,8 @@ namespace RevitBoost.Commands
                 }
 
                 ShowResult("Ошибка выполнения", resultBuilder.ToString());
+
+                StringHelper.CopyToClipboard(resultBuilder.ToString());
             }
 
             return Result.Succeeded;
