@@ -5,10 +5,6 @@ using RevitUtils;
 
 namespace RevitBoost
 {
-    /// <summary>
-    ///     Application entry point
-    /// </summary>
-
     public class Application : IExternalApplication
     {
         private void CreateRibbon(UIControlledApplication application)
