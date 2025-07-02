@@ -1,7 +1,7 @@
 ﻿using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI;
-using RevitUtils.Logging;
+using System.Diagnostics;
 using Color = Autodesk.Revit.DB.Color;
 using Level = Autodesk.Revit.DB.Level;
 using View = Autodesk.Revit.DB.View;
@@ -34,7 +34,7 @@ namespace RevitUtils
                     }
                     catch (Exception ex)
                     {
-                        Log.Error(ex.Message);
+                        Debug.Fail(ex.Message);
 
                         if (!trx.HasEnded())
                         {
@@ -131,7 +131,7 @@ namespace RevitUtils
             }
             finally
             {
-                Log.Debug("Set View settings");
+                Debug.WriteLine("Set View settings");
             }
 
         }
@@ -215,7 +215,7 @@ namespace RevitUtils
             }
             finally
             {
-                Log.Debug("Set categories to visible");
+                Debug.WriteLine("Set categories to visible");
 
                 if (!trx.HasEnded())
                 {
@@ -396,7 +396,7 @@ namespace RevitUtils
                     }
                     catch (Exception ex)
                     {
-                        Log.Error(ex.Message);
+                        Debug.Fail(ex.Message);
                     }
                 }
             }
@@ -414,11 +414,11 @@ namespace RevitUtils
                 }
                 catch (Exception ex)
                 {
-                    Log.Error(ex.Message);
+                    Debug.Fail(ex.Message);
                 }
                 finally
                 {
-                    Log.Debug($"Activated view: {view.Name}");
+                    Debug.WriteLine($"Activated view: {view.Name}");
                 }
             }
         }
@@ -482,7 +482,7 @@ namespace RevitUtils
                 }
                 finally
                 {
-                    Log.Debug("Hided elements");
+                    Debug.WriteLine("Hided elements");
 
                     if (!trx.HasEnded())
                     {

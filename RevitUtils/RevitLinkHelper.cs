@@ -1,5 +1,4 @@
 ﻿using Autodesk.Revit.DB;
-using RevitUtils.Logging;
 using System.Diagnostics;
 
 namespace RevitUtils
@@ -8,7 +7,6 @@ namespace RevitUtils
     {
         public static void CheckAndRemoveUnloadedLinks(Document doc)
         {
-            Log.Debug($"Start check links ...");
             FilteredElementCollector collector = new(doc);
             collector = collector.OfClass(typeof(RevitLinkType));
             using Transaction trans = new(doc, "CheckLinks");
@@ -34,8 +32,6 @@ namespace RevitUtils
                                     AttachmentType attachmentType = linkType.AttachmentType;
 
                                     bool isLoaded = RevitLinkType.IsLoaded(doc, linkType.Id);
-
-                                    Log.Debug($"Link: {linkTypeName} is loaded: {isLoaded} ({attachmentType})");
 
                                     if (!isLoaded && attachmentType == AttachmentType.Overlay)
                                     {
@@ -72,7 +68,7 @@ namespace RevitUtils
             }
             catch (Exception ex)
             {
-                Log.Debug("Failed Reload: " + ex.Message);
+                Debug.Fail("Failed Reload: " + ex.Message);
             }
         }
 
@@ -85,7 +81,7 @@ namespace RevitUtils
             }
             catch (Exception ex)
             {
-                Log.Debug("Failed Delete: " + ex.Message);
+                Debug.Fail("Failed Delete: " + ex.Message);
             }
         }
 

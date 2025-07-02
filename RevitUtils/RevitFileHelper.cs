@@ -1,6 +1,5 @@
 ﻿using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
-using RevitUtils.Logging;
 using System.Diagnostics;
 
 namespace RevitUtils
@@ -65,7 +64,6 @@ namespace RevitUtils
             }
             finally
             {
-                Log.CloseAndFlush();
                 currentProcess?.Kill();
                 currentProcess?.Dispose();
             }

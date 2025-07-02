@@ -1,5 +1,4 @@
-﻿using CommonUtils.Logging;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using System.Security;
 
@@ -49,17 +48,17 @@ namespace CommonUtils
             }
             catch (SecurityException ex)
             {
-                Log.Error($"Security error unlocking file: {ex.Message}");
+                Debug.Fail($"Security error unlocking file: {ex.Message}");
                 return UnlockResult.Failed("Security restriction");
             }
             catch (UnauthorizedAccessException ex)
             {
-                Log.Error($"Access denied unlocking file: {ex.Message}");
+                Debug.Fail($"Access denied unlocking file: {ex.Message}");
                 return UnlockResult.Failed("Access denied");
             }
             catch (Exception ex)
             {
-                Log.Error($"Error unlocking file: {ex.Message}");
+                Debug.Fail($"Error unlocking file: {ex.Message}");
                 return UnlockResult.Failed($"Unexpected error: {ex.Message}");
             }
         }
@@ -158,7 +157,7 @@ namespace CommonUtils
             }
             catch (Exception ex)
             {
-                Log.Error($"Error executing handle tool: {ex.Message}");
+                Debug.Fail($"Error executing handle tool: {ex.Message}");
                 return UnlockResult.Failed("Handle execution failed");
             }
         }
@@ -240,7 +239,7 @@ namespace CommonUtils
                 // Не завершаем системные процессы
                 if (IsSystemProcess(process))
                 {
-                    Log.Info($"Skipping system process: {process.ProcessName} ({processId})");
+                    Debug.Print($"Skipping system process: {process.ProcessName} ({processId})");
                     return false;
                 }
 
@@ -255,7 +254,7 @@ namespace CommonUtils
             }
             catch (Exception ex)
             {
-                Log.Error($"Failed to terminate process {processId}: {ex.Message}");
+                Debug.Fail($"Failed to terminate process {processId}: {ex.Message}");
                 return false;
             }
         }

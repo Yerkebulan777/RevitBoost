@@ -1,6 +1,6 @@
 ﻿using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Events;
-using RevitUtils.Logging;
+using System.Diagnostics;
 using System.Text;
 
 namespace RevitUtils
@@ -169,7 +169,7 @@ namespace RevitUtils
             catch (Exception ex)
             {
                 result = ex.Message;
-                Log.Fatal(ex, result);
+                Debug.Fail(result);
             }
             finally
             {

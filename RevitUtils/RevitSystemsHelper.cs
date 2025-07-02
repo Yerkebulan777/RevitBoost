@@ -1,7 +1,7 @@
 ﻿using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Mechanical;
 using Autodesk.Revit.DB.Plumbing;
-using RevitUtils.Logging;
+using System.Diagnostics;
 
 namespace RevitUtils
 {
@@ -124,7 +124,7 @@ namespace RevitUtils
 
             }
 
-            Log.Debug($"Total pipes {result.Count} count");
+            Debug.WriteLine($"Total pipes {result.Count} count");
 
             return result;
         }

@@ -1,5 +1,5 @@
 ﻿using Autodesk.Revit.DB;
-using RevitUtils.Logging;
+using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
 using View = Autodesk.Revit.DB.View;
@@ -46,11 +46,11 @@ namespace RevitUtils
                 }
                 catch (Exception ex)
                 {
-                    Log.Error(ex.Message);
+                    Debug.Fail(ex.Message);
                 }
                 finally
                 {
-                    Log.Debug($"Set worksets to visible");
+                    Debug.WriteLine($"Set worksets to visible");
 
                     if (!trx.HasEnded())
                     {
@@ -110,7 +110,7 @@ namespace RevitUtils
                         }
                         finally
                         {
-                            Log.Debug($"\n{builder}");
+                            Debug.WriteLine($"\n{builder}");
                         }
                     }
 

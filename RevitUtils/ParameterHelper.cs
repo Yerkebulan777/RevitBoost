@@ -1,5 +1,5 @@
 ﻿using Autodesk.Revit.DB;
-using RevitUtils.Logging;
+using System.Diagnostics;
 
 namespace RevitUtils
 {
@@ -68,13 +68,13 @@ namespace RevitUtils
         {
             if (element is null || !element.IsValidObject)
             {
-                Log.Error("Element is null or invalid");
+                Debug.Fail("Element is null or invalid");
                 throw new ArgumentNullException(nameof(element), "Element cannot be null or invalid.");
             }
 
             if (paramId == BuiltInParameter.INVALID)
             {
-                Log.Error("Invalid BuiltInParameter");
+                Debug.Fail("Invalid BuiltInParameter");
                 throw new ArgumentException("BuiltInParameter cannot be INVALID.", nameof(paramId));
             }
 
@@ -90,13 +90,13 @@ namespace RevitUtils
         {
             if (element is null || !element.IsValidObject)
             {
-                Log.Error("Element is null or invalid");
+                Debug.Fail("Element is null or invalid");
                 throw new ArgumentNullException(nameof(element), "Element cannot be null or invalid.");
             }
 
             if (string.IsNullOrWhiteSpace(paramName))
             {
-                Log.Error("Parameter name is null or empty");
+                Debug.Fail("Parameter name is null or empty");
                 throw new ArgumentException("Parameter name cannot be null or empty.", nameof(paramName));
             }
 

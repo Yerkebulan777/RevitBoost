@@ -1,5 +1,4 @@
-﻿using CommonUtils.Logging;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 
@@ -39,7 +38,7 @@ namespace CommonUtils
 
                 if (proc.WaitForExit(1000))
                 {
-                    Log.Debug($"Opened: {directoryPath}");
+                    Debug.WriteLine($"Opened: {directoryPath}");
                 }
             }
         }

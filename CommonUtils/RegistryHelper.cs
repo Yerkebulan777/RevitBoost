@@ -1,5 +1,5 @@
 ﻿using Microsoft.Win32;
-using Serilog;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace CommonUtils
@@ -52,7 +52,7 @@ namespace CommonUtils
             }
             catch (Exception ex)
             {
-                Log.Error("GetValue failed: {Message}", ex.Message);
+                Debug.Fail("GetValue failed: {Message}", ex.Message);
             }
 
             return null;
@@ -106,7 +106,7 @@ namespace CommonUtils
             }
             catch (Exception ex)
             {
-                Log.Error("Failed to set registry value: {Name}, {Message}", name, ex.Message);
+                Debug.Fail($"Failed to set registry value: {name}, {ex.Message}");
             }
             finally
             {
@@ -149,7 +149,7 @@ namespace CommonUtils
                 }
                 catch (Exception ex)
                 {
-                    Log.Error("Failed to create registry parameter {Path}: {Message}", path, ex.Message);
+                    Debug.Fail($"Failed to create registry parameter {path}: {ex.Message}");
                     throw new InvalidOperationException($"Failed to create registry parameter {path}", ex);
                 }
 

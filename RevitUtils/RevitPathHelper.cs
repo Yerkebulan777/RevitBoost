@@ -1,11 +1,10 @@
-﻿using Microsoft.Win32;
+﻿using Autodesk.Revit.DB;
+using Microsoft.Win32;
 using System.Diagnostics;
-using RevitUtils.Logging;
 using Directory = System.IO.Directory;
 using DirectoryInfo = System.IO.DirectoryInfo;
 using File = System.IO.File;
 using Path = System.IO.Path;
-using Autodesk.Revit.DB;
 
 namespace RevitUtils
 {
@@ -173,7 +172,7 @@ namespace RevitUtils
 
                     if (File.Exists(filePath))
                     {
-                        Log.Debug($"Waiting: {counter} seconds");
+                        Debug.Print($"Waiting: {counter} seconds");
                         return true;
                     }
                 }
