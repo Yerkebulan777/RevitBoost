@@ -31,45 +31,46 @@ namespace RevitBoost
             PushButton lintelButton = panel.AddPushButton<LintelLabelingCommand>("Lintel Assignment");
             PushButton levelButton = panel.AddPushButton<LevelAssignmentCommand>("Level Assignment");
 
+            BitmapImage smallIcon = LoadEmbeddedIcon("RibbonIcon16.png");
+            BitmapImage largeIcon = LoadEmbeddedIcon("RibbonIcon32.png");
+
+            if (smallIcon != null && largeIcon != null)
+            {
+                levelButton.Image = smallIcon;
+                lintelButton.Image = smallIcon;
+                levelButton.LargeImage = largeIcon;
+                lintelButton.LargeImage = largeIcon;
+            }
+        }
+
+        private BitmapImage LoadEmbeddedIcon(string resourceName)
+        {
             try
             {
-                // Загружаем иконки из embedded ресурсов
-                BitmapImage smallIcon = LoadEmbeddedImage("/RevitBoost;component/Resources/Icons/RibbonIcon16.png");
-                BitmapImage largeIcon = LoadEmbeddedImage("/RevitBoost;component/Resources/Icons/RibbonIcon32.png");
+                // Получаем текущую сборку
+                System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
 
-                if (smallIcon != null && largeIcon != null)
+                string fullResourceName = $"RevitBoost.Resources.Icons.{resourceName}";
+
+                using Stream stream = assembly.GetManifestResourceStream(fullResourceName);
+
+                if (stream != null)
                 {
-                    lintelButton.Image = smallIcon;
-                    lintelButton.LargeImage = largeIcon;
-
-                    levelButton.Image = smallIcon;
-                    levelButton.LargeImage = largeIcon;
+                    BitmapImage bitmap = new();
+                    bitmap.BeginInit();
+                    bitmap.StreamSource = stream;
+                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmap.EndInit();
+                    bitmap.Freeze(); // Важно для потокобезопасности
+                    return bitmap;
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error loading icons: {ex.Message}");
-                // Плагин продолжит работать без иконок
+                System.Diagnostics.Debug.WriteLine($"Error loading embedded icon {resourceName}: {ex.Message}");
             }
-        }
 
-        private BitmapImage LoadEmbeddedImage(string resourcePath)
-        {
-            try
-            {
-                var uri = new Uri($"pack://application:,,,{resourcePath}", UriKind.Absolute);
-                var bitmap = new BitmapImage();
-                bitmap.BeginInit();
-                bitmap.UriSource = uri;
-                bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                bitmap.EndInit();
-                bitmap.Freeze(); // Важно для многопоточности
-                return bitmap;
-            }
-            catch
-            {
-                return null;
-            }
+            return null;
         }
 
 
