@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -30,12 +31,16 @@ namespace RevitBoost
                 });
 
                 // Минимальная настройка логирования
-                _ = builder.Services.AddLogging(config =>
+                builder.Services.AddLogging(config =>
                 {
-                    _ = config.ClearProviders();
-                    _ = config.AddSimpleConsole(options =>
+                    config.ClearProviders();
+                    config.SetMinimumLevel(LogLevel.Debug);
+                    config.AddFilter("Microsoft.Extensions", LogLevel.Warning);
+                    config.AddFilter("System", LogLevel.Warning);
+                    config.AddSimpleConsole(options =>
                     {
                         options.SingleLine = true;
+                        options.IncludeScopes = true;
                     });
                 });
 
