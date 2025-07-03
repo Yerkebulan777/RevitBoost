@@ -1,95 +1,94 @@
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System.Diagnostics;
+using Serilog;
+using Serilog.Events;
 using System.IO;
-using System.Reflection;
 
 namespace RevitBoost
 {
-    /// <summary>
-    ///  Предоставляет хост для сервисов приложения и управляет их жизненным циклом
-    /// </summary>
     public static class Host
     {
-        private static IHost _host;
+        private static IServiceProvider _services;
 
-        /// <summary>
-        ///  Запускает хост и настраивает сервисы приложения
-        /// </summary>
         public static void Start()
         {
+            if (_services != null)
+            {
+                return;
+            }
+
+            ConfigureSerilog();
+
+            ServiceCollection serviceCollection = new();
+
+            _ = serviceCollection.AddLogging(config =>
+            {
+                _ = config.ClearProviders();
+                _ = config.SetMinimumLevel(LogLevel.Debug);
+                _ = config.AddFilter("Microsoft.Extensions", LogLevel.Warning);
+                _ = config.AddFilter("System", LogLevel.Warning);
+
+                // Добавляем Serilog как провайдер
+                _ = config.AddSerilog();
+            });
+
+            _services = serviceCollection.BuildServiceProvider();
+        }
+
+        private static void ConfigureSerilog()
+        {
+            // Создаем директорию для логов
+            string logDirectory = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "RevitBoost", "logs");
+
+            _ = Directory.CreateDirectory(logDirectory);
+
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .MinimumLevel.Override("Microsoft.Extensions", LogEventLevel.Warning)
+                .MinimumLevel.Override("System", LogEventLevel.Warning)
+                .Enrich.WithProperty("Application", "RevitBoost")
+                .Enrich.WithProperty("RevitVersion", GetRevitVersion())
+                .Enrich.WithProperty("MachineName", Environment.MachineName)
+                .Enrich.WithProperty("UserName", Environment.UserName)
+                .Enrich.FromLogContext()
+                .WriteTo.Debug()
+                .WriteTo.File(
+                    path: Path.Combine(logDirectory, "revit-boost-.log"),
+                    rollingInterval: RollingInterval.Day,
+                    retainedFileCountLimit: 7,
+                    outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] [Revit {RevitVersion}] [{MachineName}] {Message:lj}{NewLine}{Exception}")
+                .CreateLogger();
+        }
+
+        private static string GetRevitVersion()
+        {
             try
             {
-                // Создание базового построителя хоста
-                HostApplicationBuilder builder = new(new HostApplicationBuilderSettings
-                {
-                    ContentRootPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly()!.Location),
-                    DisableDefaults = true
-                });
-
-                // Минимальная настройка логирования
-                builder.Services.AddLogging(config =>
-                {
-                    config.ClearProviders();
-                    config.SetMinimumLevel(LogLevel.Debug);
-                    config.AddFilter("Microsoft.Extensions", LogLevel.Warning);
-                    config.AddFilter("System", LogLevel.Warning);
-                    config.AddSimpleConsole(options =>
-                    {
-                        options.SingleLine = true;
-                        options.IncludeScopes = true;
-                    });
-                });
-
-                // Построение и запуск хоста
-                _host = builder.Build();
-                _host.Start();
-
-                // Регистрация обработчика необработанных исключений
-                AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
+                // Создаем экземпляр Application для доступа к нестатическим свойствам  
             }
-            catch (Exception ex)
+            catch
             {
-                // Запись в Debug Output в случае ошибки
-                Debug.WriteLine($"Критическая ошибка при запуске хоста: {ex}");
-                throw;
+                return "Unknown";
             }
         }
 
-        /// <summary>
-        ///  Останавливает хост
-        /// </summary>
+
+        public static T GetService<T>()
+        {
+            return _services != null ? _services.GetService<T>() : default;
+        }
+
         public static void Stop()
         {
-            try
+            if (_services is IDisposable disposable)
             {
-                _host?.StopAsync().GetAwaiter().GetResult();
+                disposable.Dispose();
             }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Ошибка при остановке хоста: {ex}");
-            }
+
+            Log.CloseAndFlush();
+            _services = null;
         }
-
-        /// <summary>
-        ///  Получить сервис типа <typeparamref>/>
-        /// </summary>
-        public static T GetService<T>() where T : class
-        {
-            return _host.Services.GetRequiredService<T>();
-        }
-
-        /// <summary>
-        ///  Обработчик необработанных исключений приложения
-        /// </summary>
-        private static void OnUnhandledException(object sender, UnhandledExceptionEventArgs args)
-        {
-            Exception exception = (Exception)args.ExceptionObject;
-            Debug.WriteLine($"Необработанное исключение: {exception}");
-        }
-
-
-
     }
 }

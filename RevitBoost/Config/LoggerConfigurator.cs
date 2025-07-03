@@ -2,6 +2,7 @@
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
+using System.IO;
 
 namespace RevitBoost.Config
 {
@@ -9,26 +10,35 @@ namespace RevitBoost.Config
     {
         public static void AddSerilogConfiguration(this ILoggingBuilder builder)
         {
-            Logger logger = CreateDefaultLogger();
+            Logger logger = CreateRevitLogger();
+            _ = builder.AddSerilog(logger, dispose: true);
 
-            builder.AddSerilog(logger, dispose: true);
-
-            AppDomain.CurrentDomain.UnhandledException += OnOnUnhandledException;
+            AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
         }
 
-        private static Logger CreateDefaultLogger()
+        private static Logger CreateRevitLogger()
         {
+            string appDataDirectory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+
             return new LoggerConfiguration()
-                .WriteTo.Debug(LogEventLevel.Debug)
                 .MinimumLevel.Debug()
+                .Enrich.WithEnvironmentName()   // Из Serilog.Enrichers.Environment
+                .Enrich.WithProcessId()         // Из Serilog.Enrichers.Process
+                .Enrich.WithProcessName()       // Из Serilog.Enrichers.Process
+                .Enrich.WithProperty("Application", "RevitBoost")
+                .WriteTo.Debug(LogEventLevel.Debug)
+                .WriteTo.File(
+                    path: Path.Combine(appDataDirectory, "RevitBoost", "logs", "revit-boost-.log"),
+                    rollingInterval: RollingInterval.Day,
+                    retainedFileCountLimit: 7)
                 .CreateLogger();
         }
 
-        private static void OnOnUnhandledException(object sender, UnhandledExceptionEventArgs args)
+        private static void OnUnhandledException(object sender, UnhandledExceptionEventArgs args)
         {
             Exception exception = (Exception)args.ExceptionObject;
             ILogger<AppDomain> logger = Host.GetService<ILogger<AppDomain>>();
-            logger.LogCritical(exception, "Domain unhandled exception");
+            logger?.LogCritical(exception, "Domain unhandled exception");
         }
     }
 }
