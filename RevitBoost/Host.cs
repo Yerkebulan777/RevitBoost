@@ -48,10 +48,9 @@ namespace RevitBoost
                 .MinimumLevel.Debug()
                 .MinimumLevel.Override("Microsoft.Extensions", LogEventLevel.Warning)
                 .MinimumLevel.Override("System", LogEventLevel.Warning)
-                .Enrich.WithProperty("Application", "RevitBoost")
-                .Enrich.WithProperty("RevitVersion", GetRevitVersion())
                 .Enrich.WithProperty("MachineName", Environment.MachineName)
                 .Enrich.WithProperty("UserName", Environment.UserName)
+                .Enrich.WithProperty("Application", "RevitBoost")
                 .Enrich.FromLogContext()
                 .WriteTo.Debug()
                 .WriteTo.File(
@@ -61,19 +60,6 @@ namespace RevitBoost
                     outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] [Revit {RevitVersion}] [{MachineName}] {Message:lj}{NewLine}{Exception}")
                 .CreateLogger();
         }
-
-        private static string GetRevitVersion()
-        {
-            try
-            {
-                // Создаем экземпляр Application для доступа к нестатическим свойствам  
-            }
-            catch
-            {
-                return "Unknown";
-            }
-        }
-
 
         public static T GetService<T>()
         {
