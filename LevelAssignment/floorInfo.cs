@@ -1,5 +1,6 @@
 ﻿using Autodesk.Revit.DB;
 using RevitUtils;
+using System.Diagnostics;
 
 namespace LevelAssignment
 {
@@ -124,20 +125,17 @@ namespace LevelAssignment
         /// </summary>
         public bool IsElementContained(in Element element)
         {
-            BoundingBoxXYZ bbox = element.get_BoundingBox(null);
+            BoundingBoxXYZ bbox = element?.get_BoundingBox(null);
+
+            if (bbox is null || !bbox.Enabled)
+            {
+                Debug.Fail("BoundingBox not enabled!");
+                return false;
+            }
 
             XYZ center = (bbox.Min + bbox.Max) * 0.5;
 
-            return IsPointContained(center, BoundingBox);
-        }
-
-        /// <summary>
-        /// Определяет, находится ли точка в пределах BoundingBox
-        /// </summary>
-        private bool IsPointContained(XYZ point, BoundingBoxXYZ bbox)
-        {
-            Outline outline = new(bbox.Min, bbox.Max);
-            return outline.Contains(point, double.Epsilon);
+            return GeometryOutline.Contains(center, double.Epsilon);
         }
 
 
