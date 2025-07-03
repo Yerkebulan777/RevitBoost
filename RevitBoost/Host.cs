@@ -5,11 +5,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 
-
 namespace RevitBoost
 {
     /// <summary>
-    ///     Предоставляет хост для сервисов приложения и управляет их жизненным циклом
+    ///  Предоставляет хост для сервисов приложения и управляет их жизненным циклом
     /// </summary>
     public static class Host
     {
@@ -59,7 +58,7 @@ namespace RevitBoost
         }
 
         /// <summary>
-        ///     Останавливает хост
+        ///  Останавливает хост
         /// </summary>
         public static void Stop()
         {
@@ -74,19 +73,22 @@ namespace RevitBoost
         }
 
         /// <summary>
-        ///     Получить сервис типа <typeparamref name="T"/>
+        ///  Получить сервис типа <typeparamref>/>
         /// </summary>
-        /// <typeparam name="T">Тип запрашиваемого сервиса</typeparam>
         public static T GetService<T>() where T : class
         {
             return _host.Services.GetRequiredService<T>();
         }
 
+        /// <summary>
+        ///  Обработчик необработанных исключений приложения
+        /// </summary>
         private static void OnUnhandledException(object sender, UnhandledExceptionEventArgs args)
         {
             Exception exception = (Exception)args.ExceptionObject;
             Debug.WriteLine($"Необработанное исключение: {exception}");
         }
+
 
 
     }
