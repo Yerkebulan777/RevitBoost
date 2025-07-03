@@ -11,6 +11,8 @@ namespace LevelAssignment
         public ElementFilter ModelCategoryFilter { get; internal set; }
         public ElementFilter AggregatedLevelFilter { get; internal set; }
         public ElementFilter ElementExclusionFilter { get; internal set; }
+        public Solid FloorBoundingSolid { get; internal set; }
+        public Outline GeometryOutline { get; internal set; }
         public BoundingBoxXYZ BoundingBox { get; internal set; }
         public double InternalElevation { get; private set; }
         public double ProjectElevation { get; private set; }
@@ -69,12 +71,12 @@ namespace LevelAssignment
 
             maxPoint = Transform.Identity.OfPoint(new XYZ(maxPoint.X, maxPoint.Y, elevation + height - offset));
 
-            Solid floorSolid = SolidHelper.CreateSolidBoxByPoint(minPoint, maxPoint, height);
+            FloorBoundingSolid = SolidHelper.CreateSolidBoxByPoint(minPoint, maxPoint, height);
 
-            Outline outline = new(minPoint, maxPoint);
+            GeometryOutline = new Outline(minPoint, maxPoint);
 
-            ElementIntersectsSolidFilter solidFilter = new(floorSolid);
-            BoundingBoxIntersectsFilter boundingBoxFilter = new(outline);
+            BoundingBoxIntersectsFilter boundingBoxFilter = new(GeometryOutline);
+            ElementIntersectsSolidFilter solidFilter = new(FloorBoundingSolid);
 
             GeometryIntersectionFilter = new LogicalOrFilter(boundingBoxFilter, solidFilter);
         }

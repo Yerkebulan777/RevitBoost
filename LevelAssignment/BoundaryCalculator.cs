@@ -80,7 +80,7 @@ namespace LevelAssignment
                 return TransformCropBox(floorPlan, elevation);
             }
 
-            // Стратегия 2: Использование свойства Outline вида
+            // Стратегия 2: Использование свойства GeometryOutline вида
             if (floorPlan.Outline != null)
             {
                 return TransformViewOutline(floorPlan, elevation);
@@ -201,7 +201,7 @@ namespace LevelAssignment
         }
 
         /// <summary>
-        /// Преобразование границ Outline в проектные координаты
+        /// Преобразование границ GeometryOutline в проектные координаты
         /// </summary>
         private Outline TransformViewOutline(View view, double elevation)
         {
