@@ -5,23 +5,6 @@ namespace RevitUtils
 {
     public static class RibbonHelper
     {
-        public static RibbonPanel CreatePanel(UIControlledApplication application, string panelName, string tabName)
-        {
-            RibbonPanel resultPanel = null;
-            application.CreateRibbonTab(tabName);
-
-            foreach (RibbonPanel ribbonPanel in application.GetRibbonPanels(tabName))
-            {
-                if (ribbonPanel.Name.Equals(panelName))
-                {
-                    resultPanel = ribbonPanel;
-                    break;
-                }
-            }
-
-            return resultPanel ?? application.CreateRibbonPanel(tabName, panelName);
-        }
-
         public static PushButton AddPushButton<TCommand>(this RibbonPanel panel, string buttonText) where TCommand : IExternalCommand, new()
         {
             Type commandType = typeof(TCommand);
@@ -43,6 +26,25 @@ namespace RevitUtils
 
             return panel.AddItem(buttonData) as PushButton;
         }
+
+
+        public static RibbonPanel CreatePanel(UIControlledApplication application, string panelName, string tabName)
+        {
+            RibbonPanel resultPanel = null;
+            application.CreateRibbonTab(tabName);
+
+            foreach (RibbonPanel ribbonPanel in application.GetRibbonPanels(tabName))
+            {
+                if (ribbonPanel.Name.Equals(panelName))
+                {
+                    resultPanel = ribbonPanel;
+                    break;
+                }
+            }
+
+            return resultPanel ?? application.CreateRibbonPanel(tabName, panelName);
+        }
+
 
         public static PulldownButton AddPullDownButton(this RibbonPanel panel, string internalName, string buttonText)
         {
@@ -70,9 +72,6 @@ namespace RevitUtils
             ComboBoxData itemData = new ComboBoxData(internalName);
             return (ComboBox)panel.AddItem(itemData);
         }
-
-
-
 
     }
 }
