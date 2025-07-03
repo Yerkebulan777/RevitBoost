@@ -18,11 +18,9 @@ namespace LevelAssignment
             _boundaryCalculator = new BoundaryCalculator();
         }
 
-
         private Outline ProjectBoundaryOutline { get; set; }
         private ElementMulticategoryFilter ModelCategoryFilter { get; set; }
         private SharedParameterElement LevelSharedParameter { get; set; }
-
 
         /// <summary>
         /// Выполняет полный цикл анализа и назначения элементов к этажам
