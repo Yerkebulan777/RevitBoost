@@ -14,20 +14,27 @@ namespace RevitBoost.Config
         {
             string logDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "RevitBoost");
 
+            if (!Directory.Exists(logDirectory))
+            {
+                Directory.CreateDirectory(logDirectory);
+            }
+
             services.AddLogging(builder =>
             {
-                builder.ClearProviders();
+                _ = builder.ClearProviders();
 
                 Logger logger = new LoggerConfiguration()
                     .MinimumLevel.Debug()
+                    .Enrich.WithProperty("Application", "Revit")
                     .Enrich.WithProperty("UserName", Environment.UserName)
                     .MinimumLevel.Override("System", LogEventLevel.Warning)
                     .MinimumLevel.Override("Microsoft.Extensions", LogEventLevel.Warning)
                     .WriteTo.Debug(restrictedToMinimumLevel: LogEventLevel.Debug)
-                    .WriteTo.File(
+                    .WriteTo.Async(a => a.File(
                         path: Path.Combine(logDirectory, "revit-boost-.log"),
                         rollingInterval: RollingInterval.Day,
-                        retainedFileCountLimit: 7)
+                        retainedFileCountLimit: 7,
+                        buffered: true))
                     .CreateLogger();
 
                 builder.AddSerilog(logger, dispose: true);
