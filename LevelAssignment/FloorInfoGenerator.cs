@@ -70,26 +70,23 @@ namespace LevelAssignment
 
             List<Level> sortedLevels = [.. levels.OrderBy(x => x.Elevation)];
 
-            for (int levelIdx = 0; levelIdx < sortedLevels.Count; levelIdx++)
+            for (int idx = 0; idx < sortedLevels.Count; idx++)
             {
-                Level level = sortedLevels[levelIdx];
+                Level level = sortedLevels[idx];
                 string levelName = level.Name.ToUpper();
                 double elevation = GetProjectElevationInMeters(level);
 
-                _logger.Debug("Processing level {Index}: {LevelName} at {Elevation}m", levelIdx + 1, levelName, elevation);
+                _logger.Debug("Processing level {Index}: {LevelName} at {Elevation}m", idx + 1, levelName, elevation);
 
                 if (IsDuplicateLevel(elevation, previousElevation))
                 {
-                    _logger.Debug("Skipped duplicate level {LevelName} (too close to previous)", levelName);
+                    _logger.Debug("Skipped duplicate level {LevelName}", levelName);
                     levelDictionary[calculatedNumber] = level;
                     continue;
                 }
 
                 bool isHeightValid = Math.Abs(elevation - previousElevation) >= LEVEL_MIN_HEIGHT;
-                bool isValidLevelNumber = IsValidFloorNumber(level.Name, levels.Count, out int numberFromName);
-
-                _logger.Debug("Height valid: {IsHeightValid}, Name number: {NameNumber}",
-                    isHeightValid, isValidLevelNumber ? numberFromName.ToString() : "none");
+                bool isValidLevelNumber = IsValidFloorNumber(levelName, levels.Count, out int numberFromName);
 
                 int oldNumber = calculatedNumber;
 
@@ -108,7 +105,7 @@ namespace LevelAssignment
                     calculatedNumber = GROUND_NUMBER;
                     _logger.Debug("Assigned ground floor: {OldNumber} -> {NewNumber}", oldNumber, calculatedNumber);
                 }
-                else if (IsTopLevel(calculatedNumber, levelIdx, sortedLevels.Count))
+                else if (IsTopLevel(calculatedNumber, idx, sortedLevels.Count))
                 {
                     calculatedNumber = isHeightValid ? 100 : 101;
 
@@ -169,6 +166,7 @@ namespace LevelAssignment
 
             if (match.Success && int.TryParse(match.Value, out number))
             {
+                _logger.Debug("Extracted number {Number}", number);
                 Debug.WriteLine($"Extracted number: {number}");
                 return true;
             }
