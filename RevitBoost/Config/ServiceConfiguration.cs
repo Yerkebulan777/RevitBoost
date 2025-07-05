@@ -29,7 +29,6 @@ namespace RevitBoost.Config
                     .Enrich.WithProperty("UserName", Environment.UserName)
                     .MinimumLevel.Override("System", LogEventLevel.Warning)
                     .MinimumLevel.Override("Microsoft.Extensions", LogEventLevel.Warning)
-                    .WriteTo.Debug(restrictedToMinimumLevel: LogEventLevel.Debug)
                     .WriteTo.Async(a => a.File(
                         path: Path.Combine(logDirectory, "revit-boost-.log"),
                         rollingInterval: RollingInterval.Day,
