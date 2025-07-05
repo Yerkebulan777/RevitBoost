@@ -47,8 +47,4 @@
 
     </ItemGroup>
 
-    <ItemGroup>
-      <Reference Include="PresentationCore" />
-    </ItemGroup>
-
 </Project>
