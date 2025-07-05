@@ -34,6 +34,8 @@ namespace LevelAssignment
             double elevationOffset = UnitManager.MmToFoot(250);
             double verticalClearance = UnitManager.MmToFoot(100);
 
+            _ = result.AppendLine("Starting level assignment process...");
+
             List<FloorInfo> floorModels = _floorInfoGenerator.GenerateFloorModels(_document);
 
             LevelSharedParameter = SharedParameterElement.Lookup(_document, sharedParameterGuid);
@@ -42,8 +44,14 @@ namespace LevelAssignment
 
             ModelCategoryFilter = new ElementMulticategoryFilter(CollectorHelper.GetModelCategoryIds(_document));
 
-            _ = result.AppendLine($"General parameter: {LevelSharedParameter?.Name}");
+            XYZ minPoint = ProjectBoundaryOutline.MinimumPoint;
+            XYZ maxPoint = ProjectBoundaryOutline.MaximumPoint;
+
+            double diagonalInMeters = UnitManager.FootToMm(minPoint.DistanceTo(maxPoint));
+
             _ = result.AppendLine($"Total number of floors: {floorModels?.Count}");
+            _ = result.AppendLine($"General parameter: {LevelSharedParameter?.Name}");
+            _ = result.AppendLine($"Project boundary diagonal : {diagonalInMeters / 1000} m.");
 
             foreach (FloorInfo floor in floorModels)
             {
@@ -76,6 +84,7 @@ namespace LevelAssignment
                 }
                 finally
                 {
+                    _ = result.AppendLine();
                     _ = result.AppendLine($"Floor: {floor.DisplayName} ({floor.Index}) ");
                     _ = result.AppendLine($"Floor height: {UnitManager.FootToMm(floor.Height)}");
                     _ = result.AppendLine(ApplyLevelParameter(_document, elemIdSet, floor.Index));
