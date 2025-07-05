@@ -38,7 +38,6 @@ namespace RevitBoost.Config
                 builder.AddSerilog(dispose: true);
             });
 
-            // Просто передаем путь к логам в конфигурацию
             services.AddSingleton(logDirectory);
 
             return services;
