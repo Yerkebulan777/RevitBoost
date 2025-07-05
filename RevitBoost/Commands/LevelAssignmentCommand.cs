@@ -1,5 +1,4 @@
 ﻿using Autodesk.Revit.Attributes;
-using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using CommonUtils;
 using LevelAssignment;
@@ -58,7 +57,7 @@ namespace RevitBoost.Commands
         /// <summary>
         /// Проверяет валидность документа для выполнения операции
         /// </summary>
-        private bool Validate(Document doc, StringBuilder log)
+        private static bool Validate(Document doc, StringBuilder log)
         {
             // Проверяем наличие общего параметра в проекте
             SharedParameterElement sharedParam = SharedParameterElement.Lookup(doc, PARAMETER_GUID);
@@ -89,7 +88,6 @@ namespace RevitBoost.Commands
 
             _ = dialog.Show();
         }
-
 
 
     }

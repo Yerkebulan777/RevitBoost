@@ -72,7 +72,7 @@ namespace RevitUtils
             {
                 foreach (ElementId id in parent.GetSubComponentIds())
                 {
-                    Element? nestedElement = doc.GetElement(id);
+                    Element nestedElement = doc.GetElement(id);
 
                     if (nestedElement is FamilyInstance nested && nested.IsValidObject)
                     {
