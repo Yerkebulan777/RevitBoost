@@ -76,14 +76,14 @@ namespace LevelAssignment
                 string levelName = level.Name.ToUpper();
                 double elevation = GetProjectElevationInMeters(level);
 
-                _logger.Debug("Level {Index}: {Name} at {Elevat}m", idx + 1, levelName, elevation);
-
                 if (IsDuplicateLevel(elevation, previousElevation))
                 {
                     _logger.Debug("Skipped duplicate level {LevelName}", levelName);
                     levelDictionary[calculatedNumber] = level;
                     continue;
                 }
+
+                _logger.Debug("Level {Index}: {Name} at {Elevat}", idx + 1, levelName, elevation);
 
                 bool isHeightValid = Math.Abs(elevation - previousElevation) >= LEVEL_MIN_HEIGHT;
                 bool isValidLevelNumber = IsValidFloorNumber(levelName, levels.Count, out int numberFromName);
