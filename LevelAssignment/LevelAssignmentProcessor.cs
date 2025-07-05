@@ -88,9 +88,10 @@ namespace LevelAssignment
                 {
                     _ = result.AppendLine();
                     _ = result.AppendLine($"Floor: {floor.DisplayName} ({floor.Index}) ");
-                    _ = result.AppendLine($"Floor height: {UnitManager.FootToMm(floor.Height)}");
-                    _ = result.AppendLine(ApplyLevelParameter(_document, elemIdSet, floor.Index));
+                    _ = result.AppendLine($"Floor height: {UnitManager.FootToMt(floor.Height)}");
+                    _ = result.AppendLine($"Elevation: {UnitManager.FootToMt(floor.ProjectElevation)}");
                     _ = result.AppendLine($"The total number of all elements found:{elemIdSet.Count}");
+                    _ = result.AppendLine(ApplyLevelParameter(_document, elemIdSet, floor.Index));
 
                     floor.FloorBoundingSolid.CreateDirectShape(_document);
                 }

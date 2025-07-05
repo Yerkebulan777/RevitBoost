@@ -119,9 +119,9 @@ namespace LintelMaster
                     return null;
                 }
 
-                int thickMm = Convert.ToInt32(UnitManager.FootToRoundedMm(thickness.Value));
-                int widthMm = Convert.ToInt32(UnitManager.FootToRoundedMm(dimensions.Value.width, 50));
-                int heightMm = Convert.ToInt32(UnitManager.FootToRoundedMm(dimensions.Value.height, 100));
+                int thickMm = Convert.ToInt32(UnitManager.FootToMm(thickness.Value));
+                int widthMm = Convert.ToInt32(UnitManager.FootToMm(dimensions.Value.width, 50));
+                int heightMm = Convert.ToInt32(UnitManager.FootToMm(dimensions.Value.height, 100));
 
                 return (thickMm, widthMm, heightMm);
             }
