@@ -18,6 +18,7 @@ namespace RevitBoost
             }
             catch (Exception ex)
             {
+                StringHelper.CopyToClipboard($"Не удалось загрузить RevitBoost: {ex.Message}");
                 TaskDialog.Show("Ошибка загрузки", $"Не удалось загрузить RevitBoost: {ex.Message}");
                 return Result.Failed;
             }
