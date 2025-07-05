@@ -66,6 +66,8 @@ namespace LevelAssignment
         /// </summary>
         internal Outline MergeOutlines(List<Outline> outlines)
         {
+            _logger.LogDebug("Merging {Count} outlines", outlines.Count);
+
             foreach (Outline outline in outlines)
             {
                 MinX = Math.Min(MinX, outline.MinimumPoint.X);
