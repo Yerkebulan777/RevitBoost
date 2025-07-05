@@ -49,7 +49,7 @@
         <PackageReference Include="Serilog.Sinks.Debug" Version="2.0.0" />
         <PackageReference Include="Serilog.Extensions.Logging" Version="7.0.0" />
 
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
 
         <PackageReference Include="Revit_All_Main_Versions_API_x64" Version="$(RevitVersion).*-*" />
         
