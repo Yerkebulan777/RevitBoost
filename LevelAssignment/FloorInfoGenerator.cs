@@ -22,6 +22,8 @@ namespace LevelAssignment
 
             List<Level> levels = GetSortedValidLevels(doc);
 
+            Debug.WriteLine($"Total valid levels found: {levels.Count}");
+
             Dictionary<int, Level> levelNumMap = CalculateLevelNumberData(levels);
 
             foreach (IGrouping<int, Level> group in GroupLevelsByFloorNumber(levelNumMap))
