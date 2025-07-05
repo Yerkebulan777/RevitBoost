@@ -76,7 +76,7 @@ namespace LevelAssignment
                 string levelName = level.Name.ToUpper();
                 double elevation = GetProjectElevationInMeters(level);
 
-                _logger.Debug("Processing level {Index}: {LevelName} at {Elevation}m", idx + 1, levelName, elevation);
+                _logger.Debug("Level {Index}: {Name} at {Elevat}m", idx + 1, levelName, elevation);
 
                 if (IsDuplicateLevel(elevation, previousElevation))
                 {
