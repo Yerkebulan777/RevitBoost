@@ -152,6 +152,8 @@ namespace LevelAssignment
 
             List<FloorInfo> sortedFloors = [.. floors.OrderBy(x => x.InternalElevation)];
 
+            _logger.LogDebug("Calculating height for floor {FloorIndex}", current.Index);
+
             FloorInfo aboveFloor = sortedFloors.FirstOrDefault(x => x.InternalElevation > current.InternalElevation);
             FloorInfo belowFloor = sortedFloors.LastOrDefault(x => x.InternalElevation < current.InternalElevation);
 
