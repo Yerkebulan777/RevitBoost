@@ -98,10 +98,7 @@ namespace LevelAssignment
 
             result.AppendLine("Level assignment execution completed");
 
-            string output = result.ToString();
-            _logger.LogInformation(output);
-
-            return output;
+            return result.ToString();
         }
 
         /// <summary>
@@ -114,8 +111,6 @@ namespace LevelAssignment
             int readOnlyParameterCount = 0;
 
             StringBuilder result = new();
-
-            _logger.LogDebug("Applying level parameter value {LevelValue} to {ElementCount} elements", levelValue, elemIdSet.Count);
 
             using (Transaction trx = new(doc, $"Setting the floor number {levelValue}"))
             {
@@ -168,9 +163,14 @@ namespace LevelAssignment
                         {
                             _ = result.AppendLine("Transaction could not be committed");
                         }
+                        else
+                        {
+                            _logger.LogInformation("Set level {LevelValue} for {AssignedCount} elements", levelValue, assignedCount);
+                        }
                     }
                     catch (Exception ex)
                     {
+                        _logger.LogError(ex, "Transaction error for level {LevelValue}", levelValue);
                         _ = result.AppendLine($"Error during transaction: {ex.Message}");
                     }
                     finally
@@ -186,6 +186,8 @@ namespace LevelAssignment
                     }
                 }
             }
+
+            _logger.LogDebug(result.ToString());
 
             return result.ToString();
         }

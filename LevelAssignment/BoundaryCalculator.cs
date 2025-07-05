@@ -24,50 +24,39 @@ namespace LevelAssignment
         /// </summary>
         public Outline ComputeProjectBoundary(Document doc, ref List<FloorInfo> floorModels)
         {
-            _logger.LogInformation("Computing project boundary for {FloorCount} floors", floorModels.Count);
+            _logger.LogInformation("Computing boundary for {FloorCount} floors", floorModels.Count);
 
             List<Outline> floorPlanOutlines = [];
-            HashSet<ElementId> viewsOnSheets = GetViewsOnValidSheets(doc);
 
-            _logger.LogDebug("Found {ViewCount} views on valid sheets", viewsOnSheets.Count);
+            HashSet<ElementId> viewsOnSheets = GetViewsOnValidSheets(doc);
 
             foreach (FloorInfo floorModel in floorModels)
             {
-                using (_logger.BeginScope("FloorBoundary", ("FloorIndex", floorModel.Index)))
+                floorModel.Height = GetLevelHeight(floorModel, floorModels, out double elevation);
+
+                foreach (ElementId levelId in floorModel.ContainedLevelIds)
                 {
-                    floorModel.Height = GetLevelHeight(floorModel, floorModels, out double elevation);
-                    _logger.LogDebug("Floor {FloorIndex} height: {Height}, elevation: {Elevation}",
-                        floorModel.Index, floorModel.Height, elevation);
-
-                    int boundariesFound = 0;
-                    foreach (ElementId levelId in floorModel.ContainedLevelIds)
+                    if (doc.GetElement(levelId) is Level level)
                     {
-                        if (doc.GetElement(levelId) is Level level)
+                        foreach (ViewPlan floorPlan in GetViewPlansByLevel(doc, level))
                         {
-                            foreach (ViewPlan floorPlan in GetViewPlansByLevel(doc, level))
+                            if (!floorPlan.IsCallout && viewsOnSheets.Contains(floorPlan.Id))
                             {
-                                if (!floorPlan.IsCallout && viewsOnSheets.Contains(floorPlan.Id))
-                                {
-                                    Outline boundary = ExtractViewPlanBoundary(floorPlan, elevation);
+                                Outline boundary = ExtractViewPlanBoundary(floorPlan, elevation);
 
-                                    if (boundary is not null)
-                                    {
-                                        floorPlanOutlines.Add(boundary);
-                                        boundariesFound++;
-                                    }
+                                if (boundary is not null)
+                                {
+                                    floorPlanOutlines.Add(boundary);
                                 }
                             }
                         }
                     }
-
-                    _logger.LogDebug("Found {BoundaryCount} boundaries for floor {FloorIndex}",
-                        boundariesFound, floorModel.Index);
                 }
             }
 
             Outline result = MergeOutlines(floorPlanOutlines);
-            _logger.LogInformation("Project boundary computed: {OutlineCount} outlines merged, result: Min={MinPoint}, Max={MaxPoint}",
-                floorPlanOutlines.Count, result.MinimumPoint, result.MaximumPoint);
+
+            _logger.LogInformation("Merged {OutlineCount} boundaries", floorPlanOutlines.Count);
 
             return result;
         }
