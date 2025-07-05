@@ -9,9 +9,17 @@ namespace RevitBoost
     {
         public Result OnStartup(UIControlledApplication application)
         {
-            Host.Start();
-            CreateRibbon(application);
-            return Result.Succeeded;
+            try
+            {
+                Host.Start();
+                CreateRibbon(application);
+                return Result.Succeeded;
+            }
+            catch (Exception ex)
+            {
+                TaskDialog.Show("Ошибка загрузки", $"Не удалось загрузить RevitBoost: {ex.Message}");
+                return Result.Failed;
+            }
         }
 
         public Result OnShutdown(UIControlledApplication application)
