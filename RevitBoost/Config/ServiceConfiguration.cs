@@ -2,7 +2,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
-using Serilog.Core;
 using Serilog.Events;
 using System.IO;
 
@@ -19,26 +18,31 @@ namespace RevitBoost.Config
                 Directory.CreateDirectory(logDirectory);
             }
 
+            // Упрощенная конфигурация Serilog
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .MinimumLevel.Override("System", LogEventLevel.Warning)
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+                .Enrich.WithProperty("UserName", Environment.UserName)
+                .Enrich.WithProperty("Application", "RevitBoost")
+                .WriteTo.Debug()
+                .WriteTo.File(
+                    Path.Combine(logDirectory, "revit-boost.log"),
+                    rollingInterval: RollingInterval.Day,
+                    retainedFileCountLimit: 7,
+                    shared: true)
+                .CreateLogger();
+
             services.AddLogging(builder =>
             {
-                _ = builder.ClearProviders();
-
-                Logger logger = new LoggerConfiguration()
-                    .MinimumLevel.Debug()
-                    .Enrich.WithProperty("Application", "Revit")
-                    .Enrich.WithProperty("UserName", Environment.UserName)
-                    .MinimumLevel.Override("System", LogEventLevel.Warning)
-                    .MinimumLevel.Override("Microsoft.Extensions", LogEventLevel.Warning)
-                    .WriteTo.File(
-                        path: Path.Combine(logDirectory, "revit-boost-.log"),
-                        rollingInterval: RollingInterval.Day,
-                        retainedFileCountLimit: 7)
-                    .CreateLogger();
-
-                builder.AddSerilog(logger, dispose: true);
+                builder.ClearProviders();
+                builder.AddSerilog(dispose: true);
             });
 
-            services.AddSingleton<IModuleLoggerFactory, ModuleLoggerFactory>();
+            services.AddSingleton<IModuleLoggerFactory>(provider =>
+            {
+                return new ModuleLoggerFactory(Log.Logger);
+            });
 
             return services;
         }

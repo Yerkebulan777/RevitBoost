@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using RevitBoost.Config;
+using Serilog;
 
 namespace RevitBoost
 {
@@ -22,6 +23,7 @@ namespace RevitBoost
 
         public static void Stop()
         {
+            Log.CloseAndFlush();
             _serviceProvider?.Dispose();
         }
     }
