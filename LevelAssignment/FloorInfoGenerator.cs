@@ -20,14 +20,14 @@ namespace LevelAssignment
         {
             List<FloorInfo> floorModels = [];
 
-            List<Level> levels = GetValidLevels(doc);
+            List<Level> levels = GetSortedValidLevels(doc);
 
             Dictionary<int, Level> levelNumMap = CalculateLevelNumberData(levels);
 
             foreach (IGrouping<int, Level> group in GroupLevelsByFloorNumber(levelNumMap))
             {
                 int floorNumber = group.Key; // Номер этажа (ключ группы)
-                List<Level> sortedLevels = group.OrderBy(x => x.Elevation).ToList();
+                List<Level> sortedLevels = [.. group.OrderBy(x => x.Elevation)];
                 floorModels.Add(new FloorInfo(floorNumber, sortedLevels));
             }
 
@@ -37,7 +37,7 @@ namespace LevelAssignment
         /// <summary>
         /// Получает список уровней, которые имеют высоту меньше заданного максимума
         /// </summary>
-        internal List<Level> GetValidLevels(Document doc, double maxHeightInMeters = 100)
+        internal List<Level> GetSortedValidLevels(Document doc, double maxHeightInMeters = 100)
         {
             double maximum = UnitManager.MmToFoot(maxHeightInMeters * 1000);
             ParameterValueProvider provider = new(new ElementId(BuiltInParameter.LEVEL_ELEV));
