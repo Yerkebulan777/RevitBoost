@@ -22,11 +22,11 @@ namespace RevitBoost.Config
 
             return new LoggerConfiguration()
                 .MinimumLevel.Debug()
-                .Enrich.WithEnvironmentName()   // Из Serilog.Enrichers.Environment
-                .Enrich.WithProcessId()         // Из Serilog.Enrichers.Process
-                .Enrich.WithProcessName()       // Из Serilog.Enrichers.Process
+                .Enrich.WithEnvironmentName()
+                .Enrich.WithProcessId()
+                .Enrich.WithProcessName()
                 .Enrich.WithProperty("Application", "RevitBoost")
-                .WriteTo.Debug(LogEventLevel.Debug)
+                .WriteTo.Debug(restrictedToMinimumLevel: LogEventLevel.Debug)
                 .WriteTo.File(
                     path: Path.Combine(appDataDirectory, "RevitBoost", "logs", "revit-boost-.log"),
                     rollingInterval: RollingInterval.Day,
@@ -41,4 +41,5 @@ namespace RevitBoost.Config
             logger?.LogCritical(exception, "Domain unhandled exception");
         }
     }
+
 }
