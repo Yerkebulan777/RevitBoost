@@ -32,8 +32,7 @@ namespace RevitBoost.Config
                     .WriteTo.File(
                         path: Path.Combine(logDirectory, "revit-boost-.log"),
                         rollingInterval: RollingInterval.Day,
-                        retainedFileCountLimit: 7,
-                        buffered: true)
+                        retainedFileCountLimit: 7)
                     .CreateLogger();
 
                 builder.AddSerilog(logger, dispose: true);
