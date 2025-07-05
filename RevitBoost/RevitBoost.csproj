@@ -61,6 +61,11 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
+
+        <PackageReference Include="SonarAnalyzer.CSharp" Version="10.12.0.118525">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+        </PackageReference>
 		
 	</ItemGroup>
 
@@ -74,20 +79,7 @@
         <Using Alias="Lock" Include="Backport.System.Threading.Lock" />
         <Using Alias="LockFactory" Include="Backport.System.Threading.LockFactory" />
     </ItemGroup>
-    
-	<!-- Import and configure the SonarC# analyzer -->
-	<PropertyGroup>
-		<SonarAnalyzerVersion>8.2.0.14119</SonarAnalyzerVersion>
-	</PropertyGroup>
-    
-	<ItemGroup>
-		<PackageReference Include="SonarAnalyzer.CSharp" Version="10.12.0.118525">
-		  <PrivateAssets>all</PrivateAssets>
-		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
-		<Analyzer Include="$(NuGetPackageRoot)SonarAnalyzer.CSharp/$(SonarAnalyzerVersion)/analyzers/*.dll" Visible="false" />
-	</ItemGroup>
-	
+    	
 	<ItemGroup>
 	  <ProjectReference Include="..\CommonUtils\CommonUtils.csproj" />
 	  <ProjectReference Include="..\LevelAssignment\LevelAssignment.csproj" />
