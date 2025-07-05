@@ -27,36 +27,66 @@ namespace LevelAssignment
             _logger.LogInformation("Computing boundary for {FloorCount} floors", floorModels.Count);
 
             List<Outline> floorPlanOutlines = [];
-
             HashSet<ElementId> viewsOnSheets = GetViewsOnValidSheets(doc);
+
+            _logger.LogDebug("Found {ViewCount} views on valid sheets", viewsOnSheets.Count);
 
             foreach (FloorInfo floorModel in floorModels)
             {
                 floorModel.Height = GetLevelHeight(floorModel, floorModels, out double elevation);
 
+                int boundariesFound = 0;
+                int levelsProcessed = 0;
+
                 foreach (ElementId levelId in floorModel.ContainedLevelIds)
                 {
                     if (doc.GetElement(levelId) is Level level)
                     {
-                        foreach (ViewPlan floorPlan in GetViewPlansByLevel(doc, level))
+                        levelsProcessed++;
+                        _logger.LogDebug("Processing level {LevelName}", level.Name);
+                        List<ViewPlan> floorPlans = GetViewPlansByLevel(doc, level);
+                        int validPlans = 0;
+
+                        foreach (ViewPlan floorPlan in floorPlans)
                         {
-                            if (!floorPlan.IsCallout && viewsOnSheets.Contains(floorPlan.Id))
+                            bool isCallout = floorPlan.IsCallout;
+                            bool onSheet = viewsOnSheets.Contains(floorPlan.Id);
+
+                            if (!isCallout && onSheet)
                             {
+                                validPlans++;
+
+                                _logger.LogDebug("Valid plan found: {PlanName}", floorPlan.Name);
                                 Outline boundary = ExtractViewPlanBoundary(floorPlan, elevation);
 
                                 if (boundary is not null)
                                 {
                                     floorPlanOutlines.Add(boundary);
+                                    boundariesFound++;
+                                }
+                                else
+                                {
+                                    _logger.LogWarning("No boundary extracted from {PlanName}", floorPlan.Name);
                                 }
                             }
                         }
+
+                        _logger.LogDebug("Level {LevelName}: {ValidPlans} valid plans of {TotalPlans}", level.Name, validPlans, floorPlans.Count);
                     }
                 }
+
+                _logger.LogDebug("Floor {FloorIndex} summary: {LevelsProcessed} levels, {BoundariesFound} boundaries", floorModel.Index, levelsProcessed, boundariesFound);
+            }
+
+            _logger.LogInformation("Total boundaries collected: {TotalBoundaries}", floorPlanOutlines.Count);
+
+            if (floorPlanOutlines.Count == 0)
+            {
+                _logger.LogWarning("No boundaries found - using default outline");
+                return new Outline(XYZ.Zero, new XYZ(100, 100, 100));
             }
 
             Outline result = MergeOutlines(floorPlanOutlines);
-
-            _logger.LogInformation("Merged {OutlineCount} boundaries", floorPlanOutlines.Count);
 
             return result;
         }

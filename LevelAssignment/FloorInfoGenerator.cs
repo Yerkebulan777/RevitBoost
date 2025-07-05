@@ -62,85 +62,94 @@ namespace LevelAssignment
         /// </summary>
         internal Dictionary<int, Level> CalculateLevelNumberData(List<Level> levels)
         {
+            _logger.LogDebug("Calculating level numbers for {LevelCount} levels", levels.Count);
+
             int calculatedNumber = 0;
             double previousElevation = 0;
-
             Dictionary<int, Level> levelDictionary = [];
-
-            Debug.WriteLine("Calculating level numbers...");
 
             List<Level> sortedLevels = [.. levels.OrderBy(x => x.Elevation)];
 
             for (int levelIdx = 0; levelIdx < sortedLevels.Count; levelIdx++)
             {
                 Level level = sortedLevels[levelIdx];
-
                 string levelName = level.Name.ToUpper();
-
                 double elevation = GetProjectElevationInMeters(level);
 
-                if (!IsDuplicateLevel(elevation, previousElevation))
+                _logger.LogDebug("Processing level {Index}: {LevelName} at {Elevation}m",
+                    levelIdx + 1, levelName, elevation);
+
+                if (IsDuplicateLevel(elevation, previousElevation))
                 {
-                    bool isHeightValid = Math.Abs(elevation - previousElevation) >= LEVEL_MIN_HEIGHT;
-                    bool isValidLevelNumber = IsValidFloorNumber(level.Name, levels.Count, out int numberFromName);
-
-                    if (isValidLevelNumber && isHeightValid && calculatedNumber <= numberFromName)
-                    {
-                        calculatedNumber = numberFromName;
-                    }
-
-                    // если номер меньше или равно 0 и отметка ниже цоколя
-
-                    else if (calculatedNumber <= 0 && elevation < -LEVEL_MIN_HEIGHT)
-                    {
-                        calculatedNumber = BASEMENT_NUMBER;
-                    }
-
-                    // если номер меньше или равно 0 и отметка выше цоколя
-
-                    else if (calculatedNumber <= 0 && elevation < LEVEL_MIN_HEIGHT)
-                    {
-                        calculatedNumber = GROUND_NUMBER;
-                    }
-
-                    // если здание выше 3 этажей и уровень крыши или чердака
-
-                    else if (IsTopLevel(calculatedNumber, levelIdx, sortedLevels.Count))
-                    {
-                        calculatedNumber = isHeightValid ? 100 : 101;
-
-                        if (levelName.Contains("Чердак"))
-                        {
-                            calculatedNumber = specialFloorNumbers[0]; // 99
-                        }
-                        if (levelName.Contains("Крыша"))
-                        {
-                            calculatedNumber = specialFloorNumbers[1]; // 100
-                        }
-                        if (levelName.Contains("Будка"))
-                        {
-                            calculatedNumber = specialFloorNumbers[2]; // 101
-                        }
-                    }
-
-                    // если уровень выше 1 этажа и высота валидна
-
-                    else if (calculatedNumber > 0 && isHeightValid)
-                    {
-                        calculatedNumber += 1;
-                    }
+                    _logger.LogDebug("Skipped duplicate level {LevelName} (too close to previous)", levelName);
+                    levelDictionary[calculatedNumber] = level;
+                    continue;
                 }
 
-                Debug.WriteLine($"Level: {levelName}, Elevation: {elevation} m");
+                bool isHeightValid = Math.Abs(elevation - previousElevation) >= LEVEL_MIN_HEIGHT;
+                bool isValidLevelNumber = IsValidFloorNumber(level.Name, levels.Count, out int numberFromName);
 
-                Debug.WriteLine($"Number: {calculatedNumber}");
+                _logger.LogDebug("Height valid: {IsHeightValid}, Name number: {NameNumber}",
+                    isHeightValid, isValidLevelNumber ? numberFromName.ToString() : "none");
+
+                int oldNumber = calculatedNumber;
+
+                if (isValidLevelNumber && isHeightValid && calculatedNumber <= numberFromName)
+                {
+                    calculatedNumber = numberFromName;
+                    _logger.LogDebug("Used name number: {OldNumber} -> {NewNumber}", oldNumber, calculatedNumber);
+                }
+                else if (calculatedNumber <= 0 && elevation < -LEVEL_MIN_HEIGHT)
+                {
+                    calculatedNumber = BASEMENT_NUMBER;
+                    _logger.LogDebug("Assigned basement: {OldNumber} -> {NewNumber}", oldNumber, calculatedNumber);
+                }
+                else if (calculatedNumber <= 0 && elevation < LEVEL_MIN_HEIGHT)
+                {
+                    calculatedNumber = GROUND_NUMBER;
+                    _logger.LogDebug("Assigned ground floor: {OldNumber} -> {NewNumber}", oldNumber, calculatedNumber);
+                }
+                else if (IsTopLevel(calculatedNumber, levelIdx, sortedLevels.Count))
+                {
+                    calculatedNumber = isHeightValid ? 100 : 101;
+
+                    if (levelName.Contains("ЧЕРДАК"))
+                    {
+                        calculatedNumber = specialFloorNumbers[0]; // 99
+                        _logger.LogDebug("Assigned attic: {NewNumber}", calculatedNumber);
+                    }
+                    else if (levelName.Contains("КРЫША"))
+                    {
+                        calculatedNumber = specialFloorNumbers[1]; // 100
+                        _logger.LogDebug("Assigned roof: {NewNumber}", calculatedNumber);
+                    }
+                    else if (levelName.Contains("БУДКА"))
+                    {
+                        calculatedNumber = specialFloorNumbers[2]; // 101
+                        _logger.LogDebug("Assigned penthouse: {NewNumber}", calculatedNumber);
+                    }
+                    else
+                    {
+                        _logger.LogDebug("Assigned top level: {OldNumber} -> {NewNumber}", oldNumber, calculatedNumber);
+                    }
+                }
+                else if (calculatedNumber > 0 && isHeightValid)
+                {
+                    calculatedNumber += 1;
+                    _logger.LogDebug("Incremented floor: {OldNumber} -> {NewNumber}", oldNumber, calculatedNumber);
+                }
+                else
+                {
+                    _logger.LogDebug("No change: floor remains {Number}", calculatedNumber);
+                }
 
                 levelDictionary[calculatedNumber] = level;
-
                 previousElevation = elevation;
 
+                _logger.LogDebug("Result: {LevelName} -> Floor {FloorNumber}", levelName, calculatedNumber);
             }
 
+            _logger.LogDebug("Mapped {MappedCount} levels to floor numbers", levelDictionary.Count);
             return levelDictionary;
         }
 
