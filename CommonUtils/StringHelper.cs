@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using System.Text;
-using System.Windows;
 
 
 namespace CommonUtils
@@ -55,7 +54,7 @@ namespace CommonUtils
             {
                 try
                 {
-                    Clipboard.SetText(text);
+                    TextCopy.ClipboardService.SetText(text);
                 }
                 catch (Exception ex)
                 {
@@ -63,6 +62,7 @@ namespace CommonUtils
                 }
             }
         }
+
 
 
     }
