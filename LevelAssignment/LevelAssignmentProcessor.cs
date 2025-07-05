@@ -1,5 +1,6 @@
 ﻿using Autodesk.Revit.DB;
 using RevitUtils;
+using System.Diagnostics;
 using System.Text;
 
 namespace LevelAssignment
@@ -65,17 +66,15 @@ namespace LevelAssignment
 
                     elemIdSet = [.. floor.CreateLevelFilteredCollector(_document).ToElementIds()];
 
-#pragma warning disable S3267 // Loops should be simplified with "LINQ" expressions
-
                     foreach (Element element in floor.CreateExcludedCollector(_document, elemIdSet))
                     {
+                        Debug.WriteLine($"Element: {element.Name}");
+
                         if (floor.IsElementContained(in element))
                         {
                             _ = elemIdSet.Add(element.Id);
                         }
                     }
-
-#pragma warning restore S3267 // Loops should be simplified with "LINQ" expressions
 
                 }
                 catch (Exception ex)
