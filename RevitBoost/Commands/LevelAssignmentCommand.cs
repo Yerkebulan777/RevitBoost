@@ -36,7 +36,7 @@ namespace RevitBoost.Commands
                 }
 
                 // Создаём оркестратор для назначения этажей
-                LevelAssignmentProcessor orchestrator = new(doc);
+                LevelAssignmentProcessor orchestrator = new(doc, logger);
 
                 // Выполняем полное назначение элементов к этажам
                 _ = resultBuilder.AppendLine("=== НАЗНАЧЕНИЕ ЭЛЕМЕНТОВ К ЭТАЖАМ ===");
