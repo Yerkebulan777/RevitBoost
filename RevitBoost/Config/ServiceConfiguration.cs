@@ -10,7 +10,7 @@ namespace RevitBoost.Config
     {
         public static IServiceCollection ConfigureServices(this IServiceCollection services)
         {
-            string logDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "RevitBoost");
+            string logDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "RevitBoost");
 
             if (!Directory.Exists(logDirectory))
             {
