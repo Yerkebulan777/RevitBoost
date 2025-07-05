@@ -51,7 +51,7 @@ namespace RevitBoost.Commands
 
                 ShowResult("Ошибка выполнения", resultBuilder.ToString());
 
-                StringHelper.CopyToClipboard(resultBuilder.ToString());
+
             }
 
             return Result.Succeeded;
@@ -81,6 +81,8 @@ namespace RevitBoost.Commands
         /// </summary>
         private void ShowResult(string title, string message)
         {
+            StringHelper.CopyToClipboard(message);
+
             TaskDialog dialog = new(title)
             {
                 MainContent = message,
