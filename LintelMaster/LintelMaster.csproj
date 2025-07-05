@@ -26,9 +26,12 @@
     </PropertyGroup>
     <PropertyGroup Condition="$(Configuration.Contains('R25'))">
         <RevitVersion>2025</RevitVersion>
-        <TargetFramework>net48</TargetFramework>
+        <TargetFramework>net8.0-windows</TargetFramework>
     </PropertyGroup>
-    
+    <ItemGroup>
+      <Compile Remove="GroupingКConfig.cs" />
+    </ItemGroup>
+
     <ItemGroup>
 
         <PackageReference Include="Revit_All_Main_Versions_API_x64" Version="$(RevitVersion).*-*" />
