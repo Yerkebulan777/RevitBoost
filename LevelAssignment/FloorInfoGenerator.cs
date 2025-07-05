@@ -1,4 +1,5 @@
 ﻿using Autodesk.Revit.DB;
+using CommonUtils;
 using RevitUtils;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
@@ -7,11 +8,17 @@ namespace LevelAssignment
 {
     public sealed class FloorInfoGenerator
     {
+        private readonly IModuleLogger _logger;
         private const int GROUND_NUMBER = 1; // Номер первого этажа
         private const int BASEMENT_NUMBER = -1; // Номер подземного этажа
         private const double LEVEL_MIN_HEIGHT = 1.5; // Минимальная высота этажа (м)
         private readonly int[] specialFloorNumbers = [99, 100, 101]; // Специальные номера этажей
         private static readonly Regex levelNumberRegex = new(@"^\d{1,3}.", RegexOptions.Compiled);
+
+        public FloorInfoGenerator(IModuleLogger logger)
+        {
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
 
         /// <summary>
         /// Вычисляет модели этажей на основе уровней проекта

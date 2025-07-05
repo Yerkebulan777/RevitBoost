@@ -1,4 +1,5 @@
 ﻿using Autodesk.Revit.DB;
+using CommonUtils;
 using RevitUtils;
 using System.Diagnostics;
 using System.Text;
@@ -8,15 +9,17 @@ namespace LevelAssignment
     public sealed class LevelAssignmentProcessor
     {
         private readonly Document _document;
+        private readonly IModuleLogger _logger;
         private readonly FloorInfoGenerator _floorInfoGenerator;
         private readonly BoundaryCalculator _boundaryCalculator;
 
-        public LevelAssignmentProcessor(Document document)
+        public LevelAssignmentProcessor(Document document, IModuleLogger logger)
         {
             _document = document ?? throw new ArgumentNullException(nameof(document));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-            _floorInfoGenerator = new FloorInfoGenerator();
-            _boundaryCalculator = new BoundaryCalculator();
+            _floorInfoGenerator = new FloorInfoGenerator(_logger);
+            _boundaryCalculator = new BoundaryCalculator(_logger);
         }
 
         private Outline ProjectBoundaryOutline { get; set; }

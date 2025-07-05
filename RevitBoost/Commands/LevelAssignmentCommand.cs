@@ -20,7 +20,7 @@ namespace RevitBoost.Commands
 
             IModuleLogger logger = CommandLoggerHelper.CreateCommandLogger("LevelAssignment", Host.GetService<string>);
 
-            using IDisposable scope = logger.BeginScope("CommandExecution", ("DocumentTitle", doc.Title), ("DocumentPath", doc.PathName));
+            using IDisposable scope = logger.BeginScope("CommandExecution", (doc.Title, doc.PathName));
 
             logger.LogInformation("Starting LevelAssignmentCommand execution");
 

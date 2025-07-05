@@ -1,10 +1,17 @@
 ﻿using Autodesk.Revit.DB;
+using CommonUtils;
 using RevitUtils;
 
 namespace LevelAssignment
 {
     internal sealed class BoundaryCalculator
     {
+        private readonly IModuleLogger _logger;
+        public BoundaryCalculator(IModuleLogger logger)
+        {
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
         private double MinX { get; set; } = double.MaxValue;
         private double MaxX { get; set; } = double.MinValue;
         private double MinY { get; set; } = double.MaxValue;
