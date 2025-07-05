@@ -76,5 +76,7 @@ namespace RevitBoost
             Log.CloseAndFlush();
             _services = null;
         }
+
+
     }
 }
