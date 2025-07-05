@@ -50,7 +50,6 @@
         <PackageReference Include="Serilog.Extensions.Hosting" Version="9.0.0" />
         <PackageReference Include="Serilog.Enrichers.Environment" Version="3.0.1" />
         <PackageReference Include="Serilog.Enrichers.Process" Version="3.0.0" />
-        <PackageReference Include="Serilog.Sinks.Async" Version="1.5.0" />
 
         <PackageReference Include="Revit_All_Main_Versions_API_x64" Version="$(RevitVersion).*-*" />
         

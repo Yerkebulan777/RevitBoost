@@ -29,11 +29,11 @@ namespace RevitBoost.Config
                     .Enrich.WithProperty("UserName", Environment.UserName)
                     .MinimumLevel.Override("System", LogEventLevel.Warning)
                     .MinimumLevel.Override("Microsoft.Extensions", LogEventLevel.Warning)
-                    .WriteTo.Async(a => a.File(
+                    .WriteTo.File(
                         path: Path.Combine(logDirectory, "revit-boost-.log"),
                         rollingInterval: RollingInterval.Day,
                         retainedFileCountLimit: 7,
-                        buffered: true))
+                        buffered: true)
                     .CreateLogger();
 
                 builder.AddSerilog(logger, dispose: true);
