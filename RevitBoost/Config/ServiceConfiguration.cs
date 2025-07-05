@@ -18,7 +18,6 @@ namespace RevitBoost.Config
                 Directory.CreateDirectory(logDirectory);
             }
 
-            // Упрощенная конфигурация Serilog
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Debug()
                 .MinimumLevel.Override("System", LogEventLevel.Warning)
@@ -27,7 +26,7 @@ namespace RevitBoost.Config
                 .Enrich.WithProperty("Application", "RevitBoost")
                 .WriteTo.Debug()
                 .WriteTo.File(
-                    Path.Combine(logDirectory, "revit-boost.log"),
+                    Path.Combine(logDirectory, "revit-boost-general.log"),
                     rollingInterval: RollingInterval.Day,
                     retainedFileCountLimit: 7,
                     shared: true)
@@ -39,10 +38,8 @@ namespace RevitBoost.Config
                 builder.AddSerilog(dispose: true);
             });
 
-            services.AddSingleton<IModuleLoggerFactory>(provider =>
-            {
-                return new ModuleLoggerFactory(Log.Logger);
-            });
+            // Просто передаем путь к логам в конфигурацию
+            services.AddSingleton(logDirectory);
 
             return services;
         }

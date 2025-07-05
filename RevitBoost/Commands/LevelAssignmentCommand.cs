@@ -12,11 +12,17 @@ namespace RevitBoost.Commands
     [Transaction(TransactionMode.Manual)]
     public class LevelAssignmentCommand : IExternalCommand
     {
-        private static readonly Guid PARAMETER_GUID = new Guid("4673f045-9574-471f-9677-ac538a9e9a2d");
+        private static readonly Guid PARAMETER_GUID = new("4673f045-9574-471f-9677-ac538a9e9a2d");
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             Document doc = commandData.Application.ActiveUIDocument.Document;
+
+            IModuleLogger logger = CommandLoggerHelper.CreateCommandLogger("LevelAssignment", Host.GetService<string>);
+
+            using IDisposable scope = logger.BeginScope("CommandExecution", ("DocumentTitle", doc.Title), ("DocumentPath", doc.PathName));
+
+            logger.LogInformation("Starting LevelAssignmentCommand execution");
 
             StringBuilder resultBuilder = new();
 
