@@ -20,9 +20,6 @@ namespace RevitBoost.Config
 
                 Logger logger = new LoggerConfiguration()
                     .MinimumLevel.Debug()
-                    .Enrich.WithProcessId()
-                    .Enrich.WithProcessName()
-                    .Enrich.WithEnvironmentName()
                     .Enrich.WithProperty("UserName", Environment.UserName)
                     .MinimumLevel.Override("System", LogEventLevel.Warning)
                     .MinimumLevel.Override("Microsoft.Extensions", LogEventLevel.Warning)
@@ -41,5 +38,4 @@ namespace RevitBoost.Config
             return services;
         }
     }
-
 }
