@@ -50,8 +50,6 @@ namespace RevitBoost.Commands
                 }
 
                 ShowResult("Ошибка выполнения", resultBuilder.ToString());
-
-
             }
 
             return Result.Succeeded;
