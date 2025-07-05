@@ -22,7 +22,7 @@ namespace RevitBoost.Commands
 
             using IDisposable scope = logger.BeginScope("CommandExecution", (doc.Title, doc.PathName));
 
-            logger.LogInformation("Starting LevelAssignmentCommand execution");
+            logger.Information("Starting LevelAssignmentCommand execution");
 
             StringBuilder resultBuilder = new();
 

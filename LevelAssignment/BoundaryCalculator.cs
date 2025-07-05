@@ -24,12 +24,12 @@ namespace LevelAssignment
         /// </summary>
         public Outline ComputeProjectBoundary(Document doc, ref List<FloorInfo> floorModels)
         {
-            _logger.LogInformation("Computing boundary for {FloorCount} floors", floorModels.Count);
+            _logger.Information("Computing boundary for {FloorCount} floors", floorModels.Count);
 
             List<Outline> floorPlanOutlines = [];
             HashSet<ElementId> viewsOnSheets = GetViewsOnValidSheets(doc);
 
-            _logger.LogDebug("Found {ViewCount} views on valid sheets", viewsOnSheets.Count);
+            _logger.Debug("Found {ViewCount} views on valid sheets", viewsOnSheets.Count);
 
             foreach (FloorInfo floorModel in floorModels)
             {
@@ -43,7 +43,7 @@ namespace LevelAssignment
                     if (doc.GetElement(levelId) is Level level)
                     {
                         levelsProcessed++;
-                        _logger.LogDebug("Processing level {LevelName}", level.Name);
+                        _logger.Debug("Processing level {LevelName}", level.Name);
                         List<ViewPlan> floorPlans = GetViewPlansByLevel(doc, level);
                         int validPlans = 0;
 
@@ -56,7 +56,7 @@ namespace LevelAssignment
                             {
                                 validPlans++;
 
-                                _logger.LogDebug("Valid plan found: {PlanName}", floorPlan.Name);
+                                _logger.Debug("Valid plan found: {PlanName}", floorPlan.Name);
                                 Outline boundary = ExtractViewPlanBoundary(floorPlan, elevation);
 
                                 if (boundary is not null)
@@ -66,23 +66,23 @@ namespace LevelAssignment
                                 }
                                 else
                                 {
-                                    _logger.LogWarning("No boundary extracted from {PlanName}", floorPlan.Name);
+                                    _logger.Warning("No boundary extracted from {PlanName}", floorPlan.Name);
                                 }
                             }
                         }
 
-                        _logger.LogDebug("Level {LevelName}: {ValidPlans} valid plans of {TotalPlans}", level.Name, validPlans, floorPlans.Count);
+                        _logger.Debug("Level {LevelName}: {ValidPlans} valid plans of {TotalPlans}", level.Name, validPlans, floorPlans.Count);
                     }
                 }
 
-                _logger.LogDebug("Floor {FloorIndex} summary: {LevelsProcessed} levels, {BoundariesFound} boundaries", floorModel.Index, levelsProcessed, boundariesFound);
+                _logger.Debug("Floor {FloorIndex} summary: {LevelsProcessed} levels, {BoundariesFound} boundaries", floorModel.Index, levelsProcessed, boundariesFound);
             }
 
-            _logger.LogInformation("Total boundaries collected: {TotalBoundaries}", floorPlanOutlines.Count);
+            _logger.Information("Total boundaries collected: {TotalBoundaries}", floorPlanOutlines.Count);
 
             if (floorPlanOutlines.Count == 0)
             {
-                _logger.LogWarning("No boundaries found - using default outline");
+                _logger.Warning("No boundaries found - using default outline");
                 return new Outline(XYZ.Zero, new XYZ(100, 100, 100));
             }
 
@@ -96,7 +96,7 @@ namespace LevelAssignment
         /// </summary>
         internal Outline MergeOutlines(List<Outline> outlines)
         {
-            _logger.LogDebug("Merging {Count} outlines", outlines.Count);
+            _logger.Debug("Merging {Count} outlines", outlines.Count);
 
             foreach (Outline outline in outlines)
             {
@@ -119,24 +119,24 @@ namespace LevelAssignment
         /// </summary>
         internal Outline ExtractViewPlanBoundary(ViewPlan floorPlan, double elevation)
         {
-            _logger.LogDebug("Extracting boundary from view plan {ViewName}", floorPlan.Name);
+            _logger.Debug("Extracting boundary from view plan {ViewName}", floorPlan.Name);
 
             // Стратегия 1: Использование активного CropBox
             if (floorPlan.CropBoxActive && floorPlan.CropBox != null)
             {
-                _logger.LogDebug("Using CropBox strategy for view {ViewName}", floorPlan.Name);
+                _logger.Debug("Using CropBox strategy for view {ViewName}", floorPlan.Name);
                 return TransformCropBox(floorPlan, elevation);
             }
 
             // Стратегия 2: Использование свойства GeometryOutline вида
             if (floorPlan.Outline != null)
             {
-                _logger.LogDebug("Using View Outline strategy for view {ViewName}", floorPlan.Name);
+                _logger.Debug("Using View Outline strategy for view {ViewName}", floorPlan.Name);
                 return TransformViewOutline(floorPlan, elevation);
             }
 
             // Стратегия 3: Model boundary transform
-            _logger.LogDebug("Using Model Transform strategy for view {ViewName}", floorPlan.Name);
+            _logger.Debug("Using Model Transform strategy for view {ViewName}", floorPlan.Name);
             List<XYZ> boundaryPoints = [];
 
             foreach (TransformWithBoundary twb in floorPlan.GetModelToProjectionTransforms())
@@ -161,12 +161,12 @@ namespace LevelAssignment
                     boundaryPoints.Max(p => p.Y),
                     elevation);
 
-                _logger.LogDebug("Extracted boundary from {PointCount} points for view {ViewName}", boundaryPoints.Count, floorPlan.Name);
+                _logger.Debug("Extracted boundary from {PointCount} points for view {ViewName}", boundaryPoints.Count, floorPlan.Name);
 
                 return new Outline(minProjectPoint, maxProjectPoint);
             }
 
-            _logger.LogWarning("Could not extract boundary from view {ViewName}", floorPlan.Name);
+            _logger.Warning("Could not extract boundary from view {ViewName}", floorPlan.Name);
 
             return null;
         }
@@ -182,7 +182,7 @@ namespace LevelAssignment
 
             List<FloorInfo> sortedFloors = [.. floors.OrderBy(x => x.InternalElevation)];
 
-            _logger.LogDebug("Calculating height for floor {FloorIndex}", current.Index);
+            _logger.Debug("Calculating height for floor {FloorIndex}", current.Index);
 
             FloorInfo aboveFloor = sortedFloors.FirstOrDefault(x => x.InternalElevation > current.InternalElevation);
             FloorInfo belowFloor = sortedFloors.LastOrDefault(x => x.InternalElevation < current.InternalElevation);

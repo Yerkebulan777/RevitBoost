@@ -50,7 +50,7 @@ namespace LevelAssignment
 
             if (LevelSharedParameter is null)
             {
-                _logger.LogWarning("Parameter {ParameterGuid} not found", sharedParameterGuid);
+                _logger.Warning("Parameter {ParameterGuid} not found", sharedParameterGuid);
                 throw new InvalidOperationException($"Shared parameter {sharedParameterGuid} not found");
             }
 
@@ -166,12 +166,12 @@ namespace LevelAssignment
                         }
                         else
                         {
-                            _logger.LogInformation("Set level {LevelValue} for {AssignedCount} elements", levelValue, assignedCount);
+                            _logger.Information("Set level {LevelValue} for {AssignedCount} elements", levelValue, assignedCount);
                         }
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Transaction error for level {LevelValue}", levelValue);
+                        _logger.Error(ex, "Transaction error for level {LevelValue}", levelValue);
                         _ = result.AppendLine($"Error during transaction: {ex.Message}");
                     }
                     finally
@@ -188,7 +188,7 @@ namespace LevelAssignment
                 }
             }
 
-            _logger.LogDebug(result.ToString());
+            _logger.Debug(result.ToString());
 
             return result.ToString();
         }
