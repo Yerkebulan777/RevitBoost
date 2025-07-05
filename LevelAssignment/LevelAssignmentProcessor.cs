@@ -45,14 +45,8 @@ namespace LevelAssignment
 
             ModelCategoryFilter = new ElementMulticategoryFilter(CollectorHelper.GetModelCategoryIds(_document));
 
-            XYZ minPoint = ProjectBoundaryOutline.MinimumPoint;
-            XYZ maxPoint = ProjectBoundaryOutline.MaximumPoint;
-
-            double diagonalInMeters = UnitManager.FootToMm(minPoint.DistanceTo(maxPoint));
-
             _ = result.AppendLine($"Total number of floors: {floorModels?.Count}");
             _ = result.AppendLine($"General parameter: {LevelSharedParameter?.Name}");
-            _ = result.AppendLine($"Project boundary diagonal : {diagonalInMeters / 1000} m.");
 
             foreach (FloorInfo floor in floorModels)
             {
