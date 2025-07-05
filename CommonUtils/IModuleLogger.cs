@@ -1,6 +1,4 @@
-﻿using Autodesk.Revit.UI;
-
-namespace CommonUtils
+﻿namespace CommonUtils
 {
     public interface IModuleLogger
     {
@@ -15,7 +13,7 @@ namespace CommonUtils
     public interface IModuleLoggerFactory
     {
         IModuleLogger CreateLogger(string moduleName, string projectPath);
-        void ConfigureRevitContext(UIControlledApplication application);
-        Task FlushAndCloseAsync();
+        void ConfigureRevitContext(string applicationName);
+        void FlushAndClose();
     }
 }
