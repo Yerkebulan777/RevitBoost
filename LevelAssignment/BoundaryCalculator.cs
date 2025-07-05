@@ -24,35 +24,52 @@ namespace LevelAssignment
         /// </summary>
         public Outline ComputeProjectBoundary(Document doc, ref List<FloorInfo> floorModels)
         {
-            List<Outline> floorPlanOutlines = [];
+            _logger.LogInformation("Computing project boundary for {FloorCount} floors", floorModels.Count);
 
+            List<Outline> floorPlanOutlines = [];
             HashSet<ElementId> viewsOnSheets = GetViewsOnValidSheets(doc);
+
+            _logger.LogDebug("Found {ViewCount} views on valid sheets", viewsOnSheets.Count);
 
             foreach (FloorInfo floorModel in floorModels)
             {
-                floorModel.Height = GetLevelHeight(floorModel, floorModels, out double elevation);
-
-                foreach (ElementId levelId in floorModel.ContainedLevelIds)
+                using (_logger.BeginScope("FloorBoundary", ("FloorIndex", floorModel.Index)))
                 {
-                    if (doc.GetElement(levelId) is Level level)
-                    {
-                        foreach (ViewPlan floorPlan in GetViewPlansByLevel(doc, level))
-                        {
-                            if (!floorPlan.IsCallout && viewsOnSheets.Contains(floorPlan.Id))
-                            {
-                                Outline boundary = ExtractViewPlanBoundary(floorPlan, elevation);
+                    floorModel.Height = GetLevelHeight(floorModel, floorModels, out double elevation);
+                    _logger.LogDebug("Floor {FloorIndex} height: {Height}, elevation: {Elevation}",
+                        floorModel.Index, floorModel.Height, elevation);
 
-                                if (boundary is not null)
+                    int boundariesFound = 0;
+                    foreach (ElementId levelId in floorModel.ContainedLevelIds)
+                    {
+                        if (doc.GetElement(levelId) is Level level)
+                        {
+                            foreach (ViewPlan floorPlan in GetViewPlansByLevel(doc, level))
+                            {
+                                if (!floorPlan.IsCallout && viewsOnSheets.Contains(floorPlan.Id))
                                 {
-                                    floorPlanOutlines.Add(boundary);
+                                    Outline boundary = ExtractViewPlanBoundary(floorPlan, elevation);
+
+                                    if (boundary is not null)
+                                    {
+                                        floorPlanOutlines.Add(boundary);
+                                        boundariesFound++;
+                                    }
                                 }
                             }
                         }
                     }
+
+                    _logger.LogDebug("Found {BoundaryCount} boundaries for floor {FloorIndex}",
+                        boundariesFound, floorModel.Index);
                 }
             }
 
-            return MergeOutlines(floorPlanOutlines);
+            Outline result = MergeOutlines(floorPlanOutlines);
+            _logger.LogInformation("Project boundary computed: {OutlineCount} outlines merged, result: Min={MinPoint}, Max={MaxPoint}",
+                floorPlanOutlines.Count, result.MinimumPoint, result.MaximumPoint);
+
+            return result;
         }
 
         /// <summary>
@@ -81,19 +98,24 @@ namespace LevelAssignment
         /// </summary>
         internal Outline ExtractViewPlanBoundary(ViewPlan floorPlan, double elevation)
         {
+            _logger.LogDebug("Extracting boundary from view plan {ViewName}", floorPlan.Name);
+
             // Стратегия 1: Использование активного CropBox
             if (floorPlan.CropBoxActive && floorPlan.CropBox != null)
             {
+                _logger.LogDebug("Using CropBox strategy for view {ViewName}", floorPlan.Name);
                 return TransformCropBox(floorPlan, elevation);
             }
 
             // Стратегия 2: Использование свойства GeometryOutline вида
             if (floorPlan.Outline != null)
             {
+                _logger.LogDebug("Using View Outline strategy for view {ViewName}", floorPlan.Name);
                 return TransformViewOutline(floorPlan, elevation);
             }
 
-            // Стратегия 3: ...
+            // Стратегия 3: Model boundary transform
+            _logger.LogDebug("Using Model Transform strategy for view {ViewName}", floorPlan.Name);
             List<XYZ> boundaryPoints = [];
 
             foreach (TransformWithBoundary twb in floorPlan.GetModelToProjectionTransforms())
@@ -118,8 +140,12 @@ namespace LevelAssignment
                     boundaryPoints.Max(p => p.Y),
                     elevation);
 
+                _logger.LogDebug("Extracted boundary from {PointCount} points for view {ViewName}", boundaryPoints.Count, floorPlan.Name);
+
                 return new Outline(minProjectPoint, maxProjectPoint);
             }
+
+            _logger.LogWarning("Could not extract boundary from view {ViewName}", floorPlan.Name);
 
             return null;
         }

@@ -48,6 +48,12 @@ namespace LevelAssignment
 
             ModelCategoryFilter = new ElementMulticategoryFilter(CollectorHelper.GetModelCategoryIds(_document));
 
+            if (LevelSharedParameter is null)
+            {
+                _logger.LogWarning("Parameter {ParameterGuid} not found", sharedParameterGuid);
+                throw new InvalidOperationException($"Shared parameter {sharedParameterGuid} not found");
+            }
+
             _ = result.AppendLine($"Total number of floors: {floorModels?.Count}");
             _ = result.AppendLine($"General parameter: {LevelSharedParameter?.Name}");
 
@@ -90,7 +96,12 @@ namespace LevelAssignment
                 }
             }
 
-            return result.ToString();
+            result.AppendLine("Level assignment execution completed");
+
+            string output = result.ToString();
+            _logger.LogInformation(output);
+
+            return output;
         }
 
         /// <summary>
@@ -103,6 +114,8 @@ namespace LevelAssignment
             int readOnlyParameterCount = 0;
 
             StringBuilder result = new();
+
+            _logger.LogDebug("Applying level parameter value {LevelValue} to {ElementCount} elements", levelValue, elemIdSet.Count);
 
             using (Transaction trx = new(doc, $"Setting the floor number {levelValue}"))
             {
