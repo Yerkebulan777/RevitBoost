@@ -31,7 +31,7 @@ namespace RevitUtils
             return Math.Round(length * footToMm / 1000, baseVal);
         }
 
-        public static double FootToMm(double length, int baseVal = 1)
+        public static double FootToMm(double length, int baseVal = 3)
         {
             return baseVal * Math.Round(length * footToMm / baseVal);
         }
