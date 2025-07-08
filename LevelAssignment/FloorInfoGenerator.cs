@@ -46,11 +46,12 @@ namespace LevelAssignment
         /// <summary>
         /// Получает список уровней, которые имеют высоту меньше заданного максимума
         /// </summary>
-        internal List<Level> GetSortedValidLevels(Document doc, double maxHeightInMeters = 100)
+        internal static List<Level> GetSortedValidLevels(Document doc, double maxHeigh = 100)
         {
-            double maximum = UnitManager.MmToFoot(maxHeightInMeters * 1000);
+            FilterNumericLess evaluator = new();
             ParameterValueProvider provider = new(new ElementId(BuiltInParameter.LEVEL_ELEV));
-            FilterDoubleRule rule = new(provider, new FilterNumericLess(), maximum, 5E-3);
+            double maximum = UnitManager.MmToFoot((maxHeigh * 1000) - 1000);
+            FilterDoubleRule rule = new(provider, evaluator, maximum, 5E-3);
 
             return [.. new FilteredElementCollector(doc).OfClass(typeof(Level))
                 .WherePasses(new ElementParameterFilter(rule)).Cast<Level>()
