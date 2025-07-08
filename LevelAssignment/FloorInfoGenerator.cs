@@ -25,20 +25,32 @@ namespace LevelAssignment
         /// </summary>
         public List<FloorInfo> GenerateFloorModels(Document doc)
         {
+            _logger.Information("Starting floor models..." );
+
             List<FloorInfo> floorModels = [];
 
             List<Level> levels = GetSortedValidLevels(doc);
 
-            Debug.WriteLine($"Total valid levels found: {levels.Count}");
+            if (levels.Count == 0)
+            {
+                _logger.Warning("No valid levels found!");
+                return floorModels;
+            }
 
+            _logger.Debug("Valid levels {LevelCount}", levels.Count);
             Dictionary<int, Level> levelNumMap = CalculateLevelNumberData(levels);
+            _logger.Debug("Mapped {MappedLevels} levels to floor numbers", levelNumMap.Count);
 
             foreach (IGrouping<int, Level> group in GroupLevelsByFloorNumber(levelNumMap))
             {
-                int floorNumber = group.Key; // Номер этажа (ключ группы)
                 List<Level> sortedLevels = [.. group.OrderBy(x => x.Elevation)];
-                floorModels.Add(new FloorInfo(floorNumber, sortedLevels));
+
+                _logger.Debug("Floor model {FloorNumber} with {LevelCount} levels", group.Key, sortedLevels.Count);
+
+                floorModels.Add(new FloorInfo(group.Key, sortedLevels));
             }
+
+            _logger.Information("Generated {FloorModelCount} floor models successfully", floorModels.Count);
 
             return floorModels;
         }
