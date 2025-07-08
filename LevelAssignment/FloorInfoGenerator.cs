@@ -3,6 +3,7 @@ using CommonUtils;
 using RevitUtils;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace LevelAssignment
 {
@@ -41,7 +42,7 @@ namespace LevelAssignment
             Dictionary<int, Level> levelNumMap = CalculateLevelNumberData(levels);
             _logger.Debug("Mapped {MappedLevels} levels to floor numbers", levelNumMap.Count);
 
-            foreach (IGrouping<int, Level> group in GroupLevelsByFloorNumber(levelNumMap))
+            foreach (IGrouping<int, Level> group in levelNumMap.GroupBy(kvp => kvp.Key, kvp => kvp.Value))
             {
                 List<Level> sortedLevels = [.. group.OrderBy(x => x.Elevation)];
 
@@ -186,14 +187,6 @@ namespace LevelAssignment
 
             number = 0;
             return false;
-        }
-
-        /// <summary>
-        /// Группирует уровни по номерам этажей.
-        /// </summary>
-        private IEnumerable<IGrouping<int, Level>> GroupLevelsByFloorNumber(Dictionary<int, Level> data)
-        {
-            return data.GroupBy(kvp => kvp.Key, kvp => kvp.Value);
         }
 
         /// <summary>
