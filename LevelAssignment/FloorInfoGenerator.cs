@@ -87,6 +87,7 @@ namespace LevelAssignment
             for (int idx = 0; idx < sortedLevels.Count; idx++)
             {
                 Level level = sortedLevels[idx];
+                int oldNumber = calculatedNumber;
                 string levelName = level.Name.ToUpper();
                 double elevation = GetProjectElevationInMeters(level);
 
@@ -101,8 +102,6 @@ namespace LevelAssignment
 
                 bool isHeightValid = Math.Abs(elevation - previousElevation) >= LEVEL_MIN_HEIGHT;
                 bool isValidLevelNumber = IsValidFloorNumber(levelName, levels.Count, out int numberFromName);
-
-                int oldNumber = calculatedNumber;
 
                 if (isValidLevelNumber && isHeightValid && calculatedNumber <= numberFromName)
                 {
