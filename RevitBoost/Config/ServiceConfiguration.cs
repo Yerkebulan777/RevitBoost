@@ -18,7 +18,7 @@ namespace RevitBoost.Config
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Debug()
                 .WriteTo.File(
-                    Path.Combine(logDirectory, "revit-boost-general.log"),
+                    Path.Combine(logDirectory, "general.log"),
                     rollingInterval: RollingInterval.Day,
                     retainedFileCountLimit: 5,
                     shared: true)
