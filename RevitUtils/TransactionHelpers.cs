@@ -8,24 +8,25 @@ namespace RevitUtils
         public static void CreateTransaction(Document doc, string name, Action action)
         {
             using Transaction trx = new(doc);
-            TransactionStatus status = trx.Start(name);
-            if (status == TransactionStatus.Started)
+
+            if (TransactionStatus.Started != trx.Start(name))
             {
-                try
-                {
-                    action?.Invoke();
-                    status = trx.Commit();
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine(ex);
-                    if (!trx.HasEnded())
-                    {
-                        status = trx.RollBack();
-                    }
-                }
+                throw new InvalidProgramException($"Transaction!");
             }
 
+            try
+            {
+                action?.Invoke();
+                _ = trx.Commit();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
+                if (!trx.HasEnded())
+                {
+                    _ = trx.RollBack();
+                }
+            }
         }
 
 
@@ -41,23 +42,21 @@ namespace RevitUtils
                     using SubTransaction subtrx = new(doc);
                     try
                     {
-                        status = subtrx.Start();
+                        _ = subtrx.Start();
                         _ = doc.Delete(enm.Current);
-                        status = subtrx.Commit();
+                        _ = subtrx.Commit();
                     }
                     catch
                     {
-                        status = subtrx.RollBack();
+                        _ = subtrx.RollBack();
                     }
                 }
 
                 enm.Dispose();
                 elemtIds.Clear();
-                status = trx.Commit();
+                _ = trx.Commit();
             }
-
         }
-
 
 
     }
