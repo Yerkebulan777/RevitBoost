@@ -2,26 +2,20 @@
 using CommonUtils;
 using RevitUtils;
 using System.Diagnostics;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace LevelAssignment
 {
-    public sealed class FloorInfoGenerator
+    public sealed class FloorInfoGenerator(IModuleLogger logger)
     {
-        private readonly IModuleLogger _logger;
-
         private const int GROUND_NUMBER = 1; // Номер первого этажа
         private const int BASEMENT_NUMBER = -1; // Номер подземного этажа
         private const float deviation = 1000f; // Допустимое отклонение (м)
         private const float LEVEL_MIN_HEIGHT = 1.5f; // Минимальная высота этажа (м)
         private readonly int[] specialFloorNumbers = [99, 100, 101]; // Специальные номера этажей
         private static readonly Regex levelNumberRegex = new(@"^\d{1,3}.", RegexOptions.Compiled);
-
-
-        public FloorInfoGenerator(IModuleLogger logger)
-        {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        }
+        private readonly IModuleLogger _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         /// <summary>
         /// Вычисляет модели этажей на основе уровней проекта
@@ -182,13 +176,12 @@ namespace LevelAssignment
 
             for (int idx = 0; idx < levelTotalCount; idx++)
             {
-                int oldNumber = calculatedNumber;
-
                 Level level = sortedLevels[idx];
+
+                int oldNumber = calculatedNumber;
 
                 double elevation = GetProjectElevation(level);
 
-                // Проверяем дублирование уровней
                 if (IsDuplicateLevel(elevation, previousElevation, out double difference))
                 {
                     _logger.Debug("→ Skip: duplicate height (diff={Diff:F2}m)", difference);
@@ -208,6 +201,8 @@ namespace LevelAssignment
 
                 calculatedNumber = DetermineFloorNumber(calculatedNumber, context);
 
+                _logger.Debug("Elevation diff={Diff:F2}", difference);
+
                 if (oldNumber != calculatedNumber)
                 {
                     _logger.Debug("→ Change: {Old} → {New}", oldNumber, calculatedNumber);
@@ -225,59 +220,64 @@ namespace LevelAssignment
             return levelDictionary;
         }
 
+
+        /// <summary>
+        /// Определение номера этажа на основе контекста уровня
+        /// </summary>
         private int DetermineFloorNumber(int currentNumber, LevelContext context)
         {
-            // Вычисляем ключевые параметры для принятия решений
-            _logger.Debug("Level '{Name}' at {Elevation}m", context.Name, context.Elevation);
+            StringBuilder logBuilder = new();
 
             bool isHeightValid = context.ElevationDifference >= LEVEL_MIN_HEIGHT;
             bool isTopLevel = IsTopLevel(currentNumber, context.Index, context.Total);
-            bool IsValidName = IsValidFloorNumber(context.Name, context.Total, out int numFromName);
+            bool isValidName = IsValidFloorNumber(context.Name, context.Total, out int numFromName);
 
-            _logger.Debug("Elevation difference {}, ({NameNum}), top={IsTop}", isHeightValid, IsValidName, isTopLevel);
+            logBuilder.AppendLine($"Level name: '{context.Name}' at {context.Elevation:F2} m");
+            logBuilder.AppendLine($"Is height valid: ({context.ElevationDifference:F2}m >= {LEVEL_MIN_HEIGHT}m)");
+            logBuilder.AppendLine($"Is level name valid: {isValidName} (number: {numFromName})");
+            logBuilder.AppendLine($"Is top level: {isTopLevel}");
 
-            // Стратегия 1: Используем номер из имени уровня
-            if (IsValidName && isHeightValid && currentNumber <= numFromName)
+            int resultNumber = currentNumber;
+            string strategy = "no change";
+
+            // Номер из имени
+            if (isValidName && isHeightValid && currentNumber <= numFromName)
             {
-                _logger.Debug("  Apply: name number {Number} (valid height + name)", numFromName);
-                return numFromName;
+                resultNumber = numFromName;
+                strategy = $"name number {numFromName}";
+            }
+            // Подвал
+            else if (currentNumber <= 0 && context.Elevation < -LEVEL_MIN_HEIGHT)
+            {
+                resultNumber = BASEMENT_NUMBER;
+                strategy = $"basement {BASEMENT_NUMBER}";
+            }
+            // Первый этаж
+            else if (currentNumber <= 0 && context.Elevation < LEVEL_MIN_HEIGHT)
+            {
+                resultNumber = GROUND_NUMBER;
+                strategy = $"ground {GROUND_NUMBER}";
+            }
+            // Специальные этажи
+            else if (isTopLevel)
+            {
+                resultNumber = GetSpecialFloorNumber(context.Name, isHeightValid);
+                strategy = $"special {resultNumber}";
+            }
+            // Инкремент
+            else if (currentNumber > 0 && isHeightValid)
+            {
+                resultNumber = currentNumber + 1;
+                strategy = $"increment {currentNumber} → {resultNumber}";
             }
 
-            // Стратегия 2: Назначаем подвал
-            if (currentNumber <= 0 && context.Elevation < -LEVEL_MIN_HEIGHT)
-            {
-                _logger.Debug("  Apply: basement {Number} (elev={Elev} < -{Min})",
-                    BASEMENT_NUMBER, Math.Abs(context.Elevation), LEVEL_MIN_HEIGHT);
-                return BASEMENT_NUMBER;
-            }
+            _ = logBuilder.AppendLine($"  → Strategy: {strategy}");
 
-            // Стратегия 3: Назначаем первый этаж
-            if (currentNumber <= 0 && context.Elevation < LEVEL_MIN_HEIGHT)
-            {
-                _logger.Debug("  Apply: ground {Number} (elev={Elev} < {Min})", GROUND_NUMBER, context.Elevation, LEVEL_MIN_HEIGHT);
-                return GROUND_NUMBER;
-            }
+            _logger.Debug(logBuilder.ToString());
 
-            // Стратегия 4: Обрабатываем верхние специальные этажи
-            if (isTopLevel)
-            {
-                int specialNumber = GetSpecialFloorNumber(context.Name, isHeightValid);
-                _logger.Debug("Apply: special {Number}", specialNumber);
-                return specialNumber;
-            }
-
-            // Стратегия 5: Увеличиваем номер обычного этажа
-            if (currentNumber > 0 && isHeightValid)
-            {
-                int newNumber = currentNumber + 1;
-                _logger.Debug("  Apply: increment {Old} → {New} (valid height)", currentNumber, newNumber);
-                return newNumber;
-            }
-
-            // Если ни одно условие не подошло
-            _logger.Debug("  Apply: no change (height_ok={HeightOk})", isHeightValid);
-            return currentNumber;
+            return resultNumber;
         }
+
 
         /// <summary>
         /// Получает специальный номер этажа в зависимости от имени уровня
@@ -286,25 +286,20 @@ namespace LevelAssignment
         {
             if (levelName.Contains("ЧЕРДАК"))
             {
-                _logger.Debug("    Special: attic → {Number}", specialFloorNumbers[0]);
                 return specialFloorNumbers[0]; // 99
             }
 
             if (levelName.Contains("КРЫША"))
             {
-                _logger.Debug("    Special: roof → {Number}", specialFloorNumbers[1]);
                 return specialFloorNumbers[1]; // 100
             }
 
             if (levelName.Contains("БУДКА"))
             {
-                _logger.Debug("    Special: penthouse → {Number}", specialFloorNumbers[2]);
                 return specialFloorNumbers[2]; // 101
             }
 
-            int defaultNumber = isHeightValid ? 100 : 101;
-            _logger.Debug("    Special: default top → {Number} (height_ok={HeightOk})", defaultNumber, isHeightValid);
-            return defaultNumber;
+            return isHeightValid ? 100 : 101;
         }
 
         /// <summary>
