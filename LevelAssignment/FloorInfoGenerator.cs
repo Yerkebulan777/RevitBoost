@@ -35,6 +35,7 @@ namespace LevelAssignment
             }
 
             Dictionary<int, Level> levelNumMap = CalculateFloorNumber(levels);
+
             _logger.Debug("Mapped {MappedLevels} levels to floor numbers", levelNumMap.Count);
 
             foreach (IGrouping<int, Level> group in levelNumMap.GroupBy(kvp => kvp.Key, kvp => kvp.Value))
