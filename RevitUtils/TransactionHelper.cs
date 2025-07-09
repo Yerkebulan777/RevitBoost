@@ -36,31 +36,25 @@ namespace RevitUtils
 
         public static void DeleteElements(Document doc, ICollection<ElementId> elemtIds)
         {
+            List<ElementId> idsToDelete = [.. elemtIds];
             using Transaction trx = new(doc, "DeleteElements");
-            IEnumerator<ElementId> enm = elemtIds.GetEnumerator();
-            TransactionStatus status = trx.Start();
-            if (status == TransactionStatus.Started)
+            if (trx.Start() == TransactionStatus.Started)
             {
-                while (enm.MoveNext())
+                try
                 {
-                    using SubTransaction subtrx = new(doc);
-                    try
+                    doc.Delete(idsToDelete);
+                    trx.Commit();
+                }
+                catch
+                {
+                    if (!trx.HasEnded())
                     {
-                        _ = subtrx.Start();
-                        _ = doc.Delete(enm.Current);
-                        _ = subtrx.Commit();
-                    }
-                    catch
-                    {
-                        _ = subtrx.RollBack();
+                        trx.RollBack();
                     }
                 }
-
-                enm.Dispose();
-                elemtIds.Clear();
-                _ = trx.Commit();
             }
         }
+
 
 
     }

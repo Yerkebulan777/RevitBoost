@@ -6,6 +6,7 @@ namespace RevitUtils
     public static class GroupHelper
     {
 
+
         /// <summary>
         /// Разгруппировывает все группы и возвращает информацию для восстановления
         /// </summary>
@@ -16,8 +17,6 @@ namespace RevitUtils
             TransactionHelper.CreateTransaction(doc, "UngroupAllGroups", () =>
             {
                 List<Group> groups = [.. new FilteredElementCollector(doc).OfClass(typeof(Group)).Cast<Group>()];
-
-                DeleteUnusedGroupTypes(doc);
 
                 foreach (Group group in groups)
                 {
@@ -35,28 +34,30 @@ namespace RevitUtils
                 }
             });
 
-            return groupInfos;
-        }
-
-        /// <summary>
-        /// Удаляет неиспользуемые типы групп
-        /// </summary>
-        private static void DeleteUnusedGroupTypes(Document doc)
-        {
-            foreach (GroupType groupType in new FilteredElementCollector(doc).OfClass(typeof(GroupType)).Cast<GroupType>())
+            TransactionHelper.CreateTransaction(doc, "DeleteUnusedGroupTypes", () =>
             {
-                if (groupType.Groups.Size == 0 || groupType.Groups.IsEmpty || groupType.Groups.IsReadOnly)
+                List<GroupType> unusedGroupTypes =
+                [.. new FilteredElementCollector(doc)
+                    .OfClass(typeof(GroupType))
+                    .OfType<GroupType>()];
+
+                foreach (GroupType grt in unusedGroupTypes)
                 {
-                    try
+                    if (grt.Groups.Size == 0 || grt.Groups.IsEmpty || grt.Groups.IsReadOnly)
                     {
-                        _ = doc.Delete(groupType.Id);
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.Fail($"Failed group: {groupType.Name} {ex.Message}");
+                        try
+                        {
+                            _ = doc.Delete(grt.Id);
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.Fail($"Failed group: {grt.Name} {ex.Message}");
+                        }
                     }
                 }
-            }
+            });
+
+            return groupInfos;
         }
 
         /// <summary>
@@ -96,8 +97,6 @@ namespace RevitUtils
                 }
             });
         }
-
-
 
     }
 }
