@@ -61,16 +61,6 @@ namespace RevitUtils
         public static double GetParamValueAsDouble(Element element, BuiltInParameter paramId)
         {
             Parameter parameter = element.get_Parameter(paramId);
-
-            return parameter.HasValue ? parameter.AsDouble() : 0;
-        }
-
-        /// <summary>
-        /// Получает числовое значение параметра по имени
-        /// </summary>
-        public static double GetParamValueAsDouble(Element element, string paramName)
-        {
-            Parameter parameter = element.LookupParameter(paramName);
             return parameter.HasValue ? parameter.AsDouble() : 0;
         }
 
