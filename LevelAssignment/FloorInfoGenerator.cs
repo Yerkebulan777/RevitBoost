@@ -12,8 +12,8 @@ namespace LevelAssignment
 
         private const int GROUND_NUMBER = 1; // Номер первого этажа
         private const int BASEMENT_NUMBER = -1; // Номер подземного этажа
-        private const float deviation = 1000; // Допустимое отклонение (м)
-        private const float LEVEL_MIN_HEIGHT = 1.5; // Минимальная высота этажа (м)
+        private const float deviation = 1000f; // Допустимое отклонение (м)
+        private const float LEVEL_MIN_HEIGHT = 1.5f; // Минимальная высота этажа (м)
         private readonly int[] specialFloorNumbers = [99, 100, 101]; // Специальные номера этажей
         private static readonly Regex levelNumberRegex = new(@"^\d{1,3}.", RegexOptions.Compiled);
 
