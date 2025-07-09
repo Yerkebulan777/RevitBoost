@@ -13,24 +13,25 @@ namespace RevitUtils
         {
             Dictionary<string, List<string>> groupInfos = [];
 
-            DeleteUnusedGroupTypes(doc);
-
-            foreach (Group group in new FilteredElementCollector(doc).OfClass(typeof(Group)).Cast<Group>())
+            TransactionHelper.CreateTransaction(doc, "UngroupAllGroups", () =>
             {
-                List<string> memberUniqueIds = [];
+                DeleteUnusedGroupTypes(doc);
 
-                foreach (ElementId memberId in group.UngroupMembers())
+                foreach (Group group in new FilteredElementCollector(doc).OfClass(typeof(Group)).Cast<Group>())
                 {
-                    if (doc.GetElement(memberId) is Element element)
+                    List<string> memberUniqueIds = [];
+
+                    foreach (ElementId memberId in group.UngroupMembers())
                     {
-                        memberUniqueIds.Add(element.UniqueId);
+                        if (doc.GetElement(memberId) is Element element)
+                        {
+                            memberUniqueIds.Add(element.UniqueId);
+                        }
                     }
+
+                    groupInfos[group.GroupType.Name] = memberUniqueIds;
                 }
-
-
-                groupInfos[group.GroupType.Name] = memberUniqueIds;
-
-            }
+            });
 
             return groupInfos;
         }
@@ -61,29 +62,40 @@ namespace RevitUtils
         /// </summary>
         public static void RestoreGroups(Document doc, Dictionary<string, List<string>> groupInfos)
         {
-            foreach (KeyValuePair<string, List<string>> kvp in groupInfos)
+            if (groupInfos == null || groupInfos.Count == 0)
             {
-                try
-                {
-                    List<ElementId> memberIds = [];
-
-                    foreach (string uniqueId in kvp.Value)
-                    {
-                        if (doc.GetElement(uniqueId) is Element element)
-                        {
-                            memberIds.Add(element.Id);
-                        }
-                    }
-
-                    Group newGroup = doc.Create.NewGroup(memberIds);
-                    newGroup.GroupType.Name = kvp.Key;
-                }
-                catch (Exception ex)
-                {
-                    Debug.Fail($"Failed group: {kvp.Key} {ex.Message}");
-                }
+                Debug.WriteLine("No groups to restore.");
+                return;
             }
+
+            TransactionHelper.CreateTransaction(doc, "RestoreGroups", () => 
+            {
+                foreach (KeyValuePair<string, List<string>> kvp in groupInfos)
+                {
+                    try
+                    {
+                        List<ElementId> memberIds = [];
+
+                        foreach (string uniqueId in kvp.Value)
+                        {
+                            if (doc.GetElement(uniqueId) is Element element)
+                            {
+                                memberIds.Add(element.Id);
+                            }
+                        }
+
+                        Group newGroup = doc.Create.NewGroup(memberIds);
+                        newGroup.GroupType.Name = kvp.Key;
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.Fail($"Failed group: {kvp.Key} {ex.Message}");
+                    }
+                }
+            });
         }
+
+
 
     }
 }

@@ -38,7 +38,6 @@ namespace LevelAssignment
             double offset = UnitManager.MmToFoot(250);
             double сlearance = UnitManager.MmToFoot(100);
 
-
             result.AppendLine("Starting level assignment process...");
 
             List<FloorInfo> floorModels = _floorInfoGenerator.GenerateFloorModels(_document);

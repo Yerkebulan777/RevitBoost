@@ -26,30 +26,23 @@ namespace RevitBoost.Commands
 
             using IDisposable scope = logger.BeginScope("CommandExecution", (doc.Title, doc.PathName));
 
+            logger.Information("Starting LevelAssignmentCommand execution");
+
+            Dictionary<string, List<string>> groupdata;
+
             StringBuilder resultBuilder = new();
 
-            // Проверяем валидность документа
             if (!Validate(doc, resultBuilder))
             {
-                ShowResult("Ошибка валидации", resultBuilder.ToString());
+                ShowResult("Ошибка", resultBuilder.ToString());
                 return Result.Failed;
             }
 
-            Dictionary<string, List<string>> groupdata = [];
-
-            TransactionHelper.CreateTransaction(doc, "UngroupAllGroups", () =>
-            {
-                groupdata = GroupHelper.UngroupAllAndSaveInfo(doc);
-            });
-
-            logger.Information("Starting LevelAssignmentCommand execution");
+            groupdata = GroupHelper.UngroupAllAndSaveInfo(doc);
 
             LevelAssigmentExecute(doc, logger, resultBuilder);
 
-            TransactionHelper.CreateTransaction(doc, "RestoreGroups", () =>
-            {
-                GroupHelper.RestoreGroups(doc, groupdata);
-            });
+            GroupHelper.RestoreGroups(doc, groupdata);
 
             return Result.Succeeded;
         }
@@ -116,6 +109,7 @@ namespace RevitBoost.Commands
 
             _ = dialog.Show();
         }
+
 
     }
 }
