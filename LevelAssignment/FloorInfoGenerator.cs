@@ -11,8 +11,8 @@ namespace LevelAssignment
     {
         private const int GROUND_NUMBER = 1; // Номер первого этажа
         private const int BASEMENT_NUMBER = -1; // Номер подземного этажа
-        private const float DEVIATION = 1000f; // Допустимое отклонение (м)
-        private const float LEVEL_MIN_HEIGHT = 1.5f; // Минимальная высота этажа (м)
+        private const int MIN_HEIGHT = 1500; // Минимальная высота этажа (мм)
+        private const int DEVIATION = 1000; // Максимальное допустимое отклонение (мм)
         private readonly int[] specialFloorNumbers = [99, 100, 101]; // Специальные номера этажей
         private static readonly Regex levelNumberRegex = new(@"^\d{1,3}.", RegexOptions.Compiled);
         private readonly IModuleLogger _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -84,7 +84,7 @@ namespace LevelAssignment
             {
                 Level level = sortedLevels[idx];
 
-                double elevation = GetProjectElevationInMt(level);
+                double elevation = GetProjectElevationInMm(level);
 
                 if (IsDuplicateLevel(elevation, previousElevation, out double difference))
                 {
@@ -123,14 +123,14 @@ namespace LevelAssignment
 
             int resultNumber = currentNumber;
 
-            bool isGround = context.DisplayElevation < LEVEL_MIN_HEIGHT;
-            bool isBasement = context.DisplayElevation < -LEVEL_MIN_HEIGHT;
-            bool isHeightValid = context.ElevationDifference >= LEVEL_MIN_HEIGHT;
+            bool isGround = context.DisplayElevation < MIN_HEIGHT;
+            bool isBasement = context.DisplayElevation < -MIN_HEIGHT;
+            bool isHeightValid = context.ElevationDifference >= MIN_HEIGHT;
             bool isTopLevel = IsTopLevel(currentNumber, context.Index, context.TotalLevels);
             bool isValidName = IsValidFloorNumber(context.LevelName, context.TotalLevels, out int numFromName);
 
             logBuilder.AppendLine($"Level '{context.LevelName}' at {context.DisplayElevation:F2}m");
-            logBuilder.AppendLine($"  heightOK={isHeightValid} (diff>={LEVEL_MIN_HEIGHT})");
+            logBuilder.AppendLine($"  heightOK={isHeightValid} (diff>={MIN_HEIGHT})");
             logBuilder.AppendLine($"  curr={currentNumber}, diff={context.ElevationDifference:F2}");
             logBuilder.AppendLine($"  topLevel={isTopLevel} ({context.Index}/{context.TotalLevels})");
             logBuilder.AppendLine($"  basement={isBasement}, ground={isGround}");
@@ -224,9 +224,9 @@ namespace LevelAssignment
         /// <summary>
         /// Преобразует высоту уровня в метры.
         /// </summary>
-        private static double GetProjectElevationInMt(Level level)
+        private static double GetProjectElevationInMm(Level level)
         {
-            return UnitManager.FootToMt(level.ProjectElevation);
+            return UnitManager.FootToMm(level.ProjectElevation);
         }
 
         /// <summary>
