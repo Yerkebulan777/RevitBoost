@@ -1,11 +1,10 @@
-﻿// CommonUtils/CommandLoggerHelper.cs
-using Serilog;
+﻿using Serilog;
 using Serilog.Core;
 using Serilog.Events;
 
 namespace CommonUtils
 {
-    public static class CommandLoggerHelper
+    public static class LoggerHelper
     {
         /// <summary>
         /// Создает временный логгер для команды с отдельным файлом
@@ -32,7 +31,6 @@ namespace CommonUtils
                 .Enrich.WithProperty("Application", "RevitBoost")
                 .Enrich.WithProperty("Command", commandName)
                 .WriteTo.File(path: logPath, shared: true)
-                .WriteTo.Debug(LogEventLevel.Debug)
                 .CreateLogger();
 
             return new ModuleLogger(commandLogger, commandName);

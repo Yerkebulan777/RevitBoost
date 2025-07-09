@@ -23,11 +23,10 @@ namespace RevitBoost.Config
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
                 .Enrich.WithProperty("UserName", Environment.UserName)
                 .Enrich.WithProperty("Application", "RevitBoost")
-                .WriteTo.Debug(LogEventLevel.Debug)
                 .WriteTo.File(
                     Path.Combine(logDirectory, "revit-boost-general.log"),
                     rollingInterval: RollingInterval.Day,
-                    retainedFileCountLimit: 7,
+                    retainedFileCountLimit: 5,
                     shared: true)
                 .CreateLogger();
 

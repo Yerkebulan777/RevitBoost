@@ -21,7 +21,7 @@ namespace RevitBoost.Commands
 
             string logPath = Path.Combine(PathHelper.FindProjectRoot(doc.PathName), "Log");
 
-            IModuleLogger logger = CommandLoggerHelper.CreateCommandLogger(doc.Title, ToString(), logPath);
+            IModuleLogger logger = LoggerHelper.CreateCommandLogger(doc.Title, ToString(), logPath);
 
             using IDisposable scope = logger.BeginScope("CommandExecution", (doc.Title, doc.PathName));
 
