@@ -228,56 +228,56 @@ namespace LevelAssignment
         {
             StringBuilder logBuilder = new();
 
+            int resultNumber = currentNumber;
+
+            bool isGround = context.Elevation < LEVEL_MIN_HEIGHT;
+            bool isBasement = context.Elevation < -LEVEL_MIN_HEIGHT;
             bool isHeightValid = context.ElevationDifference >= LEVEL_MIN_HEIGHT;
             bool isTopLevel = IsTopLevel(currentNumber, context.Index, context.Total);
             bool isValidName = IsValidFloorNumber(context.Name, context.Total, out int numFromName);
 
-            logBuilder.AppendLine($"Level name: '{context.Name}' at {context.Elevation:F2} m");
-            logBuilder.AppendLine($"Is height valid: ({context.ElevationDifference:F2}m >= {LEVEL_MIN_HEIGHT}m)");
-            logBuilder.AppendLine($"Is level name valid: {isValidName} (number: {numFromName})");
-            logBuilder.AppendLine($"Is top level: {isTopLevel}");
+            logBuilder.AppendLine($"Level '{context.Name}' at {context.Elevation:F2}m");
+            logBuilder.AppendLine($"  curr={currentNumber}, diff={context.ElevationDifference:F2}");
+            logBuilder.AppendLine($"  heightOK={isHeightValid} ({context.ElevationDifference:F2}>={LEVEL_MIN_HEIGHT})");
+            logBuilder.AppendLine($"  topLevel={isTopLevel} ({context.Index}/{context.Total})");
+            logBuilder.AppendLine($"  basement={isBasement}, ground={isGround}");
+            logBuilder.AppendLine($"  nameOK={isValidName} (num={numFromName})");
 
-            int resultNumber = currentNumber;
-            string strategy = "no change";
-
-            // Номер из имени
             if (isValidName && isHeightValid && currentNumber <= numFromName)
             {
                 resultNumber = numFromName;
-                strategy = $"name number {numFromName}";
+                logBuilder.AppendLine($"  ✓ nameOK && heightOK && curr<=num → {resultNumber}");
             }
-            // Подвал
-            else if (currentNumber <= 0 && context.Elevation < -LEVEL_MIN_HEIGHT)
+            else if (currentNumber <= 0 && isBasement)
             {
                 resultNumber = BASEMENT_NUMBER;
-                strategy = $"basement {BASEMENT_NUMBER}";
+                logBuilder.AppendLine($"  ✓ curr<=0 && basement → {resultNumber}");
             }
-            // Первый этаж
-            else if (currentNumber <= 0 && context.Elevation < LEVEL_MIN_HEIGHT)
+            else if (currentNumber <= 0 && isGround)
             {
                 resultNumber = GROUND_NUMBER;
-                strategy = $"ground {GROUND_NUMBER}";
+                logBuilder.AppendLine($"  ✓ curr<=0 && ground → {resultNumber}");
             }
-            // Специальные этажи
             else if (isTopLevel)
             {
                 resultNumber = GetSpecialFloorNumber(context.Name, isHeightValid);
-                strategy = $"special {resultNumber}";
+                logBuilder.AppendLine($"  ✓ topLevel → {resultNumber}");
             }
-            // Инкремент
             else if (currentNumber > 0 && isHeightValid)
             {
                 resultNumber = currentNumber + 1;
-                strategy = $"increment {currentNumber} → {resultNumber}";
+                logBuilder.AppendLine($"  ✓ curr>0 && heightOK → {resultNumber}");
             }
 
-            _ = logBuilder.AppendLine($"  → Strategy: {strategy}");
+            if (resultNumber == currentNumber)
+            {
+                logBuilder.AppendLine($"⚠️ UNCHANGED: {currentNumber}!");
+            }
 
             _logger.Debug(logBuilder.ToString());
 
             return resultNumber;
         }
-
 
         /// <summary>
         /// Получает специальный номер этажа в зависимости от имени уровня
