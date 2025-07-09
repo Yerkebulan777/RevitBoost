@@ -10,13 +10,13 @@ namespace CommonUtils
         /// <summary>
         /// Создает временный логгер для команды с отдельным файлом
         /// </summary>
-        public static IModuleLogger CreateCommandLogger(string title, string commandName, string logFolderPath)
+        public static IModuleLogger CreateCommandLogger(string title, string commandName, string directory)
         {
-            string logPath = Path.Combine(logFolderPath, $"{title}.log");
+            string logPath = Path.Combine(directory, $"{title}.log");
 
-            if (!Directory.Exists(logFolderPath))
+            if (!Directory.Exists(directory))
             {
-                _ = Directory.CreateDirectory(logFolderPath);
+                _ = Directory.CreateDirectory(directory);
             }
             else if (File.Exists(logPath))
             {
@@ -37,5 +37,7 @@ namespace CommonUtils
 
             return new ModuleLogger(commandLogger, commandName);
         }
+
+
     }
 }
