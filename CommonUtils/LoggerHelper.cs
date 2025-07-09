@@ -27,9 +27,6 @@ namespace CommonUtils
                 .MinimumLevel.Debug()
                 .MinimumLevel.Override("System", LogEventLevel.Warning)
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-                .Enrich.WithProperty("UserName", Environment.UserName)
-                .Enrich.WithProperty("Application", "RevitBoost")
-                .Enrich.WithProperty("Command", commandName)
                 .WriteTo.File(path: logPath, shared: true)
                 .CreateLogger();
 
