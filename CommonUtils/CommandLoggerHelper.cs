@@ -13,8 +13,6 @@ namespace CommonUtils
         /// </summary>
         public static IModuleLogger CreateCommandLogger(string commandName, string logFolderPath = null)
         {
-            logFolderPath ??= Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "RevitBoost");
-
             if (!Directory.Exists(logFolderPath))
             {
                 _ = Directory.CreateDirectory(logFolderPath);
@@ -28,7 +26,7 @@ namespace CommonUtils
                 .Enrich.WithProperty("UserName", Environment.UserName)
                 .Enrich.WithProperty("Application", "RevitBoost")
                 .Enrich.WithProperty("Command", commandName)
-                .WriteTo.Debug()
+                .WriteTo.Debug(LogEventLevel.Debug)
                 .WriteTo.File(
                     Path.Combine(logFolderPath, $"{commandName}.log"),
                     rollingInterval: RollingInterval.Day,
