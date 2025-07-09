@@ -11,7 +11,7 @@ namespace LevelAssignment
     {
         private const int GROUND_NUMBER = 1; // Номер первого этажа
         private const int BASEMENT_NUMBER = -1; // Номер подземного этажа
-        private const float deviation = 1000f; // Допустимое отклонение (м)
+        private const float DEVIATION = 1000f; // Допустимое отклонение (м)
         private const float LEVEL_MIN_HEIGHT = 1.5f; // Минимальная высота этажа (м)
         private readonly int[] specialFloorNumbers = [99, 100, 101]; // Специальные номера этажей
         private static readonly Regex levelNumberRegex = new(@"^\d{1,3}.", RegexOptions.Compiled);
@@ -82,8 +82,6 @@ namespace LevelAssignment
             for (int idx = 0; idx < levelTotalCount; idx++)
             {
                 Level level = sortedLevels[idx];
-
-                int oldNumber = calculatedNumber;
 
                 double elevation = GetProjectElevationInMt(level);
 
@@ -236,7 +234,7 @@ namespace LevelAssignment
         private static bool IsDuplicateLevel(double currentElevation, double previousElevation, out double difference)
         {
             difference = Math.Abs(currentElevation - previousElevation);
-            return currentElevation > 0 && difference < deviation;
+            return currentElevation > 0 && difference < DEVIATION;
         }
 
         /// <summary>
