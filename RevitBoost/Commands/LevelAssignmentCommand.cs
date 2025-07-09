@@ -2,6 +2,7 @@
 using Autodesk.Revit.UI;
 using CommonUtils;
 using LevelAssignment;
+using System.IO;
 using System.Text;
 
 namespace RevitBoost.Commands
@@ -18,7 +19,9 @@ namespace RevitBoost.Commands
         {
             Document doc = commandData.Application.ActiveUIDocument.Document;
 
-            IModuleLogger logger = CommandLoggerHelper.CreateCommandLogger("LevelAssignment", Host.GetService<string>);
+            string logPath = Path.Combine(PathHelper.FindProjectRoot(doc.PathName), "Log");
+
+            IModuleLogger logger = CommandLoggerHelper.CreateCommandLogger(doc.Title, ToString(), logPath);
 
             using IDisposable scope = logger.BeginScope("CommandExecution", (doc.Title, doc.PathName));
 
@@ -38,8 +41,8 @@ namespace RevitBoost.Commands
                 // Создаём оркестратор для назначения этажей
                 LevelAssignmentProcessor orchestrator = new(doc, logger);
 
-                resultBuilder.AppendLine("=== НАЗНАЧЕНИЕ ЭЛЕМЕНТОВ К ЭТАЖАМ ===");
-                resultBuilder.AppendLine(orchestrator.Execute(PARAMETER_GUID));
+                _ = resultBuilder.AppendLine("=== НАЗНАЧЕНИЕ ЭЛЕМЕНТОВ К ЭТАЖАМ ===");
+                _ = resultBuilder.AppendLine(orchestrator.Execute(PARAMETER_GUID));
 
                 ShowResult("Назначение завершено", resultBuilder.ToString());
             }

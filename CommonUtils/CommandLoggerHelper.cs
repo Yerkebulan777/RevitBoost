@@ -11,7 +11,7 @@ namespace CommonUtils
         /// <summary>
         /// Создает временный логгер для команды с отдельным файлом
         /// </summary>
-        public static IModuleLogger CreateCommandLogger(string commandName, string logFolderPath = null)
+        public static IModuleLogger CreateCommandLogger(string title,  string commandName, string logFolderPath)
         {
             if (!Directory.Exists(logFolderPath))
             {
@@ -28,25 +28,13 @@ namespace CommonUtils
                 .Enrich.WithProperty("Command", commandName)
                 .WriteTo.Debug(LogEventLevel.Debug)
                 .WriteTo.File(
-                    Path.Combine(logFolderPath, $"{commandName}.log"),
+                    Path.Combine(logFolderPath, $"{title}.log"),
                     rollingInterval: RollingInterval.Day,
                     retainedFileCountLimit: 5,
                     shared: true)
                 .CreateLogger();
 
             return new ModuleLogger(commandLogger, commandName);
-        }
-
-        /// <summary>
-        /// Создает логгер команды, получая директорию логов из DI
-        /// </summary>
-        /// <param name="commandName">Имя команды</param>
-        /// <param name="serviceProvider">Провайдер сервисов для получения конфигурации</param>
-        /// <returns>Настроенный логгер для команды</returns>
-        public static IModuleLogger CreateCommandLogger(string commandName, Func<string> getLogDirectory)
-        {
-            string logDirectory = getLogDirectory?.Invoke();
-            return CreateCommandLogger(commandName, logDirectory);
         }
     }
 }
