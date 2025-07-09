@@ -234,8 +234,7 @@ namespace LevelAssignment
             bool isTopLevel = IsTopLevel(currentNumber, context.Index, context.Total);
             bool IsValidName = IsValidFloorNumber(context.Name, context.Total, out int numFromName);
 
-            _logger.Debug("  Check: height_ok={HeightOk}, name_num={NameNum}, top={IsTop}",
-                isHeightValid, IsValidName ? numFromName : "none", isTopLevel);
+            _logger.Debug("Elevation difference {}, ({NameNum}), top={IsTop}", isHeightValid, IsValidName, isTopLevel);
 
             // Стратегия 1: Используем номер из имени уровня
             if (IsValidName && isHeightValid && currentNumber <= numFromName)
