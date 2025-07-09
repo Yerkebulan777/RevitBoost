@@ -10,26 +10,26 @@ namespace RevitUtils
         {
             using Transaction trx = new(doc);
 
-            if (TransactionStatus.Started != trx.Start(name))
+            if (TransactionStatus.Started == trx.Start(name))
             {
-                throw new InvalidProgramException($"Transaction!");
-            }
-
-            try
-            {
-                action?.Invoke();
-                _ = trx.Commit();
-            }
-            catch (Exception ex)
-            {
-                if (!trx.HasEnded())
+                try
                 {
-                    _ = trx.RollBack();
+                    action?.Invoke();
+                    _ = trx.Commit();
                 }
-
-                StringHelper.CopyToClipboard($"Failed: {ex.Message}");
-                Debug.Fail($"Transaction '{name}' failed: {ex.Message}");
-                throw new InvalidOperationException($"Failed: {ex.Message}");
+                catch (Exception ex)
+                {
+                    StringHelper.CopyToClipboard($"Failed: {ex.Message}");
+                    Debug.Fail($"Transaction '{name}' failed: {ex.Message}");
+                    throw new InvalidOperationException($"Failed: {ex.Message}");
+                }
+                finally
+                {
+                    if (!trx.HasEnded())
+                    {
+                        _ = trx.RollBack();
+                    }
+                }
             }
         }
 
@@ -42,14 +42,14 @@ namespace RevitUtils
             {
                 try
                 {
-                    doc.Delete(idsToDelete);
-                    trx.Commit();
+                    _ = doc.Delete(idsToDelete);
+                    _ = trx.Commit();
                 }
                 catch
                 {
                     if (!trx.HasEnded())
                     {
-                        trx.RollBack();
+                        _ = trx.RollBack();
                     }
                 }
             }

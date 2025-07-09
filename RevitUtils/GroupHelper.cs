@@ -12,28 +12,7 @@ namespace RevitUtils
         {
             Dictionary<string, List<string>> groupInfos = [];
 
-            TransactionHelper.CreateTransaction(doc, "DeleteUnusedGroups", () =>
-            {
-                List<GroupType> unusedGroupTypes =
-                [.. new FilteredElementCollector(doc)
-                    .OfClass(typeof(GroupType))
-                    .OfType<GroupType>()];
-
-                foreach (GroupType grt in unusedGroupTypes)
-                {
-                    if (grt.Groups.Size == 0 || grt.Groups.IsEmpty || grt.Groups.IsReadOnly)
-                    {
-                        try
-                        {
-                            _ = doc.Delete(grt.Id);
-                        }
-                        catch (Exception ex)
-                        {
-                            Debug.Fail($"Failed group: {grt.Name} {ex.Message}");
-                        }
-                    }
-                }
-            });
+            CleanupUnusedGroupTypes(doc);
 
             TransactionHelper.CreateTransaction(doc, "UngroupAllGroups", () =>
             {
@@ -57,30 +36,39 @@ namespace RevitUtils
                 }
             });
 
-            TransactionHelper.CreateTransaction(doc, "DeleteUnusedGroups", () =>
+            CleanupUnusedGroupTypes(doc);
+
+            return groupInfos;
+        }
+
+        /// <summary>
+        /// Очищает неиспользуемые типы групп
+        /// </summary>
+        private static void CleanupUnusedGroupTypes(Document doc)
+        {
+            TransactionHelper.CreateTransaction(doc, "DeleteUnusedGroupTypes", () =>
             {
                 List<GroupType> unusedGroupTypes =
-                [.. new FilteredElementCollector(doc)
-                    .OfClass(typeof(GroupType))
-                    .OfType<GroupType>()];
+                    [.. new FilteredElementCollector(doc)
+                    .OfClass(typeof(GroupType)).OfType<GroupType>()
+                    .Where(gt => gt.IsValidObject)];
 
                 foreach (GroupType grt in unusedGroupTypes)
                 {
-                    if (grt.Groups.Size == 0 || grt.Groups.IsEmpty || grt.Groups.IsReadOnly)
+                    try
                     {
-                        try
+                        if (grt.Groups.Size == 0 || grt.Groups.IsEmpty)
                         {
-                            _ = doc.Delete(grt.Id);
-                        }
-                        catch (Exception ex)
-                        {
-                            Debug.Fail($"Failed group: {grt.Name} {ex.Message}");
+                            doc.Delete(grt.Id);
                         }
                     }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"Failed to delete group type {grt.Name}: {ex.Message}");
+                    }
                 }
-            });
 
-            return groupInfos;
+            });
         }
 
         /// <summary>
