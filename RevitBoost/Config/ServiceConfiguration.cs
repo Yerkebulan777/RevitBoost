@@ -19,8 +19,6 @@ namespace RevitBoost.Config
 
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Debug()
-                .MinimumLevel.Override("System", LogEventLevel.Warning)
-                .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
                 .WriteTo.File(
                     Path.Combine(logDirectory, "revit-boost-general.log"),
                     rollingInterval: RollingInterval.Day,

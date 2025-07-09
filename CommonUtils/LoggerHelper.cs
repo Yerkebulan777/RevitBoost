@@ -24,10 +24,8 @@ namespace CommonUtils
 
             // Создаем логгер для команды с отдельным файлом
             Logger commandLogger = new LoggerConfiguration()
-                .MinimumLevel.Debug()
-                .MinimumLevel.Override("System", LogEventLevel.Warning)
-                .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
                 .WriteTo.File(path: logPath, shared: true)
+                .MinimumLevel.Debug()
                 .CreateLogger();
 
             return new ModuleLogger(commandLogger, commandName);
