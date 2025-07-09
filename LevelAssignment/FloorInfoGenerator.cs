@@ -11,8 +11,8 @@ namespace LevelAssignment
     {
         private const int GROUND_NUMBER = 1; // Номер первого этажа
         private const int BASEMENT_NUMBER = -1; // Номер подземного этажа
-        private const int MIN_HEIGHT = 1500; // Минимальная высота этажа (мм)
-        private const int DEVIATION = 1000; // Максимальное допустимое отклонение (мм)
+        private const double MIN_HEIGHT = 1500; // Минимальная высота этажа (мм)
+        private const double DEVIATION = 1000; // Максимальное допустимое отклонение (мм)
         private readonly int[] specialFloorNumbers = [99, 100, 101]; // Специальные номера этажей
         private static readonly Regex levelNumberRegex = new(@"^\d{1,3}.", RegexOptions.Compiled);
         private readonly IModuleLogger _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -130,9 +130,9 @@ namespace LevelAssignment
             bool isValidName = IsValidFloorNumber(context.LevelName, context.TotalLevels, out int numFromName);
 
             logBuilder.AppendLine($"Level '{context.LevelName}' at {context.DisplayElevation:F2}m");
-            logBuilder.AppendLine($"  heightOK={isHeightValid} (diff>={MIN_HEIGHT})");
             logBuilder.AppendLine($"  curr={currentNumber}, diff={context.ElevationDifference:F2}");
             logBuilder.AppendLine($"  topLevel={isTopLevel} ({context.Index}/{context.TotalLevels})");
+            logBuilder.AppendLine($"  heightOK={isHeightValid} (diff>={MIN_HEIGHT})");
             logBuilder.AppendLine($"  basement={isBasement}, ground={isGround}");
             logBuilder.AppendLine($"  nameOK={isValidName} (num={numFromName})");
 
