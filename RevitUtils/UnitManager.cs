@@ -26,14 +26,14 @@ namespace RevitUtils
             return length / footToMm;
         }
 
-        public static double FootToMt(double length, int baseVal = 3)
+        public static double FootToMt(double length, int baseValue = 3)
         {
-            return Math.Round(length * footToMm / 1000, baseVal);
+            return Math.Round(length * footToMm / 1000, baseValue);
         }
 
-        public static double FootToMm(double length, int baseVal = 3)
+        public static double FootToMm(double length, int baseValue = 3)
         {
-            return baseVal * Math.Round(length * footToMm / baseVal);
+            return baseValue * Math.Round(length * footToMm / baseValue);
         }
 
         public static double CubicFootToCubicMeter(double volume)
