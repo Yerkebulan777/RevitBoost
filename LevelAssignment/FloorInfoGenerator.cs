@@ -17,6 +17,7 @@ namespace LevelAssignment
         private readonly int[] specialFloorNumbers = [99, 100, 101]; // Специальные номера этажей
         private static readonly Regex levelNumberRegex = new(@"^\d{1,3}.", RegexOptions.Compiled);
 
+
         public FloorInfoGenerator(IModuleLogger logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -227,7 +228,7 @@ namespace LevelAssignment
         private int DetermineFloorNumber(int currentNumber, LevelContext context)
         {
             // Вычисляем ключевые параметры для принятия решений
-            _logger.Debug("Level '{Name}' at {Elevation}m",  context.Name, context.Elevation);
+            _logger.Debug("Level '{Name}' at {Elevation}m", context.Name, context.Elevation);
 
             bool isHeightValid = context.ElevationDifference >= LEVEL_MIN_HEIGHT;
             bool isTopLevel = IsTopLevel(currentNumber, context.Index, context.Total);
