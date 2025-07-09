@@ -34,8 +34,7 @@ namespace LevelAssignment
                 return floorModels;
             }
 
-            _logger.Debug("Valid levels {LevelCount}", levels.Count);
-            Dictionary<int, Level> levelNumMap = CalculateLevelNumber(levels);
+            Dictionary<int, Level> levelNumMap = CalculateFloorNumber(levels);
             _logger.Debug("Mapped {MappedLevels} levels to floor numbers", levelNumMap.Count);
 
             foreach (IGrouping<int, Level> group in levelNumMap.GroupBy(kvp => kvp.Key, kvp => kvp.Value))
@@ -70,7 +69,7 @@ namespace LevelAssignment
         /// <summary>
         /// Вычисляет вычисляет номера уровней.
         /// </summary>
-        internal Dictionary<int, Level> CalculateFloorNumberData(List<Level> sortedLevels)
+        internal Dictionary<int, Level> CalculateFloorNumber(List<Level> sortedLevels)
         {
             int calculatedNumber = 0;
             double previousElevation = 0;
@@ -98,16 +97,16 @@ namespace LevelAssignment
                 LevelContext context = new()
                 {
                     Index = idx,
-                    Name = level.Name,
-                    Elevation = elevation,
-                    Total = levelTotalCount,
+                    LevelName = level.Name,
+                    DisplayElevation = elevation,
+                    TotalLevels = levelTotalCount,
                     ElevationDifference = difference,
                     PreviousElevation = previousElevation,
                 };
 
                 calculatedNumber = DetermineFloorNumber(calculatedNumber, context);
 
-                _logger.Debug("Elevation diff={Diff:F2}", difference);
+                _logger.Debug("DisplayElevation diff={Diff:F2}", difference);
 
                 if (oldNumber != calculatedNumber)
                 {
@@ -119,13 +118,12 @@ namespace LevelAssignment
                 }
 
                 levelDictionary[calculatedNumber] = level;
-                previousElevation = context.Elevation;
+                previousElevation = context.DisplayElevation;
             }
 
             _logger.Debug("Result: {Count} floor mappings", levelDictionary.Count);
             return levelDictionary;
         }
-
 
         /// <summary>
         /// Определение номера этажа на основе контекста уровня
@@ -136,16 +134,16 @@ namespace LevelAssignment
 
             int resultNumber = currentNumber;
 
-            bool isGround = context.Elevation < LEVEL_MIN_HEIGHT;
-            bool isBasement = context.Elevation < -LEVEL_MIN_HEIGHT;
+            bool isGround = context.DisplayElevation < LEVEL_MIN_HEIGHT;
+            bool isBasement = context.DisplayElevation < -LEVEL_MIN_HEIGHT;
             bool isHeightValid = context.ElevationDifference >= LEVEL_MIN_HEIGHT;
-            bool isTopLevel = IsTopLevel(currentNumber, context.Index, context.Total);
-            bool isValidName = IsValidFloorNumber(context.Name, context.Total, out int numFromName);
+            bool isTopLevel = IsTopLevel(currentNumber, context.Index, context.TotalLevels);
+            bool isValidName = IsValidFloorNumber(context.LevelName, context.TotalLevels, out int numFromName);
 
-            logBuilder.AppendLine($"Level '{context.Name}' at {context.Elevation:F2}m");
+            logBuilder.AppendLine($"Level '{context.LevelName}' at {context.DisplayElevation:F2}m");
+            logBuilder.AppendLine($"  heightOK={isHeightValid} (diff>={LEVEL_MIN_HEIGHT})");
             logBuilder.AppendLine($"  curr={currentNumber}, diff={context.ElevationDifference:F2}");
-            logBuilder.AppendLine($"  heightOK={isHeightValid} ({context.ElevationDifference:F2}>={LEVEL_MIN_HEIGHT})");
-            logBuilder.AppendLine($"  topLevel={isTopLevel} ({context.Index}/{context.Total})");
+            logBuilder.AppendLine($"  topLevel={isTopLevel} ({context.Index}/{context.TotalLevels})");
             logBuilder.AppendLine($"  basement={isBasement}, ground={isGround}");
             logBuilder.AppendLine($"  nameOK={isValidName} (num={numFromName})");
 
@@ -166,7 +164,7 @@ namespace LevelAssignment
             }
             else if (isTopLevel)
             {
-                resultNumber = GetSpecialFloorNumber(context.Name, isHeightValid);
+                resultNumber = GetSpecialFloorNumber(context.LevelName, isHeightValid);
                 logBuilder.AppendLine($"  ✓ topLevel → {resultNumber}");
             }
             else if (currentNumber > 0 && isHeightValid)

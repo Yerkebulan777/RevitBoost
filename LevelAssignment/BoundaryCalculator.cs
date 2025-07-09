@@ -78,7 +78,7 @@ namespace LevelAssignment
                 _logger.Debug("Floor {FloorIndex} summary: {LevelsProcessed} levels, {BoundariesFound} boundaries", floorModel.Index, levelsProcessed, boundariesFound);
             }
 
-            _logger.Information("Total boundaries collected: {TotalBoundaries}", floorPlanOutlines.Count);
+            _logger.Information("TotalLevels boundaries collected: {TotalBoundaries}", floorPlanOutlines.Count);
 
             if (floorPlanOutlines.Count == 0)
             {

@@ -54,7 +54,7 @@ namespace LevelAssignment
                 throw new InvalidOperationException($"Shared parameter {sharedParameterGuid} not found");
             }
 
-            result.AppendLine($"Total number of floors: {floorModels?.Count}");
+            result.AppendLine($"TotalLevels number of floors: {floorModels?.Count}");
             result.AppendLine($"General parameter: {LevelSharedParameter?.Name}");
 
             foreach (FloorInfo floor in floorModels)
@@ -89,7 +89,7 @@ namespace LevelAssignment
                     result.AppendLine();
                     result.AppendLine($"Floor: {floor.DisplayName} ({floor.Index}) ");
                     result.AppendLine($"Floor height: {UnitManager.FootToMt(floor.Height)}");
-                    result.AppendLine($"Elevation: {UnitManager.FootToMt(floor.ProjectElevation)}");
+                    result.AppendLine($"DisplayElevation: {UnitManager.FootToMt(floor.ProjectElevation)}");
                     result.AppendLine($"The total number of all elements found:{elemIdSet.Count}");
                     result.AppendLine(ApplyLevelParameter(_document, elemIdSet, floor.Index));
 
@@ -181,7 +181,7 @@ namespace LevelAssignment
                             _ = trx.RollBack();
                         }
 
-                        _ = result.AppendLine($"Total elements assigned: {assignedCount}");
+                        _ = result.AppendLine($"TotalLevels elements assigned: {assignedCount}");
                         _ = result.AppendLine($"Read-only elements: {readOnlyParameterCount}");
                         _ = result.AppendLine($"Not modifiable elements: {notModifiableCount}");
                     }
