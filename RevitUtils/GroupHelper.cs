@@ -5,8 +5,6 @@ namespace RevitUtils
 {
     public static class GroupHelper
     {
-
-
         /// <summary>
         /// Разгруппировывает все группы и возвращает информацию для восстановления
         /// </summary>
@@ -24,7 +22,9 @@ namespace RevitUtils
 
                     foreach (ElementId memberId in group.UngroupMembers())
                     {
-                        if (doc.GetElement(memberId) is Element element)
+                        Element element = doc.GetElement(memberId);
+
+                        if (element?.IsValidObject == true)
                         {
                             memberUniqueIds.Add(element.UniqueId);
                         }
