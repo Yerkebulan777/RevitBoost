@@ -1,7 +1,6 @@
 ﻿using Autodesk.Revit.DB;
 using CommonUtils;
 using System.Diagnostics;
-using System.Security.Permissions;
 
 namespace RevitUtils
 {
@@ -28,7 +27,7 @@ namespace RevitUtils
                     _ = trx.RollBack();
                 }
 
-                StringHelper.CopyToClipboard(ex.Message);
+                StringHelper.CopyToClipboard($"Failed: {ex.Message}");
                 Debug.Fail($"Transaction '{name}' failed: {ex.Message}");
                 throw new InvalidOperationException($"Failed: {ex.Message}");
             }

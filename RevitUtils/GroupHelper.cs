@@ -15,9 +15,11 @@ namespace RevitUtils
 
             TransactionHelper.CreateTransaction(doc, "UngroupAllGroups", () =>
             {
+                List<Group> groups = [.. new FilteredElementCollector(doc).OfClass(typeof(Group)).Cast<Group>()];
+
                 DeleteUnusedGroupTypes(doc);
 
-                foreach (Group group in new FilteredElementCollector(doc).OfClass(typeof(Group)).Cast<Group>())
+                foreach (Group group in groups)
                 {
                     List<string> memberUniqueIds = [];
 
@@ -68,7 +70,7 @@ namespace RevitUtils
                 return;
             }
 
-            TransactionHelper.CreateTransaction(doc, "RestoreGroups", () => 
+            TransactionHelper.CreateTransaction(doc, "RestoreGroups", () =>
             {
                 foreach (KeyValuePair<string, List<string>> kvp in groupInfos)
                 {
