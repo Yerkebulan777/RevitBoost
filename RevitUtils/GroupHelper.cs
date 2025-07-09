@@ -12,11 +12,34 @@ namespace RevitUtils
         {
             Dictionary<string, List<string>> groupInfos = [];
 
+            TransactionHelper.CreateTransaction(doc, "DeleteUnusedGroups", () =>
+            {
+                List<GroupType> unusedGroupTypes =
+                [.. new FilteredElementCollector(doc)
+                    .OfClass(typeof(GroupType))
+                    .OfType<GroupType>()];
+
+                foreach (GroupType grt in unusedGroupTypes)
+                {
+                    if (grt.Groups.Size == 0 || grt.Groups.IsEmpty || grt.Groups.IsReadOnly)
+                    {
+                        try
+                        {
+                            _ = doc.Delete(grt.Id);
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.Fail($"Failed group: {grt.Name} {ex.Message}");
+                        }
+                    }
+                }
+            });
+
             TransactionHelper.CreateTransaction(doc, "UngroupAllGroups", () =>
             {
-                List<Group> groups = [.. new FilteredElementCollector(doc).OfClass(typeof(Group)).Cast<Group>()];
+                List<Group> groups = [.. new FilteredElementCollector(doc).OfClass(typeof(Group)).OfType<Group>()];
 
-                foreach (Group group in groups)
+                foreach (Group group in groups.Where(el => el.IsValidObject))
                 {
                     List<string> memberUniqueIds = [];
 
@@ -34,7 +57,7 @@ namespace RevitUtils
                 }
             });
 
-            TransactionHelper.CreateTransaction(doc, "DeleteUnusedGroupTypes", () =>
+            TransactionHelper.CreateTransaction(doc, "DeleteUnusedGroups", () =>
             {
                 List<GroupType> unusedGroupTypes =
                 [.. new FilteredElementCollector(doc)
