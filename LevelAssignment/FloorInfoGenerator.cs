@@ -104,18 +104,8 @@ namespace LevelAssignment
                     PreviousElevation = previousElevation,
                 };
 
+                _logger.Debug("DisplayElevation difference = {Diff:F2}", difference);
                 calculatedNumber = DetermineFloorNumber(calculatedNumber, context);
-
-                _logger.Debug("DisplayElevation diff={Diff:F2}", difference);
-
-                if (oldNumber != calculatedNumber)
-                {
-                    _logger.Debug("→ Change: {Old} → {New}", oldNumber, calculatedNumber);
-                }
-                else
-                {
-                    _logger.Debug("→ Keep: {Number}", calculatedNumber);
-                }
 
                 levelDictionary[calculatedNumber] = level;
                 previousElevation = context.DisplayElevation;
