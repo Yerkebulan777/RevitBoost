@@ -2,7 +2,6 @@
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
-using System.IO;
 
 namespace CommonUtils
 {
@@ -11,11 +10,17 @@ namespace CommonUtils
         /// <summary>
         /// Создает временный логгер для команды с отдельным файлом
         /// </summary>
-        public static IModuleLogger CreateCommandLogger(string title,  string commandName, string logFolderPath)
+        public static IModuleLogger CreateCommandLogger(string title, string commandName, string logFolderPath)
         {
+            string logPath = Path.Combine(logFolderPath, $"{title}.log");
+
             if (!Directory.Exists(logFolderPath))
             {
                 _ = Directory.CreateDirectory(logFolderPath);
+            }
+            else if (File.Exists(logPath))
+            {
+                File.Delete(logPath);
             }
 
             // Создаем логгер для команды с отдельным файлом
@@ -26,12 +31,8 @@ namespace CommonUtils
                 .Enrich.WithProperty("UserName", Environment.UserName)
                 .Enrich.WithProperty("Application", "RevitBoost")
                 .Enrich.WithProperty("Command", commandName)
+                .WriteTo.File(path: logPath, shared: true)
                 .WriteTo.Debug(LogEventLevel.Debug)
-                .WriteTo.File(
-                    Path.Combine(logFolderPath, $"{title}.log"),
-                    rollingInterval: RollingInterval.Day,
-                    retainedFileCountLimit: 5,
-                    shared: true)
                 .CreateLogger();
 
             return new ModuleLogger(commandLogger, commandName);
