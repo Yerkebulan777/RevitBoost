@@ -2,6 +2,7 @@
 using Autodesk.Revit.UI;
 using CommonUtils;
 using LevelAssignment;
+using RevitUtils;
 using System.IO;
 using System.Text;
 
@@ -25,39 +26,30 @@ namespace RevitBoost.Commands
 
             using IDisposable scope = logger.BeginScope("CommandExecution", (doc.Title, doc.PathName));
 
-            logger.Information("Starting LevelAssignmentCommand execution");
-
             StringBuilder resultBuilder = new();
 
-            try
+            // Проверяем валидность документа
+            if (!Validate(doc, resultBuilder))
             {
-                // Проверяем валидность документа
-                if (!Validate(doc, resultBuilder))
-                {
-                    ShowResult("Ошибка валидации", resultBuilder.ToString());
-                    return Result.Failed;
-                }
-
-                // Создаём оркестратор для назначения этажей
-                LevelAssignmentProcessor orchestrator = new(doc, logger);
-
-                _ = resultBuilder.AppendLine("=== НАЗНАЧЕНИЕ ЭЛЕМЕНТОВ К ЭТАЖАМ ===");
-                _ = resultBuilder.AppendLine(orchestrator.Execute(PARAMETER_GUID));
-
-                ShowResult("Назначение завершено", resultBuilder.ToString());
+                ShowResult("Ошибка валидации", resultBuilder.ToString());
+                return Result.Failed;
             }
-            catch (Exception ex)
+
+            Dictionary<string, List<string>> groupdata = [];
+
+            TransactionHelper.CreateTransaction(doc, "UngroupAllGroups", () =>
             {
-                // Обрабатываем ошибки gracefully
-                _ = resultBuilder.AppendLine($"Произошла ошибка: {ex.Message}");
+                groupdata = GroupHelper.UngroupAllAndSaveInfo(doc);
+            });
 
-                if (ex.InnerException != null)
-                {
-                    _ = resultBuilder.AppendLine($"Детали: {ex.InnerException.Message}");
-                }
+            logger.Information("Starting LevelAssignmentCommand execution");
 
-                ShowResult("Ошибка выполнения", resultBuilder.ToString());
-            }
+            LevelAssigmentExecute(doc, logger, resultBuilder);
+
+            TransactionHelper.CreateTransaction(doc, "RestoreGroups", () =>
+            {
+                GroupHelper.RestoreGroups(doc, groupdata);
+            });
 
             return Result.Succeeded;
         }
@@ -82,6 +74,34 @@ namespace RevitBoost.Commands
         }
 
         /// <summary>
+        /// Выполнение операции назначения элементов к этажам
+        /// </summary>
+        private void LevelAssigmentExecute(Document doc, IModuleLogger logger, StringBuilder resultBuilder)
+        {
+            try
+            {
+                LevelAssignmentProcessor orchestrator = new(doc, logger);
+
+                _ = resultBuilder.AppendLine("=== НАЗНАЧЕНИЕ ЭЛЕМЕНТОВ К ЭТАЖАМ ===");
+                _ = resultBuilder.AppendLine(orchestrator.Execute(PARAMETER_GUID));
+
+                ShowResult("Назначение завершено", resultBuilder.ToString());
+            }
+            catch (Exception ex)
+            {
+                // Обрабатываем ошибки gracefully
+                _ = resultBuilder.AppendLine($"Произошла ошибка: {ex.Message}");
+
+                if (ex.InnerException != null)
+                {
+                    _ = resultBuilder.AppendLine($"Детали: {ex.InnerException.Message}");
+                }
+
+                ShowResult("Ошибка выполнения", resultBuilder.ToString());
+            }
+        }
+
+        /// <summary>
         /// Отображает результат выполнения команды
         /// </summary>
         private void ShowResult(string title, string message)
@@ -96,7 +116,6 @@ namespace RevitBoost.Commands
 
             _ = dialog.Show();
         }
-
 
     }
 }

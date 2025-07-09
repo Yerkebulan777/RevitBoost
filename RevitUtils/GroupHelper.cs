@@ -11,9 +11,9 @@ namespace RevitUtils
         /// </summary>
         public static Dictionary<string, List<string>> UngroupAllAndSaveInfo(Document doc)
         {
-            DeleteUnusedGroupTypes(doc);
-
             Dictionary<string, List<string>> groupInfos = [];
+
+            DeleteUnusedGroupTypes(doc);
 
             foreach (Group group in new FilteredElementCollector(doc).OfClass(typeof(Group)).Cast<Group>())
             {
@@ -46,7 +46,7 @@ namespace RevitUtils
                 {
                     try
                     {
-                        doc.Delete(groupType.Id);
+                        _ = doc.Delete(groupType.Id);
                     }
                     catch (Exception ex)
                     {

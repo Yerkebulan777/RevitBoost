@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace RevitUtils
 {
-    public static class TransactionHelpers
+    public static class TransactionHelper
     {
         public static void CreateTransaction(Document doc, string name, Action action)
         {
@@ -21,11 +21,13 @@ namespace RevitUtils
             }
             catch (Exception ex)
             {
-                Debug.WriteLine(ex);
                 if (!trx.HasEnded())
                 {
                     _ = trx.RollBack();
                 }
+
+                Debug.Fail($"Transaction '{name}' failed: {ex.Message}");
+                throw new InvalidOperationException($"Failed: {ex.Message}");
             }
         }
 

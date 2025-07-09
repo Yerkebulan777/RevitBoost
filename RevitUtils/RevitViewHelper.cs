@@ -91,7 +91,7 @@ namespace RevitUtils
         public static ViewPlan CreatePlanView(Document doc, Level level, string name)
         {
             ViewPlan floorPlan = null;
-            TransactionHelpers.CreateTransaction(doc, "CreateFloorPlan", () =>
+            TransactionHelper.CreateTransaction(doc, "CreateFloorPlan", () =>
             {
                 ViewFamilyType vft = new FilteredElementCollector(doc)
                 .OfClass(typeof(ViewFamilyType)).Cast<ViewFamilyType>()
@@ -235,7 +235,7 @@ namespace RevitUtils
                 graphics = new OverrideGraphicSettings();
                 graphics = graphics.SetHalftone(halftone);
                 graphics = graphics.SetSurfaceTransparency(transparency);
-                TransactionHelpers.CreateTransaction(doc, "Override", () =>
+                TransactionHelper.CreateTransaction(doc, "Override", () =>
                 {
                     view.SetCategoryOverrides(catId, graphics);
                 });

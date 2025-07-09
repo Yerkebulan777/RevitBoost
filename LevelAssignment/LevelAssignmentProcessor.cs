@@ -38,6 +38,7 @@ namespace LevelAssignment
             double offset = UnitManager.MmToFoot(250);
             double сlearance = UnitManager.MmToFoot(100);
 
+
             result.AppendLine("Starting level assignment process...");
 
             List<FloorInfo> floorModels = _floorInfoGenerator.GenerateFloorModels(_document);
@@ -54,14 +55,14 @@ namespace LevelAssignment
                 throw new InvalidOperationException($"Shared parameter {sharedParameterGuid} not found");
             }
 
-            result.AppendLine($"TotalLevels number of floors: {floorModels?.Count}");
-            result.AppendLine($"General parameter: {LevelSharedParameter?.Name}");
+            _ = result.AppendLine($"TotalLevels number of floors: {floorModels?.Count}");
+            _ = result.AppendLine($"General parameter: {LevelSharedParameter?.Name}");
 
             foreach (FloorInfo floor in floorModels)
             {
                 try
                 {
-                    result.AppendLine();
+                    _ = result.AppendLine();
                     floor.AggregateLevelFilter();
                     floor.ModelCategoryFilter = ModelCategoryFilter;
                     floor.LevelSharedParameter = LevelSharedParameter;
@@ -82,28 +83,28 @@ namespace LevelAssignment
                 }
                 catch (Exception ex)
                 {
-                    result.AppendLine($"Error during floor processing: {ex.Message}");
+                    _ = result.AppendLine($"Error during floor processing: {ex.Message}");
                 }
                 finally
                 {
-                    result.AppendLine();
-                    result.AppendLine($"Floor: {floor.DisplayName} ({floor.Index}) ");
-                    result.AppendLine($"Floor height: {UnitManager.FootToMt(floor.Height)}");
-                    result.AppendLine($"DisplayElevation: {UnitManager.FootToMt(floor.ProjectElevation)}");
-                    result.AppendLine($"The total number of all elements found:{elemIdSet.Count}");
-                    result.AppendLine(ApplyLevelParameter(_document, elemIdSet, floor.Index));
+                    _ = result.AppendLine();
+                    _ = result.AppendLine($"Floor: {floor.DisplayName} ({floor.Index}) ");
+                    _ = result.AppendLine($"Floor height: {UnitManager.FootToMt(floor.Height)}");
+                    _ = result.AppendLine($"DisplayElevation: {UnitManager.FootToMt(floor.ProjectElevation)}");
+                    _ = result.AppendLine($"The total number of all elements found:{elemIdSet.Count}");
+                    _ = result.AppendLine(ApplyLevelParameter(_document, elemIdSet, floor.Index));
 
                     floor.FloorBoundingSolid.CreateDirectShape(_document);
                 }
             }
 
-            result.AppendLine("Level assignment execution completed");
+            _ = result.AppendLine("Level assignment execution completed");
 
             return result.ToString();
         }
 
         /// <summary>
-        /// Устанавливает значение параметра BI_этаж для элементов
+        /// Устанавливает значение параметра для элементов
         /// </summary>
         public string ApplyLevelParameter(Document doc, HashSet<ElementId> elemIdSet, int levelValue)
         {
@@ -111,86 +112,51 @@ namespace LevelAssignment
             int notModifiableCount = 0;
             int readOnlyParameterCount = 0;
 
-            StringBuilder result = new();
+            StringBuilder output = new();
 
-            using (Transaction trx = new(doc, $"Setting the floor number {levelValue}"))
+            InternalDefinition levelParamGuid = LevelSharedParameter.GetDefinition();
+
+            _ = output.AppendLine($"Shared parameter: {levelParamGuid?.Name}");
+
+            TransactionHelper.CreateTransaction(doc, $"SetFloorNumber", () =>
             {
-                if (TransactionStatus.Started == trx?.Start())
+                foreach (ElementId elementId in elemIdSet)
                 {
-                    try
+                    Element element = doc.GetElement(elementId);
+                    Parameter param = element?.get_Parameter(levelParamGuid);
+
+                    if (param is not null)
                     {
-                        InternalDefinition levelParamGuid = LevelSharedParameter.GetDefinition();
-
-                        _ = result.AppendLine($"Shared parameter: {levelParamGuid?.Name}");
-
-                        foreach (ElementId elementId in elemIdSet)
+                        if (param.IsReadOnly)
                         {
-                            Element element = doc.GetElement(elementId);
-                            Parameter param = element?.get_Parameter(levelParamGuid);
-
-                            if (param is not null)
-                            {
-                                if (param.IsReadOnly)
-                                {
-                                    readOnlyParameterCount++;
-                                    continue;
-                                }
-
-                                if (!param.UserModifiable)
-                                {
-                                    notModifiableCount++;
-                                    continue;
-                                }
-
-                                if (param.Set(levelValue))
-                                {
-                                    assignedCount++;
-                                    continue;
-                                }
-
-                                string elementName = element.Name;
-                                string category = element.Category.Name;
-
-                                _ = result.AppendLine($"Failed to set parameter for element {elementName} in category {category}");
-
-                            }
-                            else
-                            {
-                                _ = result.AppendLine($"Parameter not found for element {element.Name}");
-                            }
+                            readOnlyParameterCount++;
+                            continue;
                         }
 
-                        if (TransactionStatus.Committed != trx.Commit())
+                        if (!param.UserModifiable)
                         {
-                            _ = result.AppendLine("Transaction could not be committed");
-                        }
-                        else
-                        {
-                            _logger.Information("Set level {LevelValue} for {AssignedCount} elements", levelValue, assignedCount);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.Error(ex, "Transaction error for level {LevelValue}", levelValue);
-                        _ = result.AppendLine($"Error during transaction: {ex.Message}");
-                    }
-                    finally
-                    {
-                        if (!trx.HasEnded())
-                        {
-                            _ = trx.RollBack();
+                            notModifiableCount++;
+                            continue;
                         }
 
-                        _ = result.AppendLine($"TotalLevels elements assigned: {assignedCount}");
-                        _ = result.AppendLine($"Read-only elements: {readOnlyParameterCount}");
-                        _ = result.AppendLine($"Not modifiable elements: {notModifiableCount}");
+                        if (param.Set(levelValue))
+                        {
+                            assignedCount++;
+                            continue;
+                        }
+
+                        _ = output.AppendLine($"❌ Failed element {element.UniqueId}");
                     }
                 }
-            }
+            });
 
-            _logger.Debug(result.ToString());
+            _ = output.AppendLine($"Read-only elements: {readOnlyParameterCount}");
+            _ = output.AppendLine($"Not modifiable elements: {notModifiableCount}");
+            _ = output.AppendLine($"TotalLevels elements assigned: {assignedCount}");
 
-            return result.ToString();
+            _logger.Debug(output.ToString());
+
+            return output.ToString();
         }
 
 
