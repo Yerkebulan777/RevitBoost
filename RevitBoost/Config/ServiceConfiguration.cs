@@ -25,14 +25,6 @@ namespace RevitBoost.Config
                     shared: true)
                 .CreateLogger();
 
-            services.AddLogging(builder =>
-            {
-                builder.ClearProviders();
-                builder.AddSerilog(dispose: true);
-            });
-
-            services.AddSingleton(logDirectory);
-
             return services;
         }
 

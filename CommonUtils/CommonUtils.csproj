@@ -35,11 +35,11 @@
 
     <ItemGroup>
 
-        <PackageReference Include="Serilog" Version="4.3.0" />
-        <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
-        <PackageReference Include="Serilog.Extensions.Logging" Version="9.0.2" />
-        
+        <PackageReference Include="Serilog.Enrichers.Autodesk.Revit" Version="2.0.1" />
+
         <PackageReference Include="Revit_All_Main_Versions_API_x64" Version="$(RevitVersion).*-*" />
+
+        <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
 
         <PackageReference Include="TextCopy" Version="6.2.1" />
 
