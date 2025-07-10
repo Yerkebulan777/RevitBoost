@@ -80,6 +80,7 @@ namespace LevelAssignment
                             Debug.WriteLine("");
                         }
                     }
+                }
 
                 catch (Exception ex)
                 {
