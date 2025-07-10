@@ -1,8 +1,6 @@
 ﻿using Autodesk.Revit.DB;
-using Autodesk.Revit.UI;
 using CommonUtils;
 using RevitUtils;
-using Serilog.Core;
 using System.Diagnostics;
 using System.Text;
 
@@ -40,7 +38,7 @@ namespace LevelAssignment
             double offset = UnitManager.MmToFoot(250);
             double сlearance = UnitManager.MmToFoot(100);
 
-            result.AppendLine("Starting level assignment process...");
+            _ = result.AppendLine("Starting level assignment process...");
 
             List<FloorInfo> floorModels = _floorInfoGenerator.GenerateFloorModels(_document);
 
@@ -56,14 +54,14 @@ namespace LevelAssignment
                 throw new InvalidOperationException($"Shared parameter {sharedParameterGuid} not found");
             }
 
-            result.AppendLine($"TotalLevels number of floors: {floorModels?.Count}");
-            result.AppendLine($"General parameter: {LevelSharedParameter?.Name}");
+            _ = result.AppendLine($"TotalLevels number of floors: {floorModels?.Count}");
+            _ = result.AppendLine($"General parameter: {LevelSharedParameter?.Name}");
 
             foreach (FloorInfo floor in floorModels)
             {
                 try
                 {
-                    result.AppendLine();
+                    _ = result.AppendLine();
                     floor.AggregateLevelFilter();
                     floor.ModelCategoryFilter = ModelCategoryFilter;
                     floor.LevelSharedParameter = LevelSharedParameter;
@@ -73,32 +71,33 @@ namespace LevelAssignment
 
                     foreach (Element element in floor.CreateExcludedCollector(_document, elemIdSet))
                     {
-                        Debug.WriteLine($"Element: {element.Name}");
+                        Debug.WriteLine($"Excluding element: {element.Id} ");
 
-                        if (floor.IsElementContained(in element)  )
+                        if (floor.IsContained(in element))
                         {
-                            Debug.Assert(elemIdSet.Add(element.Id) );
+                            bool addedSuccessfully = elemIdSet.Add(element.Id);
+                            Debug.Assert(addedSuccessfully, $"Failed to add element ID: {element.Id}");
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    result.AppendLine($"Error during floor processing: {ex.Message}");
+                    _ = result.AppendLine($"Error during floor processing: {ex.Message}");
                 }
                 finally
                 {
-                    result.AppendLine();
-                    result.AppendLine($"✅ Floor: {floor.DisplayName} ({floor.Index}) ");
-                    result.AppendLine($"✅ Height: {UnitManager.FootToMt(floor.Height)}");
-                    result.AppendLine($"✅ Elevation: {UnitManager.FootToMt(floor.ProjectElevation)}");
+                    _ = result.AppendLine();
+                    _ = result.AppendLine($"✅ Floor: {floor.DisplayName} ({floor.Index}) ");
+                    _ = result.AppendLine($"✅ Height: {UnitManager.FootToMt(floor.Height)}");
+                    _ = result.AppendLine($"✅ Elevation: {UnitManager.FootToMt(floor.ProjectElevation)}");
 
-                    result.AppendLine(ApplyLevelParameter(_document, elemIdSet, floor.Index));
+                    _ = result.AppendLine(ApplyLevelParameter(_document, elemIdSet, floor.Index));
 
                     floor.FloorBoundingSolid.CreateDirectShape(_document);
                 }
             }
 
-            result.AppendLine("Level assignment execution completed");
+            _ = result.AppendLine("Level assignment execution completed");
 
             return result.ToString();
         }
@@ -114,8 +113,8 @@ namespace LevelAssignment
 
             StringBuilder output = new();
 
-            output.AppendLine($"Start setting floor number to {levelValue}");
-            output.AppendLine($"The total element count: {elemIdSet.Count}");
+            _ = output.AppendLine($"Start setting floor number to {levelValue}");
+            _ = output.AppendLine($"The total element count: {elemIdSet.Count}");
 
             InternalDefinition levelParamGuid = LevelSharedParameter.GetDefinition();
 
@@ -151,7 +150,7 @@ namespace LevelAssignment
                 }
             }, out string error))
             {
-                output.AppendLine($"❌ Transaction failed: {error}");
+                _ = output.AppendLine($"❌ Transaction failed: {error}");
             }
 
             _ = output.AppendLine($"Read-only elements: {readOnlyParameterCount}");
