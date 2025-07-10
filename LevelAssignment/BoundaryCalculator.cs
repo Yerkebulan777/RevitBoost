@@ -33,7 +33,11 @@ namespace LevelAssignment
 
             foreach (FloorInfo floorModel in floorModels)
             {
+                _logger.Debug("Processing floor {FloorIndex}", floorModel.Index);
+
                 floorModel.Height = GetLevelHeight(floorModel, floorModels, out double elevation);
+
+                _logger.Debug("Floor {FloorIndex} height: {Height} at elevation {Elevation}", floorModel.Index, floorModel.Height, elevation);
 
                 int boundariesFound = 0;
                 int levelsProcessed = 0;
@@ -57,6 +61,7 @@ namespace LevelAssignment
                                 validPlans++;
 
                                 _logger.Debug("Valid plan found: {PlanName}", floorPlan.Name);
+
                                 Outline boundary = ExtractViewPlanBoundary(floorPlan, elevation);
 
                                 if (boundary is not null)
