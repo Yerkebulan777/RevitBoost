@@ -100,12 +100,12 @@ namespace LevelAssignment
         public FilteredElementCollector CreateExcludedCollector(Document doc, ICollection<ElementId> elementIds)
         {
             ElementExclusionFilter = new ExclusionFilter(elementIds);
-
+            string paramName = LevelSharedParameter.Name;
             return new FilteredElementCollector(doc)
                     .WherePasses(ModelCategoryFilter)
                     .WherePasses(ElementExclusionFilter)
                     .WherePasses(GeometryIntersectionFilter)
-                    .WhereSharedParameterApplicable(LevelSharedParameter.Name);
+                    .WhereSharedParameterApplicable(paramName);
         }
 
         /// <summary>
@@ -123,7 +123,7 @@ namespace LevelAssignment
         /// <summary>
         /// Определяет этаж на основе геометрического анализа высоты элемента
         /// </summary>
-        public bool IsElementContained(in Element element)
+        public bool IsContained(in Element element)
         {
             BoundingBoxXYZ bbox = element?.get_BoundingBox(null);
 
