@@ -1,4 +1,5 @@
 ﻿using Autodesk.Revit.DB;
+using Autodesk.Revit.UI;
 using CommonUtils;
 using RevitUtils;
 using System.Diagnostics;
@@ -69,17 +70,17 @@ namespace LevelAssignment
 
                     elemIdSet = [.. floor.CreateLevelFilteredCollector(_document).ToElementIds()];
 
+
                     foreach (Element element in floor.CreateExcludedCollector(_document, elemIdSet))
                     {
                         Debug.WriteLine($"Element: {element.Name}");
 
-                        if (floor.IsElementContained(in element))
+                        if (floor.IsElementContained(in element) && elemIdSet.Add(element.Id))
                         {
-                            _ = elemIdSet.Add(element.Id);
+                            Debug.WriteLine("");
                         }
                     }
 
-                }
                 catch (Exception ex)
                 {
                     result.AppendLine($"Error during floor processing: {ex.Message}");
@@ -87,10 +88,10 @@ namespace LevelAssignment
                 finally
                 {
                     result.AppendLine();
-                    result.AppendLine($"Floor: {floor.DisplayName} ({floor.Index}) ");
-                    result.AppendLine($"Floor height: {UnitManager.FootToMt(floor.Height)}");
-                    result.AppendLine($"DisplayElevation: {UnitManager.FootToMt(floor.ProjectElevation)}");
-                    result.AppendLine($"The total number of all elements found:{elemIdSet.Count}");
+                    result.AppendLine($"✅ Floor: {floor.DisplayName} ({floor.Index}) ");
+                    result.AppendLine($"✅ Height: {UnitManager.FootToMt(floor.Height)}");
+                    result.AppendLine($"✅ Elevation: {UnitManager.FootToMt(floor.ProjectElevation)}");
+
                     result.AppendLine(ApplyLevelParameter(_document, elemIdSet, floor.Index));
 
                     floor.FloorBoundingSolid.CreateDirectShape(_document);
@@ -115,7 +116,7 @@ namespace LevelAssignment
 
             InternalDefinition levelParamGuid = LevelSharedParameter.GetDefinition();
 
-            _ = output.AppendLine($"Shared parameter: {levelParamGuid?.Name}");
+            output.AppendLine($"✅ The total element count: {elemIdSet.Count}");
 
             TransactionHelper.CreateTransaction(doc, $"SetFloorNumber", () =>
             {

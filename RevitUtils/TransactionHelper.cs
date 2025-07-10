@@ -56,6 +56,13 @@ namespace RevitUtils
         }
 
 
+        /// <summary>
+        /// Проверяет, можно ли выполнить транзакцию в документе
+        /// </summary>
+        public static bool CanCreateTransaction(Document doc)
+        {
+            return doc.IsValidObject && !doc.IsModified;
+        }
 
     }
 }
