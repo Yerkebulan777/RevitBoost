@@ -73,7 +73,7 @@ namespace RevitBoost.Commands
         {
             try
             {
-                LevelAssignmentProcessor orchestrator = new(doc, logger);
+                AssignmentProcessor orchestrator = new(doc, logger);
 
                 _ = resultBuilder.AppendLine("=== НАЗНАЧЕНИЕ ЭЛЕМЕНТОВ К ЭТАЖАМ ===");
                 _ = resultBuilder.AppendLine(orchestrator.Execute(PARAMETER_GUID));

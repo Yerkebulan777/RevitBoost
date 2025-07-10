@@ -61,25 +61,30 @@ namespace LevelAssignment
         /// </summary>
         public void CreateIntersectFilter(Outline boundary, double offset, double clearance)
         {
-            double height = Height;
+            if (Height > 0)
+            {
+                double height = Height;
 
-            XYZ minPoint = boundary.MinimumPoint;
-            XYZ maxPoint = boundary.MaximumPoint;
+                XYZ minPoint = boundary.MinimumPoint;
+                XYZ maxPoint = boundary.MaximumPoint;
 
-            double elevation = InternalElevation;
+                double elevation = InternalElevation;
 
-            minPoint = Transform.Identity.OfPoint(new XYZ(minPoint.X, minPoint.Y, elevation + clearance - offset));
+                minPoint = Transform.Identity.OfPoint(new XYZ(minPoint.X, minPoint.Y, elevation + clearance - offset));
+                maxPoint = Transform.Identity.OfPoint(new XYZ(maxPoint.X, maxPoint.Y, elevation + height - offset));
 
-            maxPoint = Transform.Identity.OfPoint(new XYZ(maxPoint.X, maxPoint.Y, elevation + height - offset));
+                FloorBoundingSolid = SolidHelper.CreateSolidBoxByPoint(minPoint, maxPoint, height);
+                GeometryOutline = new Outline(minPoint, maxPoint);
 
-            FloorBoundingSolid = SolidHelper.CreateSolidBoxByPoint(minPoint, maxPoint, height);
+                BoundingBoxIntersectsFilter boundingBoxFilter = new(GeometryOutline);
+                ElementIntersectsSolidFilter solidFilter = new(FloorBoundingSolid);
 
-            GeometryOutline = new Outline(minPoint, maxPoint);
+                GeometryIntersectionFilter = new LogicalOrFilter(boundingBoxFilter, solidFilter);
 
-            BoundingBoxIntersectsFilter boundingBoxFilter = new(GeometryOutline);
-            ElementIntersectsSolidFilter solidFilter = new(FloorBoundingSolid);
+                return;
+            }
 
-            GeometryIntersectionFilter = new LogicalOrFilter(boundingBoxFilter, solidFilter);
+            throw new InvalidOperationException("Height must be greater than zero!");
         }
 
         /// <summary>
@@ -111,7 +116,7 @@ namespace LevelAssignment
         /// <summary>
         /// Создает фильтр по конкретному параметру уровня
         /// </summary>
-        private ElementFilter CreateParameterFilter(BuiltInParameter levelBuiltInParam, ElementId levelId)
+        private static ElementFilter CreateParameterFilter(BuiltInParameter levelBuiltInParam, ElementId levelId)
         {
             FilterNumericEquals evalutor = new();
             ParameterValueProvider valueProvider = new(new ElementId(levelBuiltInParam));

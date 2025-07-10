@@ -6,14 +6,14 @@ using System.Text;
 
 namespace LevelAssignment
 {
-    public sealed class LevelAssignmentProcessor
+    public sealed class AssignmentProcessor
     {
         private readonly Document _document;
         private readonly IModuleLogger _logger;
         private readonly FloorInfoGenerator _floorInfoGenerator;
         private readonly BoundaryCalculator _boundaryCalculator;
 
-        public LevelAssignmentProcessor(Document document, IModuleLogger logger)
+        public AssignmentProcessor(Document document, IModuleLogger logger)
         {
             _document = document ?? throw new ArgumentNullException(nameof(document));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -61,7 +61,7 @@ namespace LevelAssignment
             {
                 try
                 {
-                    _ = result.AppendLine();
+                    result.AppendLine();
                     floor.AggregateLevelFilter();
                     floor.ModelCategoryFilter = ModelCategoryFilter;
                     floor.LevelSharedParameter = LevelSharedParameter;
@@ -76,28 +76,28 @@ namespace LevelAssignment
                         if (floor.IsContained(in element))
                         {
                             bool addedSuccessfully = elemIdSet.Add(element.Id);
-                            Debug.Assert(addedSuccessfully, $"Failed to add element ID: {element.Id}");
+                            Debug.Assert(addedSuccessfully, $"Failed to add element");
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    _ = result.AppendLine($"Error during floor processing: {ex.Message}");
+                    result.AppendLine($"Error during floor processing: {ex.Message}");
                 }
                 finally
                 {
-                    _ = result.AppendLine();
-                    _ = result.AppendLine($"✅ Floor: {floor.DisplayName} ({floor.Index}) ");
-                    _ = result.AppendLine($"✅ Height: {UnitManager.FootToMt(floor.Height)}");
-                    _ = result.AppendLine($"✅ Elevation: {UnitManager.FootToMt(floor.ProjectElevation)}");
+                    result.AppendLine();
+                    result.AppendLine($"✅ Floor: {floor.DisplayName} ({floor.Index}) ");
+                    result.AppendLine($"✅ Height: {UnitManager.FootToMt(floor.Height)}");
+                    result.AppendLine($"✅ Elevation: {UnitManager.FootToMt(floor.ProjectElevation)}");
 
-                    _ = result.AppendLine(ApplyLevelParameter(_document, elemIdSet, floor.Index));
+                    result.AppendLine(ApplyLevelParameter(_document, elemIdSet, floor.Index));
 
                     floor.FloorBoundingSolid.CreateDirectShape(_document);
                 }
             }
 
-            _ = result.AppendLine("Level assignment execution completed");
+            result.AppendLine("Level assignment execution completed");
 
             return result.ToString();
         }
