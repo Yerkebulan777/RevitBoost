@@ -50,7 +50,7 @@ namespace LevelAssignment
 
             if (LevelSharedParameter is null)
             {
-                _logger.Warning("Parameter {ParameterGuid} not found", sharedParameterGuid);
+                _logger.Warning("Shared parameter {ParameterGuid} not found", sharedParameterGuid);
                 throw new InvalidOperationException($"Shared parameter {sharedParameterGuid} not found");
             }
 
