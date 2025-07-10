@@ -72,8 +72,8 @@ namespace RevitUtils
                             for (int i = 0; i < curves.SegmentCount; i++)
                             {
                                 Curve segment = curves.GetCurveSegment(i);
-                                vertices.Add(segment.GetEndPoint(0));
-                                vertices.Add(segment.GetEndPoint(1));
+                                _ = vertices.Add(segment.GetEndPoint(0));
+                                _ = vertices.Add(segment.GetEndPoint(1));
                             }
                         }
                     }
@@ -106,7 +106,7 @@ namespace RevitUtils
         public static Solid ScaledSolidByOffset(this Solid solid, double offset)
         {
             XYZ centroid = solid.ComputeCentroid();
-            XYZ pnt = new XYZ(offset, offset, offset);
+            XYZ pnt = new(offset, offset, offset);
             BoundingBoxXYZ bbox = solid.GetBoundingBox();
             XYZ minPnt = bbox.Min; XYZ maxPnt = bbox.Max;
             double minDiagonal = minPnt.DistanceTo(maxPnt);
@@ -126,22 +126,30 @@ namespace RevitUtils
 
         public static void CreateDirectShape(this Solid solid, Document doc, BuiltInCategory builtIn = BuiltInCategory.OST_GenericModel)
         {
-            using Transaction trx = new Transaction(doc, "CreateDirectShape");
-            TransactionStatus status = trx.Start();
-            try
+            if (solid?.Volume < 0.5)
             {
-                DirectShape ds = DirectShape.CreateElement(doc, new ElementId(builtIn));
-                ds.ApplicationDataId = doc.ProjectInformation.UniqueId;
-                ds.SetShape(new GeometryObject[] { solid });
-                ds.Name = "DirectShapeBySolid";
-                status = trx.Commit();
+                return;
             }
-            catch (Exception ex)
+
+            using Transaction trx = new(doc, "CreateDirectShape");
+
+            if (TransactionStatus.Started == trx.Start())
             {
-                if (!trx.HasEnded())
+                try
                 {
-                    status = trx.RollBack();
+                    DirectShape ds = DirectShape.CreateElement(doc, new ElementId(builtIn));
+                    ds.ApplicationDataId = doc.ProjectInformation.UniqueId;
+                    ds.SetShape(new GeometryObject[] { solid });
+                    ds.Name = "DirectShapeBySolid";
+                    trx.Commit();
+                }
+                catch (Exception ex)
+                {
                     Debug.WriteLine(ex);
+                    if (!trx.HasEnded())
+                    {
+                        trx.RollBack();
+                    }
                 }
             }
         }
@@ -149,7 +157,7 @@ namespace RevitUtils
 
         public static FaceArray GetFaces(this Element element, Transform trf, Options options)
         {
-            FaceArray faces = new FaceArray();
+            FaceArray faces = new();
             GeometryElement geometryElement = element.get_Geometry(options);
             foreach (GeometryObject geomObj1 in geometryElement.GetTransformed(trf))
             {
