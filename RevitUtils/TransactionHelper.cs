@@ -6,6 +6,36 @@ namespace RevitUtils
 {
     public static class TransactionHelper
     {
+        public static bool TryCreateTransaction(Document doc, string name, Action action, out string error)
+        {
+            using Transaction trx = new(doc);
+
+            if (TransactionStatus.Started == trx.Start(name))
+            {
+                try
+                {
+                    error = string.Empty;
+                    action?.Invoke();
+                    trx.Commit();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    error = ex.Message;
+                    return false;
+                }
+                finally
+                {
+                    if (!trx.HasEnded())
+                    {
+                        _ = trx.RollBack();
+                    }
+                }
+            }
+
+            throw new InvalidOperationException($"Failed start transaction '{name}'");
+        }
+
         public static void CreateTransaction(Document doc, string name, Action action)
         {
             using Transaction trx = new(doc);

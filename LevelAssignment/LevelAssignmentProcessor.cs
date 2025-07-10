@@ -2,6 +2,7 @@
 using Autodesk.Revit.UI;
 using CommonUtils;
 using RevitUtils;
+using Serilog.Core;
 using System.Diagnostics;
 using System.Text;
 
@@ -113,11 +114,12 @@ namespace LevelAssignment
 
             StringBuilder output = new();
 
+            output.AppendLine($"Start setting floor number to {levelValue}");
+            output.AppendLine($"The total element count: {elemIdSet.Count}");
+
             InternalDefinition levelParamGuid = LevelSharedParameter.GetDefinition();
 
-            output.AppendLine($"✅ The total element count: {elemIdSet.Count}");
-
-            TransactionHelper.CreateTransaction(doc, $"SetFloorNumber", () =>
+            if (!TransactionHelper.TryCreateTransaction(doc, $"SetFloorNumber", () =>
             {
                 foreach (ElementId elementId in elemIdSet)
                 {
@@ -147,13 +149,14 @@ namespace LevelAssignment
                         _ = output.AppendLine($"❌ Failed element {element.UniqueId}");
                     }
                 }
-            });
+            }, out string error))
+            {
+                output.AppendLine($"❌ Transaction failed: {error}");
+            }
 
             _ = output.AppendLine($"Read-only elements: {readOnlyParameterCount}");
             _ = output.AppendLine($"Not modifiable elements: {notModifiableCount}");
             _ = output.AppendLine($"TotalLevels elements assigned: {assignedCount}");
-
-            _logger.Debug(output.ToString());
 
             return output.ToString();
         }
