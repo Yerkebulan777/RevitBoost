@@ -70,7 +70,6 @@ namespace LevelAssignment
 
                     elemIdSet = [.. floor.CreateLevelFilteredCollector(_document).ToElementIds()];
 
-
                     foreach (Element element in floor.CreateExcludedCollector(_document, elemIdSet))
                     {
                         Debug.WriteLine($"Element: {element.Name}");
@@ -81,7 +80,6 @@ namespace LevelAssignment
                         }
                     }
                 }
-
                 catch (Exception ex)
                 {
                     result.AppendLine($"Error during floor processing: {ex.Message}");
