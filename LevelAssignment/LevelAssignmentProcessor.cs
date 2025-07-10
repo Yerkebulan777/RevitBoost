@@ -75,9 +75,9 @@ namespace LevelAssignment
                     {
                         Debug.WriteLine($"Element: {element.Name}");
 
-                        if (floor.IsElementContained(in element) && elemIdSet.Add(element.Id))
+                        if (floor.IsElementContained(in element)  )
                         {
-                            Debug.WriteLine("");
+                            Debug.Assert(elemIdSet.Add(element.Id) );
                         }
                     }
                 }
