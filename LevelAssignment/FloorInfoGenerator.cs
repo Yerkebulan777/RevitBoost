@@ -97,17 +97,17 @@ namespace LevelAssignment
             _ = logBuilder.AppendLine($" ✓ Display elevation: {context.DisplayElevation}");
             _ = logBuilder.AppendLine($" ✓ Index {context.Index} Delta = {context.ElevationDelta}");
 
-            if (IsTopLevel(in context, out int resultNumber))
+            if (IsBasementLevel(in context, out int resultNumber))
             {
-                _ = logBuilder.AppendLine($" ✓ Top level → {resultNumber}");
+                _ = logBuilder.AppendLine($" ✓ Basement → {resultNumber}");
             }
             else if (IsGroundLevel(in context, out resultNumber))
             {
                 _ = logBuilder.AppendLine($" ✓ Ground level → {resultNumber}");
             }
-            else if (IsBasementLevel(in context, out resultNumber))
+            else if (IsSpecialTopLevel(in context, out resultNumber))
             {
-                _ = logBuilder.AppendLine($" ✓ Basement level → {resultNumber}");
+                _ = logBuilder.AppendLine($" ✓ Top level → {resultNumber}");
             }
             else if (IsValidLevelName(in context, out resultNumber))
             {
@@ -184,7 +184,7 @@ namespace LevelAssignment
         /// <summary>
         /// Определяет, является ли уровень последним или предпоследним
         /// </summary>
-        private static bool IsTopLevel(in LevelContext context, out int number)
+        private static bool IsSpecialTopLevel(in LevelContext context, out int number)
         {
             number = 0;
 
