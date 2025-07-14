@@ -38,6 +38,28 @@ namespace RevitUtils
         #endregion
 
 
+        /// <summary>
+        /// Получает список уровней, которые имеют высоту меньше заданного максимума
+        /// </summary>
+        public static List<Level> GetSortedLevels(Document doc, double elevationLimitMeters = 100)
+        {
+            FilterNumericLess evaluator = new();
+            ParameterValueProvider provider = new(new ElementId(BuiltInParameter.LEVEL_ELEV));
+            double maximum = UnitManager.MmToFoot((elevationLimitMeters * 1000) - 1000);
+            FilterDoubleRule rule = new(provider, evaluator, maximum, 5E-3);
+
+            return [.. new FilteredElementCollector(doc).OfClass(typeof(Level))
+                .WherePasses(new ElementParameterFilter(rule)).Cast<Level>()
+                .OrderBy(x => x.Elevation)];
+        }
+
+
+        public static FilteredElementCollector ExcludeElements(this FilteredElementCollector collector, ICollection<ElementId> elementIds)
+        {
+            return elementIds?.Count > 0 ? collector.WherePasses(new ExclusionFilter(elementIds)) : collector;
+        }
+
+
         public static List<ElementId> GetModelCategoryIds(Document doc, List<BuiltInCategory> excluded = null)
         {
             List<ElementId> categoryIds = new(100);
@@ -100,7 +122,6 @@ namespace RevitUtils
             return collector;
         }
 
-
         public static FilteredElementCollector WhereHasParameterValue(this FilteredElementCollector collector, Parameter parameter)
         {
             HasValueFilterRule rule = new(parameter.Id);
@@ -116,24 +137,23 @@ namespace RevitUtils
         }
 
         /// <summary>
-        ///     Retrieve ducts and pipes intersecting a given host.
+        ///   Retrieve ducts and pipes intersecting a given host.
         /// </summary>
         public static FilteredElementCollector GetMepClashes(HostObject host)
         {
             Document doc = host.Document;
 
-            List<BuiltInCategory> cats = new()
-            {
+            List<BuiltInCategory> cats =
+            [
                 BuiltInCategory.OST_DuctCurves,
-                BuiltInCategory.OST_PipeCurves
-            };
+                BuiltInCategory.OST_PipeCurves,
+            ];
 
             ElementMulticategoryFilter mepfilter = new(cats);
 
             BoundingBoxXYZ bb = host.get_BoundingBox(null);
-            Outline o = new(bb.Min, bb.Max);
 
-            BoundingBoxIsInsideFilter bbfilter = new(o);
+            BoundingBoxIsInsideFilter bbfilter = new(new Outline(bb.Min, bb.Max));
 
             FilteredElementCollector clashingElements
                 = new FilteredElementCollector(doc)

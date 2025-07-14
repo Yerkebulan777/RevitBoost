@@ -24,9 +24,9 @@ namespace RevitBoost.Commands
 
             IModuleLogger logger = LoggerHelper.CreateCommandLogger(doc.Title, ToString(), logPath);
 
-            using IDisposable scope = logger.BeginScope("CommandExecution", (doc.Title, doc.PathName));
+            using IDisposable scope = logger.BeginScope("CommandExecution", ("LevelAssignmentCommand", doc.Title));
 
-            logger.Information("Starting LevelAssignmentCommand execution");
+            logger.Information("Starting LevelAssignmentCommand...");
 
             Dictionary<string, List<string>> groupdata;
 
@@ -34,9 +34,11 @@ namespace RevitBoost.Commands
 
             if (!Validate(doc, resultBuilder))
             {
-                ShowResult("Ошибка", resultBuilder.ToString());
+                ShowResult("Error", resultBuilder.ToString());
                 return Result.Failed;
             }
+
+            resultBuilder.AppendLine($"Loger path: {logPath}");
 
             groupdata = GroupHelper.UngroupAllAndSaveInfo(doc);
 
@@ -54,14 +56,15 @@ namespace RevitBoost.Commands
         {
             // Проверяем наличие общего параметра в проекте
             SharedParameterElement sharedParam = SharedParameterElement.Lookup(doc, PARAMETER_GUID);
+
             if (sharedParam == null)
             {
-                _ = log.AppendLine("Общий параметр 'BI_этаж' не найден в проекте");
-                _ = log.AppendLine("Добавьте параметр через Управление > Общие параметры");
+                log.AppendLine("Общий параметр 'BI_этаж' не найден в проекте");
+                log.AppendLine("Добавьте параметр через Управление > Общие параметры");
                 return false;
             }
 
-            _ = log.AppendLine($"Найден параметр: {sharedParam.Name}");
+            log.AppendLine($"Найден параметр: {sharedParam.Name}");
 
             return true;
         }
@@ -82,7 +85,6 @@ namespace RevitBoost.Commands
             }
             catch (Exception ex)
             {
-                // Обрабатываем ошибки gracefully
                 _ = resultBuilder.AppendLine($"Произошла ошибка: {ex.Message}");
 
                 if (ex.InnerException != null)
@@ -107,8 +109,9 @@ namespace RevitBoost.Commands
                 CommonButtons = TaskDialogCommonButtons.Ok
             };
 
-            _ = dialog.Show();
+            dialog.Show();
         }
+
 
 
     }

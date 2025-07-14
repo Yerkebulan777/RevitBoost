@@ -84,7 +84,7 @@ namespace LevelAssignment
                 return;
             }
 
-            throw new InvalidOperationException("Height must be greater than zero!");
+            throw new InvalidOperationException($"Height must be greater than zero! {DisplayName}");
         }
 
         /// <summary>
@@ -104,13 +104,14 @@ namespace LevelAssignment
         /// </summary>
         public FilteredElementCollector CreateExcludedCollector(Document doc, ICollection<ElementId> elementIds)
         {
-            ElementExclusionFilter = new ExclusionFilter(elementIds);
             string paramName = LevelSharedParameter.Name;
-            return new FilteredElementCollector(doc)
-                    .WherePasses(ModelCategoryFilter)
-                    .WherePasses(ElementExclusionFilter)
-                    .WherePasses(GeometryIntersectionFilter)
-                    .WhereSharedParameterApplicable(paramName);
+
+            FilteredElementCollector collector = new FilteredElementCollector(doc)
+                .WherePasses(ModelCategoryFilter)
+                .WherePasses(GeometryIntersectionFilter)
+                .WhereSharedParameterApplicable(paramName);
+
+            return collector.ExcludeElements(elementIds);
         }
 
         /// <summary>

@@ -38,7 +38,7 @@ namespace LevelAssignment
             double offset = UnitManager.MmToFoot(250);
             double сlearance = UnitManager.MmToFoot(100);
 
-            _ = result.AppendLine("Starting level assignment process...");
+            result.AppendLine("The start of level assignment...");
 
             List<FloorInfo> floorModels = _floorInfoGenerator.GenerateFloorModels(_document);
 
@@ -54,8 +54,8 @@ namespace LevelAssignment
                 throw new InvalidOperationException($"Shared parameter {sharedParameterGuid} not found");
             }
 
-            _ = result.AppendLine($"TotalLevels number of floors: {floorModels?.Count}");
-            _ = result.AppendLine($"General parameter: {LevelSharedParameter?.Name}");
+            _ = result.AppendLine($"Shared parameter: {LevelSharedParameter?.Name}");
+            _ = result.AppendLine($"Number of floors: {floorModels?.Count}");
 
             foreach (FloorInfo floor in floorModels)
             {
@@ -71,7 +71,7 @@ namespace LevelAssignment
 
                     foreach (Element element in floor.CreateExcludedCollector(_document, elemIdSet))
                     {
-                        Debug.WriteLine($"Excluding element: {element.Id} ");
+                        Debug.WriteLine($"Исключающий ID: {element.Id} ");
 
                         if (floor.IsContained(in element))
                         {
@@ -79,6 +79,7 @@ namespace LevelAssignment
                             Debug.Assert(addedSuccessfully, $"Failed to add element");
                         }
                     }
+
                 }
                 catch (Exception ex)
                 {
@@ -155,7 +156,7 @@ namespace LevelAssignment
 
             _ = output.AppendLine($"Read-only elements: {readOnlyParameterCount}");
             _ = output.AppendLine($"Not modifiable elements: {notModifiableCount}");
-            _ = output.AppendLine($"TotalLevels elements assigned: {assignedCount}");
+            _ = output.AppendLine($"TotalLevelCount elements assigned: {assignedCount}");
 
             return output.ToString();
         }

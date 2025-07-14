@@ -10,11 +10,12 @@ namespace CommonUtils
         /// </summary>
         public static IModuleLogger CreateCommandLogger(string title, string commandName, string directory)
         {
+            directory = Path.Combine(directory, commandName);
             string logPath = Path.Combine(directory, $"{title}.log");
 
             if (!Directory.Exists(directory))
             {
-                _ = Directory.CreateDirectory(directory);
+                Directory.CreateDirectory(directory);
             }
             else if (File.Exists(logPath))
             {
