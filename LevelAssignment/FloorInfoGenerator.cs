@@ -76,6 +76,11 @@ namespace LevelAssignment
 
                 currentNumber = DetermineFloorNumber(in context);
 
+                if (currentNumber == 0)
+                {
+                    _logger.Warning($"⚠️ UNCHANGED: {context.LevelName}!");
+                }
+
                 levelDictionary[currentNumber] = level;
                 previousElevation = elevation;
             }
@@ -90,45 +95,45 @@ namespace LevelAssignment
         /// </summary>
         private int DetermineFloorNumber(in LevelContext context)
         {
-            int resultNumber;
             StringBuilder logBuilder = new();
-            logBuilder.AppendLine("DetermineFloorNumber...");
 
-            if (IsBasementLevel(in context, out resultNumber))
-            {
-                _ = logBuilder.AppendLine($"  ✓ Basement → {resultNumber}");
+            logBuilder.AppendLine("DetermineFloorNumber...");
+            logBuilder.AppendLine($" ✓ Level name: {context.LevelName}");
+            logBuilder.AppendLine($" ✓ Display elevation: {context.DisplayElevation}");
+            logBuilder.AppendLine($" ✓ Index {context.Index} Delta = {context.ElevationDelta}");
+
+            if (IsBasementLevel(in context, out int resultNumber))
+            {   
+                logBuilder.AppendLine($" ✓ Basement → {resultNumber}");
             }
             else if (IsTopLevel(in context, out resultNumber))
             {
-                _ = logBuilder.AppendLine($"  ✓ Top level → {resultNumber}");
+                logBuilder.AppendLine($" ✓ Top level → {resultNumber}");
             }
             else if (IsGroundLevel(in context, out resultNumber))
             {
-                _ = logBuilder.AppendLine($"  ✓ Ground level → {resultNumber}");
+                logBuilder.AppendLine($" ✓ Ground level → {resultNumber}");
             }
             else if (IsValidLevelName(in context, out resultNumber))
             {
-                _ = logBuilder.AppendLine($"  ✓ Valid level name → {resultNumber}");
+                logBuilder.AppendLine($" ✓ Valid level name → {resultNumber}");
             }
             else if (IsNextLevelAllowed(in context, out resultNumber))
             {
-                _ = logBuilder.AppendLine($"  ✓ Incremented level number → {resultNumber}");
+                logBuilder.AppendLine($" ✓ Incremented level number → {resultNumber}");
             }
-            else
+            else if (resultNumber == 0)
             {
-                _ = logBuilder.AppendLine($"⚠️ UNCHANGED: {context.LevelName}!");
+                resultNumber = context.FloorNumber;
+                logBuilder.AppendLine($" ✗ UNCHANGED: {context.LevelName} → {resultNumber}");
             }
 
-            _ = logBuilder.AppendLine($" ✓ Level name: {context.LevelName}");
-            _ = logBuilder.AppendLine($" ✓ Display elevation: {context.DisplayElevation}");
-            _ = logBuilder.AppendLine($" ✓ Index {context.Index} Delta = {context.ElevationDelta}");
-            _ = logBuilder.AppendLine($" ✓ Number change {context.FloorNumber} → {resultNumber}");
+            logBuilder.AppendLine($" ✓ Number change {context.FloorNumber} → {resultNumber}");
 
             _logger.Debug(logBuilder.ToString());
 
             return resultNumber;
         }
-
 
         /// <summary>
         /// Получает высоту уровня в метрах
@@ -152,7 +157,7 @@ namespace LevelAssignment
         /// </summary>
         private static bool IsBasementLevel(in LevelContext context, out int number)
         {
-            number = context.FloorNumber;
+            number = 0;
 
             if (context.FloorNumber <= 0 && context.DisplayElevation < -MIN_HEIGHT)
             {
