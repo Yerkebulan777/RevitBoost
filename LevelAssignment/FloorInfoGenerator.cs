@@ -249,6 +249,19 @@ namespace LevelAssignment
         }
 
         /// <summary>
+        /// Проверяет является ли номер этажа валидным
+        /// </summary>
+        private static bool IsFloorNumberAllowed(in int number, in LevelContext context)
+        {
+            if (number != 0 && number >= context.FloorNumber)
+            {
+                Debug.WriteLine($"Is floor number : {number} >= {context.FloorNumber}");
+                return number < context.TotalLevelCount || specialFloorNumbers.Contains(number);
+            }
+            return false;
+        }
+
+        /// <summary>
         /// Извлекает число из имени уровня
         /// </summary>
         private static bool TryParseNumber(string levelName, out int number)
@@ -262,19 +275,6 @@ namespace LevelAssignment
             }
 
             number = 0;
-            return false;
-        }
-
-        /// <summary>
-        /// Проверяет является ли номер этажа валидным
-        /// </summary>
-        private static bool IsFloorNumberAllowed(in int number, in LevelContext context)
-        {
-            if (number != 0 && number >= context.FloorNumber)
-            {
-                Debug.WriteLine($"Is floor number : {number} >= {context.FloorNumber}");
-                return number < context.TotalLevelCount || specialFloorNumbers.Contains(number);
-            }
             return false;
         }
 
