@@ -154,7 +154,7 @@ namespace LevelAssignment
         {
             number = 0;
 
-            if (context.FloorNumber <= 0 && context.DisplayElevation < -MIN_HEIGHT)
+            if (context.DisplayElevation < -MIN_HEIGHT)
             {
                 number = -1;
                 return true;
