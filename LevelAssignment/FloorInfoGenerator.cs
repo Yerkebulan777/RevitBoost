@@ -12,7 +12,7 @@ namespace LevelAssignment
         private const int TOP_OFFSET = 3; // Кол-во "верхниx" уровней
         private const double DEVIATION = 1000;  // Допустимое отклонение (мм)
         private const double MIN_HEIGHT = 1500; // Минимальная высота этажа (мм)
-        private readonly int[] specialFloorNumbers = [99, 100, 101]; // Специальные номера этажей
+        private static int[] specialFloorNumbers = [99, 100, 101]; // Специальные номера этажей
         private static readonly Regex levelNumberRegex = new(@"^\d{1,3}.", RegexOptions.Compiled);
         private readonly IModuleLogger _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -223,7 +223,7 @@ namespace LevelAssignment
         /// <summary>
         /// Проверяет валидность номера этажа из имени уровня
         /// </summary>
-        private bool IsValidLevelName(in LevelContext context, out int number)
+        private static bool IsValidLevelName(in LevelContext context, out int number)
         {
             return TryParseNumber(context.LevelName, out number) && IsFloorNumberAllowed(in number, in context);
         }
@@ -231,7 +231,7 @@ namespace LevelAssignment
         /// <summary>
         /// Проверяет, является ли изменение высоты уровня валидным
         /// </summary>
-        private bool IsNextLevelAllowed(in LevelContext context, out int number)
+        private static bool IsNextLevelAllowed(in LevelContext context, out int number)
         {
             number = 0;
 
@@ -251,13 +251,12 @@ namespace LevelAssignment
         /// <summary>
         /// Извлекает число из имени уровня
         /// </summary>
-        private bool TryParseNumber(string levelName, out int number)
+        private static bool TryParseNumber(string levelName, out int number)
         {
             Match match = levelNumberRegex.Match(levelName.Trim());
 
             if (match.Success && int.TryParse(match.Value, out number))
             {
-                _logger.Debug("Extracted parsedLevelNumber {Number}", number);
                 Debug.WriteLine($"Extracted parsedLevelNumber: {number}");
                 return true;
             }
@@ -269,7 +268,7 @@ namespace LevelAssignment
         /// <summary>
         /// Проверяет является ли номер этажа валидным
         /// </summary>
-        private bool IsFloorNumberAllowed(in int number, in LevelContext context)
+        private static bool IsFloorNumberAllowed(in int number, in LevelContext context)
         {
             if (number != 0 && number >= context.FloorNumber)
             {
