@@ -206,7 +206,7 @@ namespace LevelAssignment
                     number = 99;
                     return true;
                 }
-                if (context.FloorNumber >= topLevelOffsetIndex)
+                if (context.Index > topLevelOffsetIndex)
                 {
                     number = 100;
                     return true;
