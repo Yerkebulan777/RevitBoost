@@ -38,7 +38,7 @@ namespace LevelAssignment
             double offset = UnitManager.MmToFoot(250);
             double сlearance = UnitManager.MmToFoot(100);
 
-            result.AppendLine("The start of level assignment...");
+            _ = result.AppendLine("\nThe start of level assignment...");
 
             List<FloorInfo> floorModels = _floorInfoGenerator.GenerateFloorModels(_document);
 
@@ -48,6 +48,7 @@ namespace LevelAssignment
 
             ModelCategoryFilter = new ElementMulticategoryFilter(CollectorHelper.GetModelCategoryIds(_document));
 
+            _ = result.AppendLine();
             if (LevelSharedParameter is null)
             {
                 _logger.Warning("Shared parameter {ParameterGuid} not found", sharedParameterGuid);
@@ -61,7 +62,7 @@ namespace LevelAssignment
             {
                 try
                 {
-                    result.AppendLine();
+                    _ = result.AppendLine();
                     floor.AggregateLevelFilter();
                     floor.ModelCategoryFilter = ModelCategoryFilter;
                     floor.LevelSharedParameter = LevelSharedParameter;
@@ -83,22 +84,22 @@ namespace LevelAssignment
                 }
                 catch (Exception ex)
                 {
-                    result.AppendLine($"Error during floor processing: {ex.Message}");
+                    _ = result.AppendLine($"Error during floor processing: {ex.Message}");
                 }
                 finally
                 {
-                    result.AppendLine();
-                    result.AppendLine($"✅ Floor: {floor.DisplayName} ({floor.Index}) ");
-                    result.AppendLine($"✅ Height: {UnitManager.FootToMt(floor.Height)}");
-                    result.AppendLine($"✅ Elevation: {UnitManager.FootToMt(floor.ProjectElevation)}");
+                    _ = result.AppendLine();
+                    _ = result.AppendLine($"✅ Floor: {floor.DisplayName} ({floor.Index}) ");
+                    _ = result.AppendLine($"✅ Height: {UnitManager.FootToMt(floor.Height)}");
+                    _ = result.AppendLine($"✅ Elevation: {UnitManager.FootToMt(floor.ProjectElevation)}");
 
-                    result.AppendLine(ApplyLevelParameter(_document, elemIdSet, floor.Index));
+                    _ = result.AppendLine(ApplyLevelParameter(_document, elemIdSet, floor.Index));
 
                     floor.FloorBoundingSolid.CreateDirectShape(_document);
                 }
             }
 
-            result.AppendLine("Level assignment execution completed");
+            _ = result.AppendLine("Level assignment execution completed");
 
             return result.ToString();
         }

@@ -50,6 +50,8 @@ namespace LevelAssignment
 
             Dictionary<int, Level> levelDictionary = [];
 
+            _logger.Debug("CalculateFloorNumber: {Count} levels...", levelTotalCount);
+
             for (int idx = 0; idx < levelTotalCount; idx++)
             {
                 Level level = sortedLevels[idx];
@@ -99,15 +101,15 @@ namespace LevelAssignment
 
             if (IsBasementLevel(in context, out int resultNumber))
             {
-                _ = logBuilder.AppendLine($" ✓ Basement → {resultNumber}");
+                _ = logBuilder.AppendLine($" ✓ Basement number → {resultNumber}");
             }
             else if (IsGroundLevel(in context, out resultNumber))
             {
-                _ = logBuilder.AppendLine($" ✓ Ground level → {resultNumber}");
+                _ = logBuilder.AppendLine($" ✓ Ground level number → {resultNumber}");
             }
             else if (IsSpecialTopLevel(in context, out resultNumber))
             {
-                _ = logBuilder.AppendLine($" ✓ Top level → {resultNumber}");
+                _ = logBuilder.AppendLine($" ✓ Top level number → {resultNumber}");
             }
             else if (IsValidLevelName(in context, out resultNumber))
             {
@@ -120,7 +122,7 @@ namespace LevelAssignment
             else if (resultNumber == 0)
             {
                 resultNumber = context.FloorNumber;
-                _ = logBuilder.AppendLine($" ✗ UNCHANGED: {context.LevelName} → {resultNumber}");
+                _ = logBuilder.AppendLine($" ✗ UNCHANGED: number → {resultNumber}");
             }
 
             _ = logBuilder.AppendLine($" ▶ Number change {context.FloorNumber} ⇒ {resultNumber}");
