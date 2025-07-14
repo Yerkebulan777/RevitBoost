@@ -97,38 +97,38 @@ namespace LevelAssignment
         {
             StringBuilder logBuilder = new();
 
-            logBuilder.AppendLine("DetermineFloorNumber...");
-            logBuilder.AppendLine($" ✓ Level name: {context.LevelName}");
-            logBuilder.AppendLine($" ✓ Display elevation: {context.DisplayElevation}");
-            logBuilder.AppendLine($" ✓ Index {context.Index} Delta = {context.ElevationDelta}");
+            _ = logBuilder.AppendLine("DetermineFloorNumber...");
+            _ = logBuilder.AppendLine($" ✓ Level name: {context.LevelName}");
+            _ = logBuilder.AppendLine($" ✓ Display elevation: {context.DisplayElevation}");
+            _ = logBuilder.AppendLine($" ✓ Index {context.Index} Delta = {context.ElevationDelta}");
 
-            if (IsBasementLevel(in context, out int resultNumber))
-            {   
-                logBuilder.AppendLine($" ✓ Basement → {resultNumber}");
-            }
-            else if (IsTopLevel(in context, out resultNumber))
+            if (IsTopLevel(in context, out int resultNumber))
             {
-                logBuilder.AppendLine($" ✓ Top level → {resultNumber}");
+                _ = logBuilder.AppendLine($" ✓ Top level → {resultNumber}");
             }
             else if (IsGroundLevel(in context, out resultNumber))
             {
-                logBuilder.AppendLine($" ✓ Ground level → {resultNumber}");
+                _ = logBuilder.AppendLine($" ✓ Ground level → {resultNumber}");
+            }
+            else if (IsBasementLevel(in context, out resultNumber))
+            {
+                _ = logBuilder.AppendLine($" ✓ Basement level → {resultNumber}");
             }
             else if (IsValidLevelName(in context, out resultNumber))
             {
-                logBuilder.AppendLine($" ✓ Valid level name → {resultNumber}");
+                _ = logBuilder.AppendLine($" ✓ Valid level name → {resultNumber}");
             }
             else if (IsNextLevelAllowed(in context, out resultNumber))
             {
-                logBuilder.AppendLine($" ✓ Incremented level number → {resultNumber}");
+                _ = logBuilder.AppendLine($" ✓ Incremented level number → {resultNumber}");
             }
             else if (resultNumber == 0)
             {
                 resultNumber = context.FloorNumber;
-                logBuilder.AppendLine($" ✗ UNCHANGED: {context.LevelName} → {resultNumber}");
+                _ = logBuilder.AppendLine($" ✗ UNCHANGED: {context.LevelName} → {resultNumber}");
             }
 
-            logBuilder.AppendLine($" ✓ Number change {context.FloorNumber} → {resultNumber}");
+            _ = logBuilder.AppendLine($" ✓ Number change {context.FloorNumber} → {resultNumber}");
 
             _logger.Debug(logBuilder.ToString());
 
@@ -191,28 +191,33 @@ namespace LevelAssignment
         {
             number = 0;
 
-            int currentNumber = context.FloorNumber;
-            int IndexOffsetFromEnd = context.TotalLevelCount - TOP_OFFSET;
-            string levelNameInvariant = context.LevelName.ToUpperInvariant();
-
-            if (context.Index >= IndexOffsetFromEnd && currentNumber > TOP_OFFSET)
+            if (context.FloorNumber > TOP_OFFSET)
             {
-                number = 100;
+                int topLevelOffsetIndex = context.TotalLevelCount - TOP_OFFSET;
 
-                if (levelNameInvariant.Contains("БУДКА"))
+                if (context.Index >= topLevelOffsetIndex)
                 {
-                    number = 101;
-                }
-                else if (levelNameInvariant.Contains("КРЫША"))
-                {
+                    string levelNameInvariant = context.LevelName.ToUpperInvariant();
+
+                    if (levelNameInvariant.Contains("БУДКА"))
+                    {
+                        number = 101;
+                        return true;
+                    }
+                    if (levelNameInvariant.Contains("КРЫША"))
+                    {
+                        number = 100;
+                        return true;
+                    }
+                    if (levelNameInvariant.Contains("ЧЕРДАК"))
+                    {
+                        number = 99;
+                        return true;
+                    }
+
                     number = 100;
+                    return true;
                 }
-                else if (levelNameInvariant.Contains("ЧЕРДАК"))
-                {
-                    number = 99;
-                }
-
-                return true;
             }
 
             return false;
