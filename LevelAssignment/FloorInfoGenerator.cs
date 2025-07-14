@@ -60,6 +60,7 @@ namespace LevelAssignment
                 {
                     _logger.Warning("Skip duplicate level {LevelName}", level.Name);
                     levelDictionary[currentNumber] = level;
+                    previousElevation = elevation;
                     continue;
                 }
 
@@ -75,7 +76,6 @@ namespace LevelAssignment
                 };
 
                 currentNumber = DetermineFloorNumber(in context);
-
                 levelDictionary[currentNumber] = level;
                 previousElevation = elevation;
             }
@@ -123,7 +123,7 @@ namespace LevelAssignment
                 _ = logBuilder.AppendLine($" ✗ UNCHANGED: {context.LevelName} → {resultNumber}");
             }
 
-            _ = logBuilder.AppendLine($" ✓ Number change {context.FloorNumber} → {resultNumber}");
+            _ = logBuilder.AppendLine($" ▶ Number change {context.FloorNumber} ⇒ {resultNumber}");
 
             _logger.Debug(logBuilder.ToString());
 
@@ -170,7 +170,9 @@ namespace LevelAssignment
         {
             number = 0;
 
-            if (context.FloorNumber <= 0 && context.DisplayElevation < MIN_HEIGHT)
+            if (context.FloorNumber <= 0 &&
+                context.DisplayElevation > -MIN_HEIGHT &&
+                context.DisplayElevation < MIN_HEIGHT)
             {
                 number = 1;
                 return true;
