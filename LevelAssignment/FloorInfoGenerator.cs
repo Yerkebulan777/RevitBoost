@@ -9,10 +9,9 @@ namespace LevelAssignment
 {
     public sealed class FloorInfoGenerator(IModuleLogger logger)
     {
-        private const int GROUND_NUMBER = 1; // Номер первого этажа
-        private const int BASEMENT_NUMBER = -1; // Номер подземного этажа
+        private const int TOP_OFFSET = 3; // Кол-во "верхниx" уровней
+        private const double DEVIATION = 1000;  // Допустимое отклонение (мм)
         private const double MIN_HEIGHT = 1500; // Минимальная высота этажа (мм)
-        private const double DEVIATION = 1000;  // Максимальное допустимое отклонение (мм)
         private readonly int[] specialFloorNumbers = [99, 100, 101]; // Специальные номера этажей
         private static readonly Regex levelNumberRegex = new(@"^\d{1,3}.", RegexOptions.Compiled);
         private readonly IModuleLogger _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -68,9 +67,9 @@ namespace LevelAssignment
                 {
                     Index = idx,
                     LevelName = level.Name,
+                    FloorNumber = currentNumber,
                     ElevationDelta = difference,
                     DisplayElevation = elevation,
-                    CurrentNumber = currentNumber,
                     TotalLevelCount = levelTotalCount,
                     PreviousElevation = previousElevation,
                 };
@@ -78,7 +77,7 @@ namespace LevelAssignment
                 currentNumber = DetermineFloorNumber(in context);
 
                 levelDictionary[currentNumber] = level;
-                previousElevation = context.DisplayElevation;
+                previousElevation = elevation;
             }
 
             _logger.Debug("Result: {Count} floor mappings", levelDictionary.Count);
@@ -91,46 +90,39 @@ namespace LevelAssignment
         /// </summary>
         private int DetermineFloorNumber(in LevelContext context)
         {
+            int resultNumber;
             StringBuilder logBuilder = new();
-
-            int resultNumber = context.CurrentNumber;
-
             logBuilder.AppendLine("DetermineFloorNumber...");
 
-            if (IsBasementLevel(in context))
+            if (IsBasementLevel(in context, out resultNumber))
             {
-                resultNumber = BASEMENT_NUMBER;
-                logBuilder.AppendLine($"  ✓ Basement → {resultNumber}");
+                _ = logBuilder.AppendLine($"  ✓ Basement → {resultNumber}");
             }
-            else if (IsGroundLevel(in context))
+            else if (IsTopLevel(in context, out resultNumber))
             {
-                resultNumber = GROUND_NUMBER;
-                logBuilder.AppendLine($"  ✓ Ground level → {resultNumber}");
+                _ = logBuilder.AppendLine($"  ✓ Top level → {resultNumber}");
             }
-            else if (IsTopLevel(in context))
+            else if (IsGroundLevel(in context, out resultNumber))
             {
-                resultNumber = GetTopNumber(in context);
-                logBuilder.AppendLine($"  ✓ Top level → {resultNumber}");
+                _ = logBuilder.AppendLine($"  ✓ Ground level → {resultNumber}");
             }
-            else if (IsValidLevelName(in context, out int parsedLevelNumber))
+            else if (IsValidLevelName(in context, out resultNumber))
             {
-                resultNumber = parsedLevelNumber;
-                logBuilder.AppendLine($"  ✓ Valid level name → {resultNumber}");
+                _ = logBuilder.AppendLine($"  ✓ Valid level name → {resultNumber}");
             }
-            else if (IsValidElevationDelta(in context, out int nextFloorNumber))
+            else if (IsNextLevelAllowed(in context, out resultNumber))
             {
-                resultNumber = nextFloorNumber;
-                logBuilder.AppendLine($"  ✓ Incremented level nextFloorNumber → {resultNumber}");
+                _ = logBuilder.AppendLine($"  ✓ Incremented level number → {resultNumber}");
             }
-            else if (resultNumber == context.CurrentNumber)
+            else
             {
-                logBuilder.AppendLine($"⚠️ UNCHANGED: {context.LevelName}!");
+                _ = logBuilder.AppendLine($"⚠️ UNCHANGED: {context.LevelName}!");
             }
 
-            logBuilder.AppendLine($" ✓ Level name: {context.LevelName}");
-            logBuilder.AppendLine($" ✓ Display elevation: {context.DisplayElevation}");
-            logBuilder.AppendLine($" ✓ Index {context.Index} Delta = {context.ElevationDelta}");
-            logBuilder.AppendLine($" ✓ Number change {context.CurrentNumber} → {resultNumber}");
+            _ = logBuilder.AppendLine($" ✓ Level name: {context.LevelName}");
+            _ = logBuilder.AppendLine($" ✓ Display elevation: {context.DisplayElevation}");
+            _ = logBuilder.AppendLine($" ✓ Index {context.Index} Delta = {context.ElevationDelta}");
+            _ = logBuilder.AppendLine($" ✓ Number change {context.FloorNumber} → {resultNumber}");
 
             _logger.Debug(logBuilder.ToString());
 
@@ -158,48 +150,67 @@ namespace LevelAssignment
         /// <summary>
         /// Проверяет, является ли уровень подземным уровнем
         /// </summary>
-        private static bool IsBasementLevel(in LevelContext context)
+        private static bool IsBasementLevel(in LevelContext context, out int number)
         {
-            return context.CurrentNumber <= 0 && context.DisplayElevation < -MIN_HEIGHT;
+            number = context.FloorNumber;
+
+            if (context.FloorNumber <= 0 && context.DisplayElevation < -MIN_HEIGHT)
+            {
+                number = -1;
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
         /// Проверяет, является ли уровень первого этажа
         /// </summary>
-        private static bool IsGroundLevel(in LevelContext context)
+        private static bool IsGroundLevel(in LevelContext context, out int number)
         {
-            return context.CurrentNumber <= 0 && context.DisplayElevation < MIN_HEIGHT;
+            number = 0;
+
+            if (context.FloorNumber <= 0 && context.DisplayElevation < MIN_HEIGHT)
+            {
+                number = 1;
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
         /// Определяет, является ли уровень последним или предпоследним
         /// </summary>
-        private static bool IsTopLevel(in LevelContext context, int offset = 3)
+        private static bool IsTopLevel(in LevelContext context, out int number)
         {
-            return context.Index > (context.TotalLevelCount - offset) && context.CurrentNumber > offset;
-        }
+            number = 0;
 
-        /// <summary>
-        /// Получает специальный номер этажа в зависимости от имени уровня
-        /// </summary>
-        private int GetTopNumber(in LevelContext context)
-        {
-            if (context.LevelName.Contains("ЧЕРДАК"))
+            int currentNumber = context.FloorNumber;
+            int IndexOffsetFromEnd = context.TotalLevelCount - TOP_OFFSET;
+            string levelNameInvariant = context.LevelName.ToUpperInvariant();
+
+            if (context.Index >= IndexOffsetFromEnd && currentNumber > TOP_OFFSET)
             {
-                return specialFloorNumbers[0]; // 99
+                number = 100;
+
+                if (levelNameInvariant.Contains("БУДКА"))
+                {
+                    number = 101;
+                }
+                else if (levelNameInvariant.Contains("КРЫША"))
+                {
+                    number = 100;
+                }
+                else if (levelNameInvariant.Contains("ЧЕРДАК"))
+                {
+                    number = 99;
+                }
+
+                return true;
             }
 
-            if (context.LevelName.Contains("КРЫША"))
-            {
-                return specialFloorNumbers[1]; // 100
-            }
-
-            if (context.LevelName.Contains("БУДКА"))
-            {
-                return specialFloorNumbers[2]; // 101
-            }
-
-            return IsValidElevationDelta(in context, out int _) ? 100 : 101;
+            return false;
         }
 
         /// <summary>
@@ -213,10 +224,21 @@ namespace LevelAssignment
         /// <summary>
         /// Проверяет, является ли изменение высоты уровня валидным
         /// </summary>
-        private bool IsValidElevationDelta(in LevelContext context, out int nextFloorNumber)
+        private bool IsNextLevelAllowed(in LevelContext context, out int number)
         {
-            nextFloorNumber = context.CurrentNumber + 1;
-            return IsFloorNumberAllowed(in nextFloorNumber, in context) && context.ElevationDelta >= MIN_HEIGHT;
+            number = 0;
+
+            if (context.ElevationDelta >= MIN_HEIGHT)
+            {
+                int nextNumber = context.FloorNumber + 1;
+                if (IsFloorNumberAllowed(in nextNumber, in context))
+                {
+                    number = nextNumber;
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -240,12 +262,12 @@ namespace LevelAssignment
         /// <summary>
         /// Проверяет является ли номер этажа валидным
         /// </summary>
-        private bool IsFloorNumberAllowed(in int levelNumber, in LevelContext context)
+        private bool IsFloorNumberAllowed(in int number, in LevelContext context)
         {
-            if (levelNumber != 0 && levelNumber >= context.CurrentNumber)
+            if (number != 0 && number >= context.FloorNumber)
             {
-                Debug.WriteLine($"Is floor number : {levelNumber} >= {context.CurrentNumber}");
-                return levelNumber < context.TotalLevelCount || specialFloorNumbers.Contains(levelNumber);
+                Debug.WriteLine($"Is floor number : {number} >= {context.FloorNumber}");
+                return number < context.TotalLevelCount || specialFloorNumbers.Contains(number);
             }
             return false;
         }
