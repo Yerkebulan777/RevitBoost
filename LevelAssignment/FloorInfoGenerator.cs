@@ -76,11 +76,6 @@ namespace LevelAssignment
 
                 currentNumber = DetermineFloorNumber(in context);
 
-                if (currentNumber == 0)
-                {
-                    _logger.Warning($"⚠️ UNCHANGED: {context.LevelName}!");
-                }
-
                 levelDictionary[currentNumber] = level;
                 previousElevation = elevation;
             }
@@ -194,27 +189,25 @@ namespace LevelAssignment
             if (context.FloorNumber > TOP_OFFSET)
             {
                 int topLevelOffsetIndex = context.TotalLevelCount - TOP_OFFSET;
+                string levelNameInvariant = context.LevelName.ToUpperInvariant();
 
-                if (context.Index >= topLevelOffsetIndex)
+                if (levelNameInvariant.Contains("БУДКА"))
                 {
-                    string levelNameInvariant = context.LevelName.ToUpperInvariant();
-
-                    if (levelNameInvariant.Contains("БУДКА"))
-                    {
-                        number = 101;
-                        return true;
-                    }
-                    if (levelNameInvariant.Contains("КРЫША"))
-                    {
-                        number = 100;
-                        return true;
-                    }
-                    if (levelNameInvariant.Contains("ЧЕРДАК"))
-                    {
-                        number = 99;
-                        return true;
-                    }
-
+                    number = 101;
+                    return true;
+                }
+                if (levelNameInvariant.Contains("КРЫША"))
+                {
+                    number = 100;
+                    return true;
+                }
+                if (levelNameInvariant.Contains("ЧЕРДАК"))
+                {
+                    number = 99;
+                    return true;
+                }
+                if (context.FloorNumber >= topLevelOffsetIndex)
+                {
                     number = 100;
                     return true;
                 }
