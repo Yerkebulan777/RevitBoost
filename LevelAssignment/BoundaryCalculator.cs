@@ -23,7 +23,7 @@ namespace LevelAssignment
             StringBuilder logBuilder = new();
             List<Outline> boundaryOutlines = [];
 
-            logBuilder.AppendLine($"🔍 Computing project boundary...");
+            _ = logBuilder.AppendLine($"🔍 Computing project boundary...");
 
             HashSet<ElementId> viewsOnSheets = GetViewsOnValidSheets(doc);
 
@@ -161,8 +161,6 @@ namespace LevelAssignment
         /// </summary>
         private static double GetLevelHeight(FloorData current, List<FloorData> sortedFloors)
         {
-            double elevation = current.BaseElevation;
-
             FloorData aboveFloor = sortedFloors.FirstOrDefault(x => x.BaseElevation > current.BaseElevation);
             FloorData belowFloor = sortedFloors.LastOrDefault(x => x.BaseElevation < current.BaseElevation);
 
@@ -178,10 +176,10 @@ namespace LevelAssignment
 
             if (current.FloorIndex < 0 && belowFloor == null)
             {
-                double result = Math.Abs(aboveFloor.BaseElevation - current.BaseElevation);
+                double elevation = current.BaseElevation;
                 double subtract = UnitManager.MmToFoot(3000);
                 current.BaseElevation = elevation - subtract;
-                return result + subtract;
+                return Math.Abs(aboveFloor.BaseElevation - elevation + subtract);
             }
 
             return 0;
