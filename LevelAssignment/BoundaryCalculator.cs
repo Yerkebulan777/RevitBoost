@@ -24,7 +24,7 @@ namespace LevelAssignment
             _logger.Information("🔍 Computing project boundary for {FloorCount} floors", floorModels.Count);
 
             StringBuilder logBuilder = new();
-            List<Outline> floorPlanOutlines = new();
+            List<Outline> floorPlanOutlines = [];
             HashSet<ElementId> viewsOnSheets = GetViewsOnValidSheets(doc);
 
             _ = logBuilder.AppendLine($"📋 Found {viewsOnSheets.Count} views on valid sheets");
@@ -65,11 +65,11 @@ namespace LevelAssignment
         /// <summary>
         /// Обработка границ для одного этажа
         /// </summary>
-        private static int ProcessFloorBoundaries(Document doc, 
-            FloorInfo floorModel, 
+        private static int ProcessFloorBoundaries(Document doc,
+            FloorInfo floorModel,
             HashSet<ElementId> viewsOnSheets,
-            List<Outline> outlines, 
-            double elevation, 
+            List<Outline> outlines,
+            double elevation,
             StringBuilder logBuilder)
         {
             int boundariesCount = 0;
@@ -118,7 +118,7 @@ namespace LevelAssignment
         /// </summary>
         internal static Outline ExtractViewPlanBoundary(ViewPlan floorPlan, double elevation)
         {
-            // Стратегия 1: CropBox (наиболее точная)
+            // Стратегия 1: CropBox 
             if (floorPlan.CropBoxActive && floorPlan.CropBox != null)
             {
                 return TransformCropBox(floorPlan, elevation);
@@ -131,7 +131,7 @@ namespace LevelAssignment
             }
 
             // Стратегия 3: Model boundary transform
-            List<XYZ> boundaryPoints = new();
+            List<XYZ> boundaryPoints = [];
 
             foreach (TransformWithBoundary twb in floorPlan.GetModelToProjectionTransforms())
             {
@@ -219,7 +219,7 @@ namespace LevelAssignment
         /// </summary>
         private static HashSet<ElementId> GetViewsOnValidSheets(Document doc)
         {
-            HashSet<ElementId> validViews = new();
+            HashSet<ElementId> validViews = [];
 
             FilteredElementCollector collector = new FilteredElementCollector(doc)
                 .OfClass(typeof(ViewSheet))
