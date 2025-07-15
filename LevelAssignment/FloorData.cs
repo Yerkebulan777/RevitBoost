@@ -12,9 +12,9 @@ namespace LevelAssignment
         public ElementFilter ModelCategoryFilter { get; internal set; }
         public ElementFilter AggregatedLevelFilter { get; internal set; }
         public ElementFilter ElementExclusionFilter { get; internal set; }
+        public BoundingBoxXYZ BoundingBox { get; internal set; }
         public Solid FloorBoundingSolid { get; internal set; }
         public Outline GeometryOutline { get; internal set; }
-        public BoundingBoxXYZ BoundingBox { get; internal set; }
         public double BaseElevation { get; internal set; }
         public double ProjectElevation { get; internal set; }
         public string DisplayName { get; internal set; }
@@ -62,15 +62,17 @@ namespace LevelAssignment
         /// </summary>
         public void CreateIntersectFilter(Outline boundary, double offset, double clearance)
         {
-            double adjustedHeight = Height - (clearance * 2);
+            double adjustedHeight = Height - clearance;
 
             if (adjustedHeight > offset)
             {
                 XYZ minPoint = boundary.MinimumPoint;
                 XYZ maxPoint = boundary.MaximumPoint;
 
-                minPoint = Transform.Identity.OfPoint(new XYZ(minPoint.X, minPoint.Y, BaseElevation + clearance - offset));
-                maxPoint = Transform.Identity.OfPoint(new XYZ(maxPoint.X, maxPoint.Y, BaseElevation + adjustedHeight - offset));
+                double elevation = BaseElevation - offset;
+
+                minPoint = Transform.Identity.OfPoint(new XYZ(minPoint.X, minPoint.Y, elevation));
+                maxPoint = Transform.Identity.OfPoint(new XYZ(maxPoint.X, maxPoint.Y, elevation + adjustedHeight));
 
                 FloorBoundingSolid = SolidHelper.CreateSolidBoxByPoint(minPoint, maxPoint, adjustedHeight);
 
@@ -113,9 +115,9 @@ namespace LevelAssignment
             FilteredElementCollector collector;
             string paramName = LevelSharedParameter.Name;
             collector = new FilteredElementCollector(doc)
-                .WherePasses(ModelCategoryFilter)
-                .WherePasses(SpatialIntersectionFilter)
-                .WhereSharedParameterApplicable(paramName);
+                        .WherePasses(ModelCategoryFilter)
+                        .WherePasses(SpatialIntersectionFilter)
+                        .WhereSharedParameterApplicable(paramName);
 
             return collector.ExcludeElements(elementIds);
         }
