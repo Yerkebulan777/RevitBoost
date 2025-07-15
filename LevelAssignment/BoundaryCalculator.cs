@@ -47,19 +47,17 @@ namespace LevelAssignment
 
             _ = logBuilder.AppendLine($"✅ Processed {processedFloors}/{floorModels.Count} floors");
             _ = logBuilder.AppendLine($"📐 Total boundaries collected: {totalBoundaries}");
+            _ = logBuilder.AppendLine("🎯 Project boundary computed successfully");
 
             _logger.Information(logBuilder.ToString());
 
             if (floorPlanOutlines.Count == 0)
             {
                 _logger.Warning("⚠️ No boundaries found - using default outline");
-                return new Outline(XYZ.Zero, new XYZ(100, 100, 100));
+                throw new InvalidOperationException("⚠️ No boundaries found!");
             }
 
-            Outline result = MergeOutlines(floorPlanOutlines);
-            _logger.Information("🎯 Project boundary computed successfully");
-
-            return result;
+            return MergeOutlines(floorPlanOutlines);
         }
 
         /// <summary>
@@ -239,11 +237,10 @@ namespace LevelAssignment
         /// </summary>
         private static List<ViewPlan> GetViewPlansByLevel(Document doc, Level level)
         {
-            return new FilteredElementCollector(doc)
+            return [.. new FilteredElementCollector(doc)
                 .OfClass(typeof(ViewPlan))
                 .OfType<ViewPlan>()
-                .Where(pln => !pln.IsTemplate && pln.GenLevel.Id == level.Id)
-                .ToList();
+                .Where(pln => !pln.IsTemplate && pln.GenLevel.Id == level.Id)];
         }
 
         /// <summary>
