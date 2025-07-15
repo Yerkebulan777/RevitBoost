@@ -72,10 +72,17 @@ namespace LevelAssignment
                 minPoint = Transform.Identity.OfPoint(new XYZ(minPoint.X, minPoint.Y, BaseElevation + clearance - offset));
                 maxPoint = Transform.Identity.OfPoint(new XYZ(maxPoint.X, maxPoint.Y, BaseElevation + adjustedHeight - offset));
 
+                FloorBoundingSolid = SolidHelper.CreateSolidBoxByPoint(minPoint, maxPoint, adjustedHeight);
                 GeometryOutline = new Outline(minPoint, maxPoint);
+
+                if (FloorBoundingSolid is null)
+                {
+                    throw new InvalidOperationException($"Failed to create bounding solid!");
+                }
+
                 BoundingBoxIntersectsFilter boundingBoxFilter = new(GeometryOutline);
                 ElementIntersectsSolidFilter solidIntersectionFilter = new(FloorBoundingSolid);
-                FloorBoundingSolid = SolidHelper.CreateSolidBoxByPoint(minPoint, maxPoint, adjustedHeight);
+
                 SpatialIntersectionFilter = new LogicalOrFilter(boundingBoxFilter, solidIntersectionFilter);
 
                 return;
