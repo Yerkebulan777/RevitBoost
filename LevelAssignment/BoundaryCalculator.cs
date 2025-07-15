@@ -65,11 +65,11 @@ namespace LevelAssignment
 
             foreach (ElementId levelId in floorData.ContainedLevelIds)
             {
-                if (doc.GetElement(levelId) is Level level)
-                {
-                    List<ViewPlan> floorPlans = GetViewPlansByLevel(doc, level);
+                Element levelElement = doc.GetElement(levelId);
 
-                    foreach (ViewPlan floorPlan in floorPlans)
+                if (levelElement is Level level)
+                {
+                    foreach (ViewPlan floorPlan in GetViewPlansByLevel(doc, level))
                     {
                         if (!floorPlan.IsCallout && viewsOnSheets.Contains(floorPlan.Id))
                         {
@@ -169,12 +169,13 @@ namespace LevelAssignment
                 return Math.Abs(aboveFloor.BaseElevation - current.BaseElevation);
             }
 
-            if (current.FloorIndex > 1 && aboveFloor == null)
+            if (current.FloorIndex > 1 && aboveFloor is null)
             {
-                return Math.Abs(current.BaseElevation - belowFloor.BaseElevation);
+                double subtract = UnitManager.MmToFoot(3000);
+                return Math.Abs(current.BaseElevation - belowFloor.BaseElevation + subtract);
             }
 
-            if (current.FloorIndex < 0 && belowFloor == null)
+            if (current.FloorIndex < 0 && belowFloor is null)
             {
                 double elevation = current.BaseElevation;
                 double subtract = UnitManager.MmToFoot(3000);
@@ -281,5 +282,7 @@ namespace LevelAssignment
                 trans.OfPoint(curve.GetEndPoint(1)),
             ];
         }
+
+
     }
 }
