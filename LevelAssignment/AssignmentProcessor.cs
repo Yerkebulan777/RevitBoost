@@ -82,6 +82,7 @@ namespace LevelAssignment
                         }
                     }
 
+                    floor.FloorBoundingSolid.CreateDirectShape(_document);
                 }
                 catch (Exception ex)
                 {
@@ -94,8 +95,6 @@ namespace LevelAssignment
                     _ = output.AppendLine($"✅ Floor height: {UnitManager.FootToMt(floor.Height)} м.");
                     _ = output.AppendLine($"✅ Floor elevat: {UnitManager.FootToMt(floor.ProjectElevation)} м.");
                     _ = output.AppendLine(ApplyLevelParameter(_document, elemIdSet, floor.FloorIndex));
-
-                    floor.FloorBoundingSolid.CreateDirectShape(_document);
                 }
             }
 
