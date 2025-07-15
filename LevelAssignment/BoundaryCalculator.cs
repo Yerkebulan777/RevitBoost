@@ -164,23 +164,20 @@ namespace LevelAssignment
             FloorData aboveFloor = sortedFloors.FirstOrDefault(x => x.BaseElevation > current.BaseElevation);
             FloorData belowFloor = sortedFloors.LastOrDefault(x => x.BaseElevation < current.BaseElevation);
 
-            double currentElevation = current.BaseElevation;
-            double subtract = UnitManager.MmToFoot(3000);
-
             if (aboveFloor != null && belowFloor != null)
             {
-                return Math.Abs(aboveFloor.BaseElevation - currentElevation);
+                return Math.Abs(aboveFloor.BaseElevation - current.BaseElevation);
             }
 
             if (current.FloorIndex > 1 && aboveFloor is null)
             {
-                return Math.Abs(currentElevation - belowFloor.BaseElevation + subtract);
+                return UnitManager.MmToFoot(3000);
             }
 
             if (current.FloorIndex < 0 && belowFloor is null)
             {
-                current.BaseElevation = currentElevation - subtract;
-                return Math.Abs(aboveFloor.BaseElevation - currentElevation + subtract);
+                current.BaseElevation -= UnitManager.MmToFoot(3000);
+                return Math.Abs(aboveFloor.BaseElevation - current.BaseElevation);
             }
 
             return 0;
