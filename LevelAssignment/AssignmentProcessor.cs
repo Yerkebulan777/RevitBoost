@@ -40,7 +40,7 @@ namespace LevelAssignment
 
             output.AppendLine("\nThe start of level assignment...");
 
-            List<FloorInfo> floorModels = _floorInfoGenerator.GenerateFloorModels(_document);
+            List<FloorData> floorModels = _floorInfoGenerator.GenerateFloorModels(_document);
 
             LevelSharedParameter = SharedParameterElement.Lookup(_document, sharedParameterGuid);
 
@@ -59,7 +59,7 @@ namespace LevelAssignment
             output.AppendLine($"Shared parameter: {LevelSharedParameter?.Name}");
             output.AppendLine($"Number of floors: {floorModels?.Count}");
 
-            foreach (FloorInfo floor in floorModels)
+            foreach (FloorData floor in floorModels)
             {
                 try
                 {

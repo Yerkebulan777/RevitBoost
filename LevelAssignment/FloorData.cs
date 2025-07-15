@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 namespace LevelAssignment
 {
-    public sealed class FloorInfo : IDisposable
+    public sealed class FloorData : IDisposable
     {
         public List<ElementId> ContainedLevelIds { get; internal set; }
         public SharedParameterElement LevelSharedParameter { get; internal set; }
@@ -23,7 +23,7 @@ namespace LevelAssignment
 
         private bool _disposed;
 
-        public FloorInfo(int floorNumber, List<Level> sortedLevels)
+        public FloorData(int floorNumber, List<Level> sortedLevels)
         {
             ContainedLevelIds = [.. sortedLevels.Select(l => l.Id)];
             Level baseLevel = sortedLevels.FirstOrDefault();
@@ -173,7 +173,7 @@ namespace LevelAssignment
             }
         }
 
-        ~FloorInfo()
+        ~FloorData()
         {
             Dispose(false);
         }

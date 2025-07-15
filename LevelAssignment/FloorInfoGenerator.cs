@@ -19,11 +19,11 @@ namespace LevelAssignment
         /// <summary>
         /// Вычисляет модели этажей на основе уровней проекта
         /// </summary>
-        public List<FloorInfo> GenerateFloorModels(Document doc)
+        public List<FloorData> GenerateFloorModels(Document doc)
         {
             List<Level> levels = CollectorHelper.GetSortedLevels(doc);
 
-            List<FloorInfo> floorModels = [];
+            List<FloorData> floorModels = [];
 
             if (levels.Count > 0)
             {
@@ -32,7 +32,7 @@ namespace LevelAssignment
                 foreach (IGrouping<int, Level> group in levelNumMap.GroupBy(kvp => kvp.Key, kvp => kvp.Value))
                 {
                     List<Level> sortedLevels = [.. group.OrderBy(x => x.Elevation)];
-                    floorModels.Add(new FloorInfo(group.Key, sortedLevels));
+                    floorModels.Add(new FloorData(group.Key, sortedLevels));
                 }
             }
 
