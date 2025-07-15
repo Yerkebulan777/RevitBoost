@@ -171,12 +171,12 @@ namespace LevelAssignment
 
             if (current.FloorIndex > 1 && aboveFloor is null)
             {
-                return UnitManager.MmToFoot(3000);
+                return UnitManager.MmToFoot(3500);
             }
 
             if (current.FloorIndex < 0 && belowFloor is null)
             {
-                current.BaseElevation -= UnitManager.MmToFoot(3000);
+                current.BaseElevation -= UnitManager.MmToFoot(5000);
                 return Math.Abs(aboveFloor.BaseElevation - current.BaseElevation);
             }
 
