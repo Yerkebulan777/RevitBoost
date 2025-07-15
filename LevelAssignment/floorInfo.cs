@@ -93,11 +93,12 @@ namespace LevelAssignment
         /// </summary>
         public FilteredElementCollector CreateLevelFilteredCollector(Document doc)
         {
+            string paramName = LevelSharedParameter.Name;
             return new FilteredElementCollector(doc)
-                    .WherePasses(ModelCategoryFilter)
-                    .WherePasses(AggregatedLevelFilter)
-                    .WherePasses(SpatialIntersectionFilter)
-                    .WhereSharedParameterApplicable(LevelSharedParameter.Name);
+                .WherePasses(ModelCategoryFilter)
+                .WherePasses(AggregatedLevelFilter)
+                .WherePasses(SpatialIntersectionFilter)
+                .WhereSharedParameterApplicable(paramName);
         }
 
         /// <summary>
