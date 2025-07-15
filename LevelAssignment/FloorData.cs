@@ -73,6 +73,7 @@ namespace LevelAssignment
                 maxPoint = Transform.Identity.OfPoint(new XYZ(maxPoint.X, maxPoint.Y, BaseElevation + adjustedHeight - offset));
 
                 FloorBoundingSolid = SolidHelper.CreateSolidBoxByPoint(minPoint, maxPoint, adjustedHeight);
+
                 GeometryOutline = new Outline(minPoint, maxPoint);
 
                 if (FloorBoundingSolid is null)
