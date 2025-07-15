@@ -5,12 +5,12 @@ using System.Text;
 
 namespace LevelAssignment
 {
-    internal readonly struct BoundaryContext(HashSet<ElementId> viewsOnSheets, List<Outline> outlines, StringBuilder logBuilder)
+    internal readonly struct BoundaryContext(HashSet<ElementId> viewsOnSheets, List<Outline> outlines)
     {
         public HashSet<ElementId> ViewsOnSheets { get; } = viewsOnSheets ?? throw new ArgumentNullException(nameof(viewsOnSheets));
         public List<Outline> CollectedOutlines { get; } = outlines ?? throw new ArgumentNullException(nameof(outlines));
-        public StringBuilder LogBuilder { get; } = logBuilder ?? throw new ArgumentNullException(nameof(logBuilder));
     }
+
 
 
     internal sealed class BoundaryCalculator(IModuleLogger logger)
@@ -29,13 +29,10 @@ namespace LevelAssignment
         /// </summary>
         public Outline ComputeProjectBoundary(Document doc, ref List<FloorInfo> floorModels)
         {
-            _logger.Information("🔍 Computing project boundary for {FloorCount} floors", floorModels.Count);
-
             StringBuilder logBuilder = new();
             List<Outline> floorPlanOutlines = [];
             HashSet<ElementId> viewsOnSheets = GetViewsOnValidSheets(doc);
-
-            _ = logBuilder.AppendLine($"📋 Found {viewsOnSheets.Count} views on valid sheets");
+            logBuilder.AppendLine($"🔍 Computing project boundary...");
 
             int totalBoundaries = 0;
             int processedFloors = 0;
@@ -44,7 +41,7 @@ namespace LevelAssignment
             {
                 floorModel.Height = GetLevelHeight(floorModel, floorModels, out double elevation);
 
-                int floorBoundaries = ProcessFloorBoundaries(doc, floorModel, viewsOnSheets, floorPlanOutlines, elevation, logBuilder);
+                int floorBoundaries = ProcessFloorBoundaries(doc, floorModel, viewsOnSheets, floorPlanOutlines, elevation);
 
                 if (floorBoundaries > 0)
                 {
@@ -53,9 +50,10 @@ namespace LevelAssignment
                 }
             }
 
-            _ = logBuilder.AppendLine($"✅ Processed {processedFloors}/{floorModels.Count} floors");
-            _ = logBuilder.AppendLine($"📐 Total boundaries collected: {totalBoundaries}");
-            _ = logBuilder.AppendLine("🎯 Project boundary computed successfully");
+            logBuilder.AppendLine($"📋 Found {viewsOnSheets.Count} views on valid sheets");
+            logBuilder.AppendLine($"✅ Processed {processedFloors}/{floorModels.Count} floors");
+            logBuilder.AppendLine($"📐 Total boundaries collected: {totalBoundaries}");
+            logBuilder.AppendLine("🎯 Project boundary computed successfully");
 
             _logger.Information(logBuilder.ToString());
 
@@ -71,25 +69,20 @@ namespace LevelAssignment
         /// <summary>
         /// Обработка границ для одного этажа
         /// </summary>
-        private static int ProcessFloorBoundaries(Document doc, FloorInfo floorModel, HashSet<ElementId> viewsOnSheets, List<Outline> outlines,
-            double elevation,
-            StringBuilder logBuilder)
+        private static int ProcessFloorBoundaries(Document doc, FloorInfo floorModel, HashSet<ElementId> viewsOnSheets, List<Outline> outlines, double elevation)
         {
             int boundariesCount = 0;
-            StringBuilder floorLog = new();
 
             foreach (ElementId levelId in floorModel.ContainedLevelIds)
             {
                 if (doc.GetElement(levelId) is Level level)
                 {
                     List<ViewPlan> floorPlans = GetViewPlansByLevel(doc, level);
-                    int validPlans = 0;
 
                     foreach (ViewPlan floorPlan in floorPlans)
                     {
                         if (!floorPlan.IsCallout && viewsOnSheets.Contains(floorPlan.Id))
                         {
-                            validPlans++;
                             Outline boundary = ExtractViewPlanBoundary(floorPlan, elevation);
 
                             if (boundary != null)
@@ -99,18 +92,7 @@ namespace LevelAssignment
                             }
                         }
                     }
-
-                    if (validPlans > 0)
-                    {
-                        _ = floorLog.Append($" └─ {level.Name}: {validPlans} plans");
-                    }
                 }
-            }
-
-            if (boundariesCount > 0)
-            {
-                _ = logBuilder.AppendLine($"🏢 Floor {floorModel.FloorIndex} (H:{UnitManager.FootToMt(floorModel.Height):F1}m): {boundariesCount} boundaries");
-                _ = logBuilder.Append(floorLog.ToString());
             }
 
             return boundariesCount;
@@ -191,7 +173,7 @@ namespace LevelAssignment
         private static double GetLevelHeight(FloorInfo current, List<FloorInfo> floors, out double elevation)
         {
             elevation = current.InternalElevation;
-            List<FloorInfo> sortedFloors = floors.OrderBy(x => x.InternalElevation).ToList();
+            List<FloorInfo> sortedFloors = [.. floors.OrderBy(x => x.InternalElevation)];
 
             FloorInfo aboveFloor = sortedFloors.FirstOrDefault(x => x.InternalElevation > current.InternalElevation);
             FloorInfo belowFloor = sortedFloors.LastOrDefault(x => x.InternalElevation < current.InternalElevation);
