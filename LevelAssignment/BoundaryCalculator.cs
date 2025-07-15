@@ -5,6 +5,14 @@ using System.Text;
 
 namespace LevelAssignment
 {
+    internal readonly struct BoundaryContext(HashSet<ElementId> viewsOnSheets, List<Outline> outlines, StringBuilder logBuilder)
+    {
+        public HashSet<ElementId> ViewsOnSheets { get; } = viewsOnSheets ?? throw new ArgumentNullException(nameof(viewsOnSheets));
+        public List<Outline> CollectedOutlines { get; } = outlines ?? throw new ArgumentNullException(nameof(outlines));
+        public StringBuilder LogBuilder { get; } = logBuilder ?? throw new ArgumentNullException(nameof(logBuilder));
+    }
+
+
     internal sealed class BoundaryCalculator(IModuleLogger logger)
     {
         private readonly IModuleLogger _logger = logger ?? throw new ArgumentNullException(nameof(logger));
