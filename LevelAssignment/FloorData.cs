@@ -63,13 +63,12 @@ namespace LevelAssignment
         public void CreateIntersectFilter(Outline boundary, double offset, double clearance)
         {
             double adjustedHeight = Height - clearance;
+            double elevation = BaseElevation - offset;
 
             if (adjustedHeight > offset)
             {
                 XYZ minPoint = boundary.MinimumPoint;
                 XYZ maxPoint = boundary.MaximumPoint;
-
-                double elevation = BaseElevation - offset;
 
                 minPoint = Transform.Identity.OfPoint(new XYZ(minPoint.X, minPoint.Y, elevation));
                 maxPoint = Transform.Identity.OfPoint(new XYZ(maxPoint.X, maxPoint.Y, elevation + adjustedHeight));
