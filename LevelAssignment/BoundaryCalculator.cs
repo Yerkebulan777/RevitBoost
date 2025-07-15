@@ -190,12 +190,13 @@ namespace LevelAssignment
         /// </summary>
         private static HashSet<ElementId> GetViewsOnValidSheets(Document doc)
         {
+            FilteredElementCollector collector;
             HashSet<ElementId> validViews = [];
 
-            FilteredElementCollector collector = new FilteredElementCollector(doc)
-                .OfClass(typeof(ViewSheet))
-                .WhereElementIsNotElementType()
-                .OfCategory(BuiltInCategory.OST_Sheets);
+            collector = new FilteredElementCollector(doc)
+                        .OfClass(typeof(ViewSheet))
+                        .WhereElementIsNotElementType()
+                        .OfCategory(BuiltInCategory.OST_Sheets);
 
             foreach (ViewSheet sheet in collector.Cast<ViewSheet>())
             {
