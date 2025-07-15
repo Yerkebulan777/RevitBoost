@@ -64,7 +64,7 @@ namespace LevelAssignment
         {
             double adjustedHeight = Height - (clearance * 2);
 
-            if (adjustedHeight > 0)
+            if (adjustedHeight > offset)
             {
                 XYZ minPoint = boundary.MinimumPoint;
                 XYZ maxPoint = boundary.MaximumPoint;
@@ -72,14 +72,11 @@ namespace LevelAssignment
                 minPoint = Transform.Identity.OfPoint(new XYZ(minPoint.X, minPoint.Y, BaseElevation + clearance - offset));
                 maxPoint = Transform.Identity.OfPoint(new XYZ(maxPoint.X, maxPoint.Y, BaseElevation + adjustedHeight - offset));
 
-                FloorBoundingSolid = SolidHelper.CreateSolidBoxByPoint(minPoint, maxPoint, adjustedHeight);
-
                 GeometryOutline = new Outline(minPoint, maxPoint);
-
                 BoundingBoxIntersectsFilter boundingBoxFilter = new(GeometryOutline);
-                ElementIntersectsSolidFilter solidFilter = new(FloorBoundingSolid);
-
-                SpatialIntersectionFilter = new LogicalOrFilter(boundingBoxFilter, solidFilter);
+                ElementIntersectsSolidFilter solidIntersectionFilter = new(FloorBoundingSolid);
+                FloorBoundingSolid = SolidHelper.CreateSolidBoxByPoint(minPoint, maxPoint, adjustedHeight);
+                SpatialIntersectionFilter = new LogicalOrFilter(boundingBoxFilter, solidIntersectionFilter);
 
                 return;
             }
