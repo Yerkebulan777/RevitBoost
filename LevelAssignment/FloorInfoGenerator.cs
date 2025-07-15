@@ -97,7 +97,7 @@ namespace LevelAssignment
             _ = logBuilder.AppendLine("DetermineFloorNumber...");
             _ = logBuilder.AppendLine($" ✓ Level name: {context.LevelName}");
             _ = logBuilder.AppendLine($" ✓ Display elevation: {context.DisplayElevation}");
-            _ = logBuilder.AppendLine($" ✓ Index {context.Index} Delta = {context.ElevationDelta}");
+            _ = logBuilder.AppendLine($" ✓ FloorIndex {context.Index} Delta = {context.ElevationDelta}");
 
             if (IsBasementLevel(in context, out int resultNumber))
             {

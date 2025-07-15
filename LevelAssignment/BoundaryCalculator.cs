@@ -33,11 +33,11 @@ namespace LevelAssignment
 
             foreach (FloorInfo floorModel in floorModels)
             {
-                _logger.Debug("Processing floor {FloorIndex}", floorModel.Index);
+                _logger.Debug("Processing floor {FloorIndex}", floorModel.FloorIndex);
 
                 floorModel.Height = GetLevelHeight(floorModel, floorModels, out double elevation);
 
-                _logger.Debug("Floor {FloorIndex} height: {Height} at elevation {Elevation}", floorModel.Index, floorModel.Height, elevation);
+                _logger.Debug("Floor {FloorIndex} height: {Height} at elevation {Elevation}", floorModel.FloorIndex, floorModel.Height, elevation);
 
                 int boundariesFound = 0;
                 int levelsProcessed = 0;
@@ -80,7 +80,7 @@ namespace LevelAssignment
                     }
                 }
 
-                _logger.Debug("Floor {FloorIndex} summary: {LevelsProcessed} levels, {BoundariesFound} boundaries", floorModel.Index, levelsProcessed, boundariesFound);
+                _logger.Debug("Floor {FloorIndex} summary: {LevelsProcessed} levels, {BoundariesFound} boundaries", floorModel.FloorIndex, levelsProcessed, boundariesFound);
             }
 
             _logger.Information("TotalLevelCount boundaries collected: {TotalBoundaries}", floorPlanOutlines.Count);
@@ -187,20 +187,20 @@ namespace LevelAssignment
 
             List<FloorInfo> sortedFloors = [.. floors.OrderBy(x => x.InternalElevation)];
 
-            _logger.Debug("Calculating height for floor {FloorIndex}", current.Index);
+            _logger.Debug("Calculating height for floor {FloorIndex}", current.FloorIndex);
 
             FloorInfo aboveFloor = sortedFloors.FirstOrDefault(x => x.InternalElevation > current.InternalElevation);
             FloorInfo belowFloor = sortedFloors.LastOrDefault(x => x.InternalElevation < current.InternalElevation);
 
-            if (current.Index > 0 && aboveFloor is not null && belowFloor is not null)
+            if (current.FloorIndex > 0 && aboveFloor is not null && belowFloor is not null)
             {
                 result = Math.Abs(aboveFloor.InternalElevation - current.InternalElevation);
             }
-            else if (current.Index > 1 && aboveFloor is null)
+            else if (current.FloorIndex > 1 && aboveFloor is null)
             {
                 result = Math.Abs(current.InternalElevation - belowFloor.InternalElevation);
             }
-            else if (current.Index < 0 && belowFloor is null)
+            else if (current.FloorIndex < 0 && belowFloor is null)
             {
                 result = Math.Abs(aboveFloor.InternalElevation - current.InternalElevation);
                 double subtract = UnitManager.MmToFoot(3000);

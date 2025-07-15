@@ -19,7 +19,7 @@ namespace LevelAssignment
         public double ProjectElevation { get; private set; }
         public string DisplayName { get; private set; }
         public double Height { get; internal set; }
-        public int Index { get; private set; }
+        public int FloorIndex { get; private set; }
 
 
         public FloorInfo(int floorNumber, List<Level> sortedLevels)
@@ -29,7 +29,7 @@ namespace LevelAssignment
             ProjectElevation = baseLevel.ProjectElevation;
             InternalElevation = baseLevel.Elevation;
             DisplayName = baseLevel.Name;
-            Index = floorNumber;
+            FloorIndex = floorNumber;
         }
 
         /// <summary>

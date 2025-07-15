@@ -31,14 +31,14 @@ namespace LevelAssignment
         /// </summary>
         public string Execute(Guid sharedParameterGuid)
         {
-            StringBuilder result = new();
+            StringBuilder output = new();
 
             HashSet<ElementId> elemIdSet = [];
 
             double offset = UnitManager.MmToFoot(250);
             double сlearance = UnitManager.MmToFoot(100);
 
-            _ = result.AppendLine("\nThe start of level assignment...");
+            output.AppendLine("\nThe start of level assignment...");
 
             List<FloorInfo> floorModels = _floorInfoGenerator.GenerateFloorModels(_document);
 
@@ -48,21 +48,22 @@ namespace LevelAssignment
 
             ModelCategoryFilter = new ElementMulticategoryFilter(CollectorHelper.GetModelCategoryIds(_document));
 
-            _ = result.AppendLine();
+            output.AppendLine();
+
             if (LevelSharedParameter is null)
             {
                 _logger.Warning("Shared parameter {ParameterGuid} not found", sharedParameterGuid);
                 throw new InvalidOperationException($"Shared parameter {sharedParameterGuid} not found");
             }
 
-            _ = result.AppendLine($"Shared parameter: {LevelSharedParameter?.Name}");
-            _ = result.AppendLine($"Number of floors: {floorModels?.Count}");
+            output.AppendLine($"Shared parameter: {LevelSharedParameter?.Name}");
+            output.AppendLine($"Number of floors: {floorModels?.Count}");
 
             foreach (FloorInfo floor in floorModels)
             {
                 try
                 {
-                    _ = result.AppendLine();
+                    _ = output.AppendLine();
                     floor.AggregateLevelFilter();
                     floor.ModelCategoryFilter = ModelCategoryFilter;
                     floor.LevelSharedParameter = LevelSharedParameter;
@@ -84,24 +85,23 @@ namespace LevelAssignment
                 }
                 catch (Exception ex)
                 {
-                    _ = result.AppendLine($"Error during floor processing: {ex.Message}");
+                    _ = output.AppendLine($"Error during floor processing: {ex.Message}");
                 }
                 finally
                 {
-                    _ = result.AppendLine();
-                    _ = result.AppendLine($"✅ Floor: {floor.DisplayName} ({floor.Index}) ");
-                    _ = result.AppendLine($"✅ Height: {UnitManager.FootToMt(floor.Height)}");
-                    _ = result.AppendLine($"✅ Elevation: {UnitManager.FootToMt(floor.ProjectElevation)}");
-
-                    _ = result.AppendLine(ApplyLevelParameter(_document, elemIdSet, floor.Index));
+                    output.AppendLine();
+                    output.AppendLine($"✅ Floor: {floor.DisplayName} <<{floor.FloorIndex}>> ");
+                    output.AppendLine($"✅ Height: {UnitManager.FootToMt(floor.Height)} м.");
+                    output.AppendLine($"✅ Elevation: {UnitManager.FootToMt(floor.ProjectElevation)} м.");
+                    output.AppendLine(ApplyLevelParameter(_document, elemIdSet, floor.FloorIndex));
 
                     floor.FloorBoundingSolid.CreateDirectShape(_document);
                 }
             }
 
-            _ = result.AppendLine("Level assignment execution completed");
+            _ = output.AppendLine("Level assignment execution completed");
 
-            return result.ToString();
+            return output.ToString();
         }
 
         /// <summary>
