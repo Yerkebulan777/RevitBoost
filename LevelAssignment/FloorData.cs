@@ -89,7 +89,7 @@ namespace LevelAssignment
                 return;
             }
 
-            throw new InvalidOperationException($"Height must be greater than zero! {DisplayName}");
+            throw new InvalidOperationException($"Height must be greater! {DisplayName}");
         }
 
         /// <summary>
