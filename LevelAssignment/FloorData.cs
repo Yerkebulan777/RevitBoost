@@ -62,19 +62,18 @@ namespace LevelAssignment
         /// </summary>
         public void CreateIntersectFilter(Outline boundary, double offset, double clearance)
         {
-            if (Height > 0)
-            {
-                double height = Height;
+            double adjustedHeight = Height - (clearance * 2);
 
+            if (adjustedHeight > 0)
+            {
                 XYZ minPoint = boundary.MinimumPoint;
                 XYZ maxPoint = boundary.MaximumPoint;
 
-                double elevation = BaseElevation;
+                minPoint = Transform.Identity.OfPoint(new XYZ(minPoint.X, minPoint.Y, BaseElevation + clearance - offset));
+                maxPoint = Transform.Identity.OfPoint(new XYZ(maxPoint.X, maxPoint.Y, BaseElevation + adjustedHeight - offset));
 
-                minPoint = Transform.Identity.OfPoint(new XYZ(minPoint.X, minPoint.Y, elevation + clearance - offset));
-                maxPoint = Transform.Identity.OfPoint(new XYZ(maxPoint.X, maxPoint.Y, elevation + height - offset));
+                FloorBoundingSolid = SolidHelper.CreateSolidBoxByPoint(minPoint, maxPoint, adjustedHeight);
 
-                FloorBoundingSolid = SolidHelper.CreateSolidBoxByPoint(minPoint, maxPoint, height);
                 GeometryOutline = new Outline(minPoint, maxPoint);
 
                 BoundingBoxIntersectsFilter boundingBoxFilter = new(GeometryOutline);
