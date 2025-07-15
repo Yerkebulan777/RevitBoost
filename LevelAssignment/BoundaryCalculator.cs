@@ -23,7 +23,7 @@ namespace LevelAssignment
             StringBuilder logBuilder = new();
             List<Outline> boundaryOutlines = [];
 
-            _ = logBuilder.AppendLine($"🔍 Computing project boundary...");
+            logBuilder.AppendLine($"🔍 Computing project boundary...");
 
             HashSet<ElementId> viewsOnSheets = GetViewsOnValidSheets(doc);
 
