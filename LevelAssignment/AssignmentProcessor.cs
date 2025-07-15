@@ -24,6 +24,7 @@ namespace LevelAssignment
 
         private ElementMulticategoryFilter ModelCategoryFilter { get; set; }
         private SharedParameterElement LevelSharedParameter { get; set; }
+        private List<FloorData> FloorDataCollection { get; set; }
         private Outline ProjectBoundaryOutline { get; set; }
 
         /// <summary>
@@ -38,17 +39,9 @@ namespace LevelAssignment
             double offset = UnitManager.MmToFoot(250);
             double сlearance = UnitManager.MmToFoot(100);
 
-            output.AppendLine("\nThe start of level assignment...");
-
-            List<FloorData> floorModels = _floorInfoGenerator.GenerateFloorModels(_document);
+            _ = output.AppendLine("\nThe start of level assignment...");
 
             LevelSharedParameter = SharedParameterElement.Lookup(_document, sharedParameterGuid);
-
-            ProjectBoundaryOutline = _boundaryCalculator.ComputeProjectBoundary(_document, ref floorModels);
-
-            ModelCategoryFilter = new ElementMulticategoryFilter(CollectorHelper.GetModelCategoryIds(_document));
-
-            output.AppendLine();
 
             if (LevelSharedParameter is null)
             {
@@ -56,10 +49,17 @@ namespace LevelAssignment
                 throw new InvalidOperationException($"Shared parameter {sharedParameterGuid} not found");
             }
 
-            output.AppendLine($"Shared parameter: {LevelSharedParameter?.Name}");
-            output.AppendLine($"Number of floors: {floorModels?.Count}");
+            FloorDataCollection = _floorInfoGenerator.GenerateFloorModels(_document);
 
-            foreach (FloorData floor in floorModels)
+            ProjectBoundaryOutline = _boundaryCalculator.ComputeProjectBoundary(_document, FloorDataCollection);
+
+            ModelCategoryFilter = new ElementMulticategoryFilter(CollectorHelper.GetModelCategoryIds(_document));
+
+            _ = output.AppendLine($"Shared parameter: {LevelSharedParameter?.Name}");
+            _ = output.AppendLine($"Number of floors: {FloorDataCollection?.Count}");
+            _ = output.AppendLine();
+
+            foreach (FloorData floor in FloorDataCollection)
             {
                 try
                 {
@@ -89,11 +89,11 @@ namespace LevelAssignment
                 }
                 finally
                 {
-                    output.AppendLine();
-                    output.AppendLine($"✅ Floor: {floor.DisplayName} <<{floor.FloorIndex}>> ");
-                    output.AppendLine($"✅ Height: {UnitManager.FootToMt(floor.Height)} м.");
-                    output.AppendLine($"✅ Elevation: {UnitManager.FootToMt(floor.ProjectElevation)} м.");
-                    output.AppendLine(ApplyLevelParameter(_document, elemIdSet, floor.FloorIndex));
+                    _ = output.AppendLine();
+                    _ = output.AppendLine($"✅ Floor: {floor.DisplayName} <<{floor.FloorIndex}>> ");
+                    _ = output.AppendLine($"✅ Floor height: {UnitManager.FootToMt(floor.Height)} м.");
+                    _ = output.AppendLine($"✅ Floor elevat: {UnitManager.FootToMt(floor.ProjectElevation)} м.");
+                    _ = output.AppendLine(ApplyLevelParameter(_document, elemIdSet, floor.FloorIndex));
 
                     floor.FloorBoundingSolid.CreateDirectShape(_document);
                 }

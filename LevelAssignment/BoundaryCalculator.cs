@@ -18,18 +18,22 @@ namespace LevelAssignment
         /// <summary>
         /// Вычисление общей границы проекта на основе планов этажей
         /// </summary>
-        public Outline ComputeProjectBoundary(Document doc, ref List<FloorData> floorModels)
+        public Outline ComputeProjectBoundary(Document doc, List<FloorData> floorDataList)
         {
             StringBuilder logBuilder = new();
             List<Outline> boundaryOutlines = [];
-            logBuilder.AppendLine($"🔍 Computing project boundary...");
+
+            _ = logBuilder.AppendLine($"🔍 Computing project boundary...");
+
             HashSet<ElementId> viewsOnSheets = GetViewsOnValidSheets(doc);
 
-            foreach (FloorData floorInfo in floorModels)
-            {
-                floorInfo.Height = GetLevelHeight(floorInfo, floorModels, out double elevation);
+            List<FloorData> sortedFloors = [.. floorDataList.OrderBy(x => x.BaseElevation)];
 
-                List<Outline> floorOutlines = ExtractFloorBoundaries(doc, floorInfo, viewsOnSheets, elevation);
+            foreach (FloorData floorInfo in sortedFloors)
+            {
+                floorInfo.Height = GetLevelHeight(floorInfo, sortedFloors);
+
+                List<Outline> floorOutlines = ExtractFloorBoundaries(doc, floorInfo, viewsOnSheets);
 
                 if (floorOutlines.Count > 0)
                 {
@@ -43,9 +47,9 @@ namespace LevelAssignment
                 throw new InvalidOperationException("⚠️ No boundaries found!");
             }
 
-            logBuilder.AppendLine($"📋 Found {viewsOnSheets.Count} views on valid sheets");
-            logBuilder.AppendLine($"📐 Total boundaries collected: {boundaryOutlines.Count}");
-            logBuilder.AppendLine("🎯 Project boundary computed successfully");
+            _ = logBuilder.AppendLine($"📋 Found {viewsOnSheets.Count} views on valid sheets");
+            _ = logBuilder.AppendLine($"📐 Total boundaries collected: {boundaryOutlines.Count}");
+            _ = logBuilder.AppendLine("🎯 Project boundary computed successfully");
 
             _logger.Information(logBuilder.ToString());
 
@@ -55,7 +59,7 @@ namespace LevelAssignment
         /// <summary>
         /// Обработка границ для одного этажа
         /// </summary>
-        private static List<Outline> ExtractFloorBoundaries(Document doc, FloorData floorData, HashSet<ElementId> viewsOnSheets, double elevation)
+        private static List<Outline> ExtractFloorBoundaries(Document doc, FloorData floorData, HashSet<ElementId> viewsOnSheets)
         {
             List<Outline> outlines = [];
 
@@ -69,7 +73,7 @@ namespace LevelAssignment
                     {
                         if (!floorPlan.IsCallout && viewsOnSheets.Contains(floorPlan.Id))
                         {
-                            Outline boundary = ExtractViewPlanBoundary(floorPlan, elevation);
+                            Outline boundary = ExtractViewPlanBoundary(floorPlan, floorData.BaseElevation);
 
                             if (boundary != null)
                             {
@@ -155,29 +159,28 @@ namespace LevelAssignment
         /// <summary>
         /// Получает высоту уровня относительно других уровней
         /// </summary>
-        private static double GetLevelHeight(FloorData current, List<FloorData> floors, out double elevation)
+        private static double GetLevelHeight(FloorData current, List<FloorData> sortedFloors)
         {
-            elevation = current.InternalElevation;
-            List<FloorData> sortedFloors = [.. floors.OrderBy(x => x.InternalElevation)];
+            double elevation = current.BaseElevation;
 
-            FloorData aboveFloor = sortedFloors.FirstOrDefault(x => x.InternalElevation > current.InternalElevation);
-            FloorData belowFloor = sortedFloors.LastOrDefault(x => x.InternalElevation < current.InternalElevation);
+            FloorData aboveFloor = sortedFloors.FirstOrDefault(x => x.BaseElevation > current.BaseElevation);
+            FloorData belowFloor = sortedFloors.LastOrDefault(x => x.BaseElevation < current.BaseElevation);
 
             if (current.FloorIndex > 0 && aboveFloor != null && belowFloor != null)
             {
-                return Math.Abs(aboveFloor.InternalElevation - current.InternalElevation);
+                return Math.Abs(aboveFloor.BaseElevation - current.BaseElevation);
             }
 
             if (current.FloorIndex > 1 && aboveFloor == null)
             {
-                return Math.Abs(current.InternalElevation - belowFloor.InternalElevation);
+                return Math.Abs(current.BaseElevation - belowFloor.BaseElevation);
             }
 
             if (current.FloorIndex < 0 && belowFloor == null)
             {
-                double result = Math.Abs(aboveFloor.InternalElevation - current.InternalElevation);
+                double result = Math.Abs(aboveFloor.BaseElevation - current.BaseElevation);
                 double subtract = UnitManager.MmToFoot(3000);
-                elevation -= subtract;
+                current.BaseElevation = elevation - subtract;
                 return result + subtract;
             }
 

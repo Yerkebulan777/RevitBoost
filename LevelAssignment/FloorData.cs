@@ -15,11 +15,11 @@ namespace LevelAssignment
         public Solid FloorBoundingSolid { get; internal set; }
         public Outline GeometryOutline { get; internal set; }
         public BoundingBoxXYZ BoundingBox { get; internal set; }
-        public double InternalElevation { get; private set; }
-        public double ProjectElevation { get; private set; }
-        public string DisplayName { get; private set; }
+        public double BaseElevation { get; internal set; }
+        public double ProjectElevation { get; internal set; }
+        public string DisplayName { get; internal set; }
         public double Height { get; internal set; }
-        public int FloorIndex { get; private set; }
+        public int FloorIndex { get; internal set; }
 
         private bool _disposed;
 
@@ -28,7 +28,7 @@ namespace LevelAssignment
             ContainedLevelIds = [.. sortedLevels.Select(l => l.Id)];
             Level baseLevel = sortedLevels.FirstOrDefault();
             ProjectElevation = baseLevel.ProjectElevation;
-            InternalElevation = baseLevel.Elevation;
+            BaseElevation = baseLevel.Elevation;
             DisplayName = baseLevel.Name;
             FloorIndex = floorNumber;
         }
@@ -69,7 +69,7 @@ namespace LevelAssignment
                 XYZ minPoint = boundary.MinimumPoint;
                 XYZ maxPoint = boundary.MaximumPoint;
 
-                double elevation = InternalElevation;
+                double elevation = BaseElevation;
 
                 minPoint = Transform.Identity.OfPoint(new XYZ(minPoint.X, minPoint.Y, elevation + clearance - offset));
                 maxPoint = Transform.Identity.OfPoint(new XYZ(maxPoint.X, maxPoint.Y, elevation + height - offset));
