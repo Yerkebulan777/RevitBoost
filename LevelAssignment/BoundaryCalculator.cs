@@ -1,16 +1,13 @@
 ﻿using Autodesk.Revit.DB;
 using CommonUtils;
 using RevitUtils;
+using System.Text;
 
 namespace LevelAssignment
 {
-    internal sealed class BoundaryCalculator
+    internal sealed class BoundaryCalculator(IModuleLogger logger)
     {
-        private readonly IModuleLogger _logger;
-        public BoundaryCalculator(IModuleLogger logger)
-        {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        }
+        private readonly IModuleLogger _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         private double MinX { get; set; } = double.MaxValue;
         private double MaxX { get; set; } = double.MinValue;
@@ -24,125 +21,117 @@ namespace LevelAssignment
         /// </summary>
         public Outline ComputeProjectBoundary(Document doc, ref List<FloorInfo> floorModels)
         {
-            _logger.Information("Computing boundary for {FloorCount} floors", floorModels.Count);
+            _logger.Information("🔍 Computing project boundary for {FloorCount} floors", floorModels.Count);
 
-            List<Outline> floorPlanOutlines = [];
+            StringBuilder logBuilder = new();
+            List<Outline> floorPlanOutlines = new();
             HashSet<ElementId> viewsOnSheets = GetViewsOnValidSheets(doc);
 
-            _logger.Debug("Found {ViewCount} views on valid sheets", viewsOnSheets.Count);
+            _ = logBuilder.AppendLine($"📋 Found {viewsOnSheets.Count} views on valid sheets");
+
+            int totalBoundaries = 0;
+            int processedFloors = 0;
 
             foreach (FloorInfo floorModel in floorModels)
             {
-                _logger.Debug("Processing floor {FloorIndex}", floorModel.FloorIndex);
-
                 floorModel.Height = GetLevelHeight(floorModel, floorModels, out double elevation);
 
-                _logger.Debug("Floor {FloorIndex} height: {Height} at elevation {Elevation}", floorModel.FloorIndex, floorModel.Height, elevation);
+                int floorBoundaries = ProcessFloorBoundaries(doc, floorModel, viewsOnSheets, floorPlanOutlines, elevation, logBuilder);
 
-                int boundariesFound = 0;
-                int levelsProcessed = 0;
-
-                foreach (ElementId levelId in floorModel.ContainedLevelIds)
+                if (floorBoundaries > 0)
                 {
-                    if (doc.GetElement(levelId) is Level level)
-                    {
-                        levelsProcessed++;
-                        _logger.Debug("Processing level {LevelName}", level.Name);
-                        List<ViewPlan> floorPlans = GetViewPlansByLevel(doc, level);
-                        int validPlans = 0;
-
-                        foreach (ViewPlan floorPlan in floorPlans)
-                        {
-                            bool isCallout = floorPlan.IsCallout;
-                            bool onSheet = viewsOnSheets.Contains(floorPlan.Id);
-
-                            if (!isCallout && onSheet)
-                            {
-                                validPlans++;
-
-                                _logger.Debug("Valid plan found: {PlanName}", floorPlan.Name);
-
-                                Outline boundary = ExtractViewPlanBoundary(floorPlan, elevation);
-
-                                if (boundary is not null)
-                                {
-                                    floorPlanOutlines.Add(boundary);
-                                    boundariesFound++;
-                                }
-                                else
-                                {
-                                    _logger.Warning("No boundary extracted from {PlanName}", floorPlan.Name);
-                                }
-                            }
-                        }
-
-                        _logger.Debug("Level {LevelName}: {ValidPlans} valid plans of {TotalPlans}", level.Name, validPlans, floorPlans.Count);
-                    }
+                    processedFloors++;
+                    totalBoundaries += floorBoundaries;
                 }
-
-                _logger.Debug("Floor {FloorIndex} summary: {LevelsProcessed} levels, {BoundariesFound} boundaries", floorModel.FloorIndex, levelsProcessed, boundariesFound);
             }
 
-            _logger.Information("TotalLevelCount boundaries collected: {TotalBoundaries}", floorPlanOutlines.Count);
+            _ = logBuilder.AppendLine($"✅ Processed {processedFloors}/{floorModels.Count} floors");
+            _ = logBuilder.AppendLine($"📐 Total boundaries collected: {totalBoundaries}");
+
+            _logger.Information(logBuilder.ToString());
 
             if (floorPlanOutlines.Count == 0)
             {
-                _logger.Warning("No boundaries found - using default outline");
+                _logger.Warning("⚠️ No boundaries found - using default outline");
                 return new Outline(XYZ.Zero, new XYZ(100, 100, 100));
             }
 
             Outline result = MergeOutlines(floorPlanOutlines);
+            _logger.Information("🎯 Project boundary computed successfully");
 
             return result;
         }
 
         /// <summary>
-        /// Обновление границ проекта на основе контуров
+        /// Обработка границ для одного этажа
         /// </summary>
-        internal Outline MergeOutlines(List<Outline> outlines)
+        private static int ProcessFloorBoundaries(Document doc, 
+            FloorInfo floorModel, 
+            HashSet<ElementId> viewsOnSheets,
+            List<Outline> outlines, 
+            double elevation, 
+            StringBuilder logBuilder)
         {
-            _logger.Debug("Merging {Count} outlines", outlines.Count);
+            int boundariesCount = 0;
+            StringBuilder floorLog = new();
 
-            foreach (Outline outline in outlines)
+            foreach (ElementId levelId in floorModel.ContainedLevelIds)
             {
-                MinX = Math.Min(MinX, outline.MinimumPoint.X);
-                MaxX = Math.Max(MaxX, outline.MaximumPoint.X);
-                MinY = Math.Min(MinY, outline.MinimumPoint.Y);
-                MaxY = Math.Max(MaxY, outline.MaximumPoint.Y);
-                MinZ = Math.Min(MinZ, outline.MinimumPoint.Z);
-                MaxZ = Math.Max(MaxZ, outline.MaximumPoint.Z);
+                if (doc.GetElement(levelId) is Level level)
+                {
+                    List<ViewPlan> floorPlans = GetViewPlansByLevel(doc, level);
+                    int validPlans = 0;
+
+                    foreach (ViewPlan floorPlan in floorPlans)
+                    {
+                        if (!floorPlan.IsCallout && viewsOnSheets.Contains(floorPlan.Id))
+                        {
+                            validPlans++;
+                            Outline boundary = ExtractViewPlanBoundary(floorPlan, elevation);
+
+                            if (boundary != null)
+                            {
+                                outlines.Add(boundary);
+                                boundariesCount++;
+                            }
+                        }
+                    }
+
+                    if (validPlans > 0)
+                    {
+                        _ = floorLog.Append($" └─ {level.Name}: {validPlans} plans");
+                    }
+                }
             }
 
-            XYZ minPoint = new(MinX, MinY, MinZ);
-            XYZ maxPoint = new(MaxX, MaxY, MaxZ);
+            if (boundariesCount > 0)
+            {
+                _ = logBuilder.AppendLine($"🏢 Floor {floorModel.FloorIndex} (H:{UnitManager.FootToMt(floorModel.Height):F1}m): {boundariesCount} boundaries");
+                _ = logBuilder.Append(floorLog.ToString());
+            }
 
-            return new Outline(minPoint, maxPoint);
+            return boundariesCount;
         }
 
         /// <summary>
         /// Извлекает границы плана этажа с применением приоритетной стратегии
         /// </summary>
-        internal Outline ExtractViewPlanBoundary(ViewPlan floorPlan, double elevation)
+        internal static Outline ExtractViewPlanBoundary(ViewPlan floorPlan, double elevation)
         {
-            _logger.Debug("Extracting boundary from view plan {ViewName}", floorPlan.Name);
-
-            // Стратегия 1: Использование активного CropBox
+            // Стратегия 1: CropBox (наиболее точная)
             if (floorPlan.CropBoxActive && floorPlan.CropBox != null)
             {
-                _logger.Debug("Using CropBox strategy for view {ViewName}", floorPlan.Name);
                 return TransformCropBox(floorPlan, elevation);
             }
 
-            // Стратегия 2: Использование свойства GeometryOutline вида
+            // Стратегия 2: View Outline
             if (floorPlan.Outline != null)
             {
-                _logger.Debug("Using View Outline strategy for view {ViewName}", floorPlan.Name);
                 return TransformViewOutline(floorPlan, elevation);
             }
 
             // Стратегия 3: Model boundary transform
-            _logger.Debug("Using Model Transform strategy for view {ViewName}", floorPlan.Name);
-            List<XYZ> boundaryPoints = [];
+            List<XYZ> boundaryPoints = new();
 
             foreach (TransformWithBoundary twb in floorPlan.GetModelToProjectionTransforms())
             {
@@ -166,62 +155,76 @@ namespace LevelAssignment
                     boundaryPoints.Max(p => p.Y),
                     elevation);
 
-                _logger.Debug("Extracted boundary from {PointCount} points for view {ViewName}", boundaryPoints.Count, floorPlan.Name);
-
                 return new Outline(minProjectPoint, maxProjectPoint);
             }
-
-            _logger.Warning("Could not extract boundary from view {ViewName}", floorPlan.Name);
 
             return null;
         }
 
         /// <summary>
+        /// Обновление границ проекта на основе контуров
+        /// </summary>
+        internal Outline MergeOutlines(List<Outline> outlines)
+        {
+            foreach (Outline outline in outlines)
+            {
+                MinX = Math.Min(MinX, outline.MinimumPoint.X);
+                MaxX = Math.Max(MaxX, outline.MaximumPoint.X);
+                MinY = Math.Min(MinY, outline.MinimumPoint.Y);
+                MaxY = Math.Max(MaxY, outline.MaximumPoint.Y);
+                MinZ = Math.Min(MinZ, outline.MinimumPoint.Z);
+                MaxZ = Math.Max(MaxZ, outline.MaximumPoint.Z);
+            }
+
+            XYZ minPoint = new(MinX, MinY, MinZ);
+            XYZ maxPoint = new(MaxX, MaxY, MaxZ);
+
+            return new Outline(minPoint, maxPoint);
+        }
+
+        /// <summary>
         /// Получает высоту уровня относительно других уровней
         /// </summary>
-        private double GetLevelHeight(FloorInfo current, List<FloorInfo> floors, out double elevation)
+        private static double GetLevelHeight(FloorInfo current, List<FloorInfo> floors, out double elevation)
         {
-            double result = 0;
-
             elevation = current.InternalElevation;
-
-            List<FloorInfo> sortedFloors = [.. floors.OrderBy(x => x.InternalElevation)];
-
-            _logger.Debug("Calculating height for floor {FloorIndex}", current.FloorIndex);
+            List<FloorInfo> sortedFloors = floors.OrderBy(x => x.InternalElevation).ToList();
 
             FloorInfo aboveFloor = sortedFloors.FirstOrDefault(x => x.InternalElevation > current.InternalElevation);
             FloorInfo belowFloor = sortedFloors.LastOrDefault(x => x.InternalElevation < current.InternalElevation);
 
-            if (current.FloorIndex > 0 && aboveFloor is not null && belowFloor is not null)
+            if (current.FloorIndex > 0 && aboveFloor != null && belowFloor != null)
             {
-                result = Math.Abs(aboveFloor.InternalElevation - current.InternalElevation);
-            }
-            else if (current.FloorIndex > 1 && aboveFloor is null)
-            {
-                result = Math.Abs(current.InternalElevation - belowFloor.InternalElevation);
-            }
-            else if (current.FloorIndex < 0 && belowFloor is null)
-            {
-                result = Math.Abs(aboveFloor.InternalElevation - current.InternalElevation);
-                double subtract = UnitManager.MmToFoot(3000);
-                elevation -= subtract;
-                result += subtract;
+                return Math.Abs(aboveFloor.InternalElevation - current.InternalElevation);
             }
 
-            return result;
+            if (current.FloorIndex > 1 && aboveFloor == null)
+            {
+                return Math.Abs(current.InternalElevation - belowFloor.InternalElevation);
+            }
+
+            if (current.FloorIndex < 0 && belowFloor == null)
+            {
+                double result = Math.Abs(aboveFloor.InternalElevation - current.InternalElevation);
+                double subtract = UnitManager.MmToFoot(3000);
+                elevation -= subtract;
+                return result + subtract;
+            }
+
+            return 0;
         }
 
         /// <summary>
         /// Получает все виды, которые находятся на листах
         /// </summary>
-        private HashSet<ElementId> GetViewsOnValidSheets(Document doc)
+        private static HashSet<ElementId> GetViewsOnValidSheets(Document doc)
         {
-            HashSet<ElementId> validViews = [];
+            HashSet<ElementId> validViews = new();
 
-            FilteredElementCollector collector = new(doc);
-            collector = collector.OfClass(typeof(ViewSheet));
-            collector = collector.WhereElementIsNotElementType();
-            collector = collector.OfCategory(BuiltInCategory.OST_Sheets);
+            FilteredElementCollector collector = new FilteredElementCollector(doc)
+                .OfClass(typeof(ViewSheet))
+                .WhereElementIsNotElementType()
+                .OfCategory(BuiltInCategory.OST_Sheets);
 
             foreach (ViewSheet sheet in collector.Cast<ViewSheet>())
             {
@@ -237,17 +240,19 @@ namespace LevelAssignment
         /// <summary>
         /// Получает все планы этажей для указанного уровня
         /// </summary>
-        private List<ViewPlan> GetViewPlansByLevel(Document doc, Level level)
+        private static List<ViewPlan> GetViewPlansByLevel(Document doc, Level level)
         {
-            return [.. new FilteredElementCollector(doc)
-                .OfClass(typeof(ViewPlan)).OfType<ViewPlan>()
-                .Where(pln => !pln.IsTemplate && pln.GenLevel.Id == level.Id)];
+            return new FilteredElementCollector(doc)
+                .OfClass(typeof(ViewPlan))
+                .OfType<ViewPlan>()
+                .Where(pln => !pln.IsTemplate && pln.GenLevel.Id == level.Id)
+                .ToList();
         }
 
         /// <summary>
-        /// Преобразует границ CropBox в проектные координаты
+        /// Преобразует границы CropBox в проектные координаты
         /// </summary>
-        private Outline TransformCropBox(View view, double elevation)
+        private static Outline TransformCropBox(View view, double elevation)
         {
             BoundingBoxXYZ cropBox = view.CropBox;
             Transform viewTransform = view.CropBox.Transform;
@@ -264,10 +269,9 @@ namespace LevelAssignment
         /// <summary>
         /// Преобразование границ GeometryOutline в проектные координаты
         /// </summary>
-        private Outline TransformViewOutline(View view, double elevation)
+        private static Outline TransformViewOutline(View view, double elevation)
         {
             BoundingBoxUV viewOutline = view.Outline;
-
             Transform viewTransform = GetViewTransform(view);
 
             XYZ minUV = new(viewOutline.Min.U, viewOutline.Min.V, 0);
@@ -285,32 +289,26 @@ namespace LevelAssignment
         /// <summary>
         /// Получение трансформации вида
         /// </summary>
-        private Transform GetViewTransform(View view)
+        private static Transform GetViewTransform(View view)
         {
             Transform trans = Transform.Identity;
             trans.BasisX = view.RightDirection;
             trans.BasisY = view.UpDirection;
             trans.BasisZ = view.ViewDirection;
             trans.Origin = view.Origin;
-
             return trans;
         }
 
         /// <summary>
         /// Извлечение точек из различных типов кривых
         /// </summary>
-        private List<XYZ> ExtractPoints(Curve curve, Transform trans)
+        private static List<XYZ> ExtractPoints(Curve curve, Transform trans)
         {
-            List<XYZ> points =
+            return
             [
                 trans.OfPoint(curve.GetEndPoint(0)),
                 trans.OfPoint(curve.GetEndPoint(1)),
             ];
-
-            return points;
         }
-
-
-
     }
 }
