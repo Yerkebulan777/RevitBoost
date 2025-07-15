@@ -4,11 +4,11 @@ using System.Diagnostics;
 
 namespace LevelAssignment
 {
-    public sealed class FloorInfo
+    public sealed class FloorInfo : IDisposable
     {
         public List<ElementId> ContainedLevelIds { get; internal set; }
         public SharedParameterElement LevelSharedParameter { get; internal set; }
-        public ElementFilter GeometryIntersectionFilter { get; internal set; }
+        public ElementFilter SpatialIntersectionFilter { get; internal set; }
         public ElementFilter ModelCategoryFilter { get; internal set; }
         public ElementFilter AggregatedLevelFilter { get; internal set; }
         public ElementFilter ElementExclusionFilter { get; internal set; }
@@ -21,6 +21,7 @@ namespace LevelAssignment
         public double Height { get; internal set; }
         public int FloorIndex { get; private set; }
 
+        private bool _disposed;
 
         public FloorInfo(int floorNumber, List<Level> sortedLevels)
         {
@@ -79,7 +80,7 @@ namespace LevelAssignment
                 BoundingBoxIntersectsFilter boundingBoxFilter = new(GeometryOutline);
                 ElementIntersectsSolidFilter solidFilter = new(FloorBoundingSolid);
 
-                GeometryIntersectionFilter = new LogicalOrFilter(boundingBoxFilter, solidFilter);
+                SpatialIntersectionFilter = new LogicalOrFilter(boundingBoxFilter, solidFilter);
 
                 return;
             }
@@ -95,7 +96,7 @@ namespace LevelAssignment
             return new FilteredElementCollector(doc)
                     .WherePasses(ModelCategoryFilter)
                     .WherePasses(AggregatedLevelFilter)
-                    .WherePasses(GeometryIntersectionFilter)
+                    .WherePasses(SpatialIntersectionFilter)
                     .WhereSharedParameterApplicable(LevelSharedParameter.Name);
         }
 
@@ -104,11 +105,11 @@ namespace LevelAssignment
         /// </summary>
         public FilteredElementCollector CreateExcludedCollector(Document doc, ICollection<ElementId> elementIds)
         {
+            FilteredElementCollector collector;
             string paramName = LevelSharedParameter.Name;
-
-            FilteredElementCollector collector = new FilteredElementCollector(doc)
+            collector = new FilteredElementCollector(doc)
                 .WherePasses(ModelCategoryFilter)
-                .WherePasses(GeometryIntersectionFilter)
+                .WherePasses(SpatialIntersectionFilter)
                 .WhereSharedParameterApplicable(paramName);
 
             return collector.ExcludeElements(elementIds);
@@ -144,7 +145,36 @@ namespace LevelAssignment
             return GeometryOutline.Contains(center, double.Epsilon);
         }
 
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
+        private void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    ContainedLevelIds?.Clear();
+                    ModelCategoryFilter?.Dispose();
+                    LevelSharedParameter?.Dispose();
+                    AggregatedLevelFilter?.Dispose();
+                    ElementExclusionFilter?.Dispose();
+                    SpatialIntersectionFilter?.Dispose();
+                    FloorBoundingSolid?.Dispose();
+                    GeometryOutline?.Dispose();
+                    BoundingBox?.Dispose();
+                }
+                // Free unmanaged resources
+                _disposed = true;
+            }
+        }
 
+        ~FloorInfo()
+        {
+            Dispose(false);
+        }
     }
 }
