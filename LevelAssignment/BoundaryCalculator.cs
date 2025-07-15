@@ -65,10 +65,7 @@ namespace LevelAssignment
         /// <summary>
         /// Обработка границ для одного этажа
         /// </summary>
-        private static int ProcessFloorBoundaries(Document doc,
-            FloorInfo floorModel,
-            HashSet<ElementId> viewsOnSheets,
-            List<Outline> outlines,
+        private static int ProcessFloorBoundaries(Document doc, FloorInfo floorModel, HashSet<ElementId> viewsOnSheets, List<Outline> outlines,
             double elevation,
             StringBuilder logBuilder)
         {
