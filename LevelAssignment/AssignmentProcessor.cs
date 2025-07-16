@@ -132,9 +132,18 @@ namespace LevelAssignment
                     {
                         _ = output.AppendLine($"❌ Parameter not found: {element.Category}");
                     }
-                    else if (param.IsReadOnly && value != Convert.ToInt32(param.AsDouble()))
+                    else if (param.IsReadOnly)
                     {
-                        _ = output.AppendLine($"❌ Read-only parameter: {elementId.IntegerValue}");
+                        int paramValue = Convert.ToInt32(param.AsValueString());
+
+                        if (paramValue == value)
+                        {
+                            assignedCount++;
+                        }
+                        else
+                        {
+                            _ = output.AppendLine($"❌ Value {paramValue}: {elementId.IntegerValue}");
+                        }
                     }
                     else if (param.UserModifiable && param.Set(value))
                     {
