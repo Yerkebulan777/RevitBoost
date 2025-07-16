@@ -39,19 +39,20 @@ namespace LevelAssignment
         /// </summary>
         public void AggregateLevelFilter()
         {
-            List<ElementFilter> allLevelFilters = [];
+            if (ContainedLevelIds.Count == 0)
+            {
+                throw new InvalidOperationException("No levels found for aggregation!");
+            }
+
+            FilterNumericEquals evaluator = new();
+            IList<ElementFilter> allLevelFilters = [];
 
             foreach (ElementId levelId in ContainedLevelIds)
             {
-                List<ElementFilter> singleLevelFilters =
-                [
-                    new ElementLevelFilter(levelId),
-                    CreateParameterFilter(BuiltInParameter.LEVEL_PARAM, levelId),
-                    CreateParameterFilter(BuiltInParameter.FAMILY_LEVEL_PARAM, levelId),
-                    CreateParameterFilter(BuiltInParameter.SCHEDULE_LEVEL_PARAM, levelId)
-                ];
-
-                allLevelFilters.AddRange(singleLevelFilters);
+                allLevelFilters.Add(new ElementLevelFilter(levelId));
+                allLevelFilters.Add(CollectorHelper.BuildNumericParameterFilter(BuiltInParameter.LEVEL_PARAM, evaluator, levelId));
+                allLevelFilters.Add(CollectorHelper.BuildNumericParameterFilter(BuiltInParameter.FAMILY_LEVEL_PARAM, evaluator, levelId));
+                allLevelFilters.Add(CollectorHelper.BuildNumericParameterFilter(BuiltInParameter.SCHEDULE_LEVEL_PARAM, evaluator, levelId));
             }
 
             AggregatedLevelFilter = new LogicalOrFilter(allLevelFilters);
@@ -119,18 +120,6 @@ namespace LevelAssignment
                         .WhereSharedParameterApplicable(paramName);
 
             return collector.ExcludeElements(elementIds);
-        }
-
-        /// <summary>
-        /// Создает фильтр по конкретному параметру уровня
-        /// </summary>
-        private static ElementFilter CreateParameterFilter(BuiltInParameter levelBuiltInParam, ElementId levelId)
-        {
-            FilterNumericEquals evalutor = new();
-            ParameterValueProvider valueProvider = new(new ElementId(levelBuiltInParam));
-            FilterElementIdRule filterRule = new(valueProvider, evalutor, levelId);
-
-            return new ElementParameterFilter(filterRule);
         }
 
         /// <summary>

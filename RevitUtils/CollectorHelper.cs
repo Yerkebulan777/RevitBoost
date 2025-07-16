@@ -1,5 +1,6 @@
 ﻿using Autodesk.Revit.DB;
 using System.Diagnostics;
+using System.Text;
 using Document = Autodesk.Revit.DB.Document;
 
 
@@ -8,27 +9,40 @@ namespace RevitUtils
     public static class CollectorHelper
     {
         // Безопасная работа с коллектором
-        public static IList<Element> SafeCollectElements(Document doc, params ElementFilter[] filters)
+
+        /// <summary>
+        /// Cобирает элементы из документа с применением фильтров
+        /// </summary>
+        public static FilteredElementCollector GetFilteredElementCollector(Document doc, out string output, params ElementFilter[] filters)
         {
-            try
+            StringBuilder builder = new();
+
+            FilteredElementCollector collector;
+
+            collector = new FilteredElementCollector(doc).WhereElementIsNotElementType();
+
+            foreach (ElementFilter filter in filters)
             {
-                FilteredElementCollector collector;
-
-                collector = new FilteredElementCollector(doc).WhereElementIsNotElementType();
-
-                foreach (ElementFilter filter in filters.Where(flt => flt is not null))
+                if (filter is ElementFilter paramFilter)
                 {
-                    Debug.WriteLine($"Применен фильтр: {nameof(filter.GetType)}");
                     collector = collector.WherePasses(filter);
-                    Debug.Assert(0 == collector.GetElementCount());
+                    builder.AppendLine($"Filter:{nameof(paramFilter.GetType)}");
+                    builder.AppendLine($"Elements after the filter: {collector.GetElementCount()}");
                 }
+            }
 
-                return collector.ToElements();
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error collect {ex.Message}", ex);
-            }
+            output = builder.ToString();
+            return collector;
+        }
+
+        /// <summary>
+        /// Создает фильтр по конкретному параметру уровня
+        /// </summary>
+        public static ElementParameterFilter BuildNumericParameterFilter(BuiltInParameter bip, FilterNumericRuleEvaluator evaluator, ElementId levelId)
+        {
+            ParameterValueProvider valueProvider = new(new ElementId(bip));
+            FilterElementIdRule filterRule = new(valueProvider, evaluator, levelId);
+            return new ElementParameterFilter(filterRule);
         }
 
 
