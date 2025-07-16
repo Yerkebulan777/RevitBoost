@@ -59,7 +59,7 @@ namespace RevitUtils
                 {
                     Debug.WriteLineIf(category.IsVisibleInUI, $"Category {category.Name}");
 
-                    if (category.CanAddSubcategory && category.IsTagCategory && category.IsVisibleInUI)
+                    if (category.CanAddSubcategory && category.IsTagCategory)
                     {
                         builder.AppendLine($"✅ Category: {category.Name}");
                         categoryIds.Add(catId);
@@ -67,7 +67,7 @@ namespace RevitUtils
                 }
             }
 
-            builder.AppendLine($"✅ Final category Ids collected: {categoryIds.Count}");
+            builder.AppendLine($"✅ Category Ids collected: {categoryIds.Count}");
 
             return (categoryIds, builder.ToString());
         }
