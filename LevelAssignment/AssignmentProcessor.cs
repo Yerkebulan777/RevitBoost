@@ -84,8 +84,6 @@ namespace LevelAssignment
                             elementIds.Add(element.Id);
                         }
                     }
-
-                    //floor.FloorBoundingSolid.CreateDirectShape(_document);
                 }
                 catch (Exception ex)
                 {

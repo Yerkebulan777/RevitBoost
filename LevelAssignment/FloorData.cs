@@ -81,7 +81,7 @@ namespace LevelAssignment
                 BoundingBoxIntersectsFilter boundingBoxFilter = new(GeometryOutline);
                 ElementIntersectsSolidFilter solidIntersectionFilter = new(FloorBoundingSolid);
 
-                BoundingRegionFilter = new LogicalOrFilter(boundingBoxFilter, solidIntersectionFilter);
+                BoundingRegionFilter = new LogicalAndFilter(boundingBoxFilter, solidIntersectionFilter);
 
                 return;
             }
