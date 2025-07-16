@@ -19,7 +19,7 @@ namespace RevitUtils
 
             FilteredElementCollector collector = new FilteredElementCollector(doc).WhereElementIsNotElementType();
 
-            builder.AppendLine($"Initial elements: {collector.GetElementCount()}");
+            builder.AppendLine($"Initial elements...");
 
             foreach (ElementFilter filter in filters)
             {

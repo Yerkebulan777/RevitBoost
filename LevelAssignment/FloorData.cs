@@ -90,19 +90,19 @@ namespace LevelAssignment
         }
 
 
-        public string ValidateElementsPresence(Document document)
+        public string AssertElementsExistence(Document document)
         {
             Debug.Assert(CombinedLevelFilter is not null, "CombinedLevelFilter is not initialized!");
             Debug.Assert(ModelCategoryFilter is not null, "ModelCategoryFilter is not initialized!");
             Debug.Assert(BoundingRegionFilter is not null, "BoundingRegionFilter is not initialized!");
 
-            ElementFilter[] elementFilters = [BoundingRegionFilter, ModelCategoryFilter, CombinedLevelFilter];
+            ElementParameterFilter filter = new(new HasValueFilterRule(LevelSharedParameter.Id));
+
+            ElementFilter[] elementFilters = [ModelCategoryFilter, BoundingRegionFilter, CombinedLevelFilter, filter];
 
             (FilteredElementCollector collector, string output) = CollectorHelper.GetFilteredElementCollector(document, elementFilters);
 
-            Debug.Assert(0 < collector.GetElementCount(), output);
-
-            return output;
+            return 0 == collector.GetElementCount() ? throw new InvalidOperationException(output) : output;
         }
 
         /// <summary>

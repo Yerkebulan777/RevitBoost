@@ -1,6 +1,7 @@
 ﻿using Autodesk.Revit.DB;
 using CommonUtils;
 using RevitUtils;
+using System.Diagnostics;
 using System.Text;
 
 namespace LevelAssignment
@@ -69,25 +70,23 @@ namespace LevelAssignment
                     floor.LevelSharedParameter = LevelSharedParameter;
                     floor.CreateIntersectFilter(ProjectBoundaryOutline, offset, сlearance);
 
-                    _ = output.AppendLine(floor.ValidateElementsPresence(_document));
+                    _ = output.AppendLine(floor.AssertElementsExistence(_document));
 
-                    //ICollection<ElementId> elementIds = floor.CreateLevelCollector(_document).ToElementIds();
+                    ICollection<ElementId> elementIds = floor.CreateLevelCollector(_document).ToElementIds();
 
-                    //Debug.Assert(elementIds.Count > 0, "No elements found for the floor");
+                    foreach (Element element in floor.CreateExcludedCollector(_document, elementIds))
+                    {
+                        Debug.WriteLine($"Исключающий ID: {element.Id} ");
 
-                    //foreach (Element element in floor.CreateExcludedCollector(_document, elementIds))
-                    //{
-                    //    Debug.WriteLine($"Исключающий ID: {element.Id} ");
+                        if (floor.IsContained(in element))
+                        {
+                            elementIds.Add(element.Id);
+                        }
+                    }
 
-                    //    if (floor.IsContained(in element))
-                    //    {
-                    //        elementIds.Add(element.Id);
-                    //    }
-                    //}
+                    floor.FloorBoundingSolid.CreateDirectShape(_document);
 
-                    //floor.FloorBoundingSolid.CreateDirectShape(_document);
-
-                    //_ = output.AppendLine(ApplyLevelParameter(_document, elementIds, floor.FloorIndex));
+                    _ = output.AppendLine(ApplyLevelParameter(_document, elementIds, floor.FloorIndex));
                 }
                 catch (Exception ex)
                 {
