@@ -117,7 +117,7 @@ namespace LevelAssignment
             int assignedCount = 0;
             StringBuilder output = new();
 
-            _ = output.AppendLine($"Start setting floor number to {value}");
+            _ = output.AppendLine($"Start setting value to {value}");
 
             InternalDefinition paramDefinition = LevelSharedParameter.GetDefinition();
 
