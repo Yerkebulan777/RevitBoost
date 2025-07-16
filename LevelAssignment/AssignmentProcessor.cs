@@ -85,9 +85,7 @@ namespace LevelAssignment
                         }
                     }
 
-                    floor.FloorBoundingSolid.CreateDirectShape(_document);
-
-
+                    //floor.FloorBoundingSolid.CreateDirectShape(_document);
                 }
                 catch (Exception ex)
                 {
