@@ -1,5 +1,6 @@
 ﻿using Autodesk.Revit.DB;
 using System.Diagnostics;
+using System.Text;
 using Document = Autodesk.Revit.DB.Document;
 
 namespace RevitUtils
@@ -41,32 +42,37 @@ namespace RevitUtils
             return collector;
         }
 
-        public static List<ElementId> GetModelCategoryIds(Document doc, List<BuiltInCategory> excluded = null)
+        public static (List<ElementId>, string) GetModelCategoryIds(Document doc)
         {
+            StringBuilder builder = new();
             List<ElementId> categoryIds = new(100);
+
+            builder.AppendLine($"🔍 Get model categories...");
 
             foreach (ElementId catId in ParameterFilterUtilities.GetAllFilterableCategories())
             {
-                Category cat = Category.GetCategory(doc, catId);
+                Category category = Category.GetCategory(doc, catId);
 
-                if (cat is not null && cat.CategoryType == CategoryType.Model)
+                Debug.Assert(category is not null, $"Invalid {catId.IntegerValue}");
+
+                if (category is not null && category.CategoryType == CategoryType.Model)
                 {
-                    Debug.WriteLine($"Category: {cat.Name} Id: {cat.Id.IntegerValue}");
+                    Debug.WriteLineIf(category.IsVisibleInUI, $"Category {category.Name}");
 
-                    if (cat.CanAddSubcategory && cat.IsTagCategory && cat.IsVisibleInUI)
+                    if (category.CanAddSubcategory && category.IsTagCategory && category.IsVisibleInUI)
                     {
-                        BuiltInCategory catBic = (BuiltInCategory)cat.Id.IntegerValue;
-
-                        if (excluded is null || !excluded.Contains(catBic))
-                        {
-                            categoryIds.Add(catId);
-                        }
+                        builder.AppendLine($"✅ Category: {category.Name}");
+                        categoryIds.Add(catId);
                     }
                 }
             }
 
-            return categoryIds;
+            builder.AppendLine($"✅ Final category Ids collected: {categoryIds.Count}");
+
+            return (categoryIds, builder.ToString());
         }
+
+
 
     }
 }

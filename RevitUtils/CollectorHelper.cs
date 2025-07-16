@@ -13,26 +13,22 @@ namespace RevitUtils
         /// <summary>
         /// Cобирает элементы из документа с применением фильтров
         /// </summary>
-        public static FilteredElementCollector GetFilteredElementCollector(Document doc, out string output, params ElementFilter[] filters)
+        public static (FilteredElementCollector, string) GetFilteredElementCollector(Document doc, params ElementFilter[] filters)
         {
             StringBuilder builder = new();
 
-            FilteredElementCollector collector;
+            FilteredElementCollector collector = new FilteredElementCollector(doc).WhereElementIsNotElementType();
 
-            collector = new FilteredElementCollector(doc).WhereElementIsNotElementType();
+            builder.AppendLine($"Initial elements: {collector.GetElementCount()}");
 
             foreach (ElementFilter filter in filters)
             {
-                if (filter is ElementFilter paramFilter)
-                {
-                    collector = collector.WherePasses(filter);
-                    builder.AppendLine($"Filter:{nameof(paramFilter.GetType)}");
-                    builder.AppendLine($"Elements after the filter: {collector.GetElementCount()}");
-                }
+                collector = collector.WherePasses(filter);
+                builder.AppendLine($"Filter: {filter.GetType().Name}");
+                builder.AppendLine($"Elements after filter: {collector.GetElementCount()}");
             }
 
-            output = builder.ToString();
-            return collector;
+            return (collector, builder.ToString());
         }
 
         /// <summary>

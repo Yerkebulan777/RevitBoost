@@ -1,7 +1,6 @@
 ﻿using Autodesk.Revit.DB;
 using CommonUtils;
 using RevitUtils;
-using System.Diagnostics;
 using System.Text;
 
 namespace LevelAssignment
@@ -34,8 +33,6 @@ namespace LevelAssignment
         {
             StringBuilder output = new();
 
-
-
             double offset = UnitManager.MmToFoot(300);
             double сlearance = UnitManager.MmToFoot(100);
 
@@ -53,11 +50,14 @@ namespace LevelAssignment
 
             ProjectBoundaryOutline = _boundaryCalculator.ComputeProjectBoundary(_document, FloorDataCollection);
 
-            ModelCategoryFilter = new ElementMulticategoryFilter(CategoryHelper.GetModelCategoryIds(_document));
+            (List<ElementId> modelCategoryIds, string otput) = CategoryHelper.GetModelCategoryIds(_document);
+
+            ModelCategoryFilter = new ElementMulticategoryFilter(modelCategoryIds);
 
             _ = output.AppendLine($"Shared parameter: {LevelSharedParameter?.Name}");
             _ = output.AppendLine($"Number of floors: {FloorDataCollection?.Count}");
             _ = output.AppendLine("Start process:");
+            _ = output.AppendLine(otput);
 
             foreach (FloorData floor in FloorDataCollection)
             {
@@ -69,23 +69,25 @@ namespace LevelAssignment
                     floor.LevelSharedParameter = LevelSharedParameter;
                     floor.CreateIntersectFilter(ProjectBoundaryOutline, offset, сlearance);
 
-                    ICollection<ElementId> elementIds = floor.CreateLevelCollector(_document).ToElementIds();
+                    _ = output.AppendLine(floor.ValidateElementsPresence(_document));
 
-                    Debug.Assert(elementIds.Count > 0, "No elements found for the floor");
+                    //ICollection<ElementId> elementIds = floor.CreateLevelCollector(_document).ToElementIds();
 
-                    foreach (Element element in floor.CreateExcludedCollector(_document, elementIds))
-                    {
-                        Debug.WriteLine($"Исключающий ID: {element.Id} ");
+                    //Debug.Assert(elementIds.Count > 0, "No elements found for the floor");
 
-                        if (floor.IsContained(in element))
-                        {
-                            elementIds.Add(element.Id);
-                        }
-                    }
+                    //foreach (Element element in floor.CreateExcludedCollector(_document, elementIds))
+                    //{
+                    //    Debug.WriteLine($"Исключающий ID: {element.Id} ");
 
-                    floor.FloorBoundingSolid.CreateDirectShape(_document);
+                    //    if (floor.IsContained(in element))
+                    //    {
+                    //        elementIds.Add(element.Id);
+                    //    }
+                    //}
 
-                    _ = output.AppendLine(ApplyLevelParameter(_document, elementIds, floor.FloorIndex));
+                    //floor.FloorBoundingSolid.CreateDirectShape(_document);
+
+                    //_ = output.AppendLine(ApplyLevelParameter(_document, elementIds, floor.FloorIndex));
                 }
                 catch (Exception ex)
                 {
