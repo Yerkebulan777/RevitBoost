@@ -27,7 +27,7 @@ namespace RevitUtils
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"Error {ex.Message}", ex);
+                throw new InvalidOperationException($"Error collect {ex.Message}", ex);
             }
         }
 
