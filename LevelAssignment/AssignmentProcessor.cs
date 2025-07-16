@@ -57,7 +57,7 @@ namespace LevelAssignment
 
             _ = output.AppendLine($"Shared parameter: {LevelSharedParameter?.Name}");
             _ = output.AppendLine($"Number of floors: {FloorDataCollection?.Count}");
-            _ = output.AppendLine("Start main process:");
+            _ = output.AppendLine("Start process:");
 
             foreach (FloorData floor in FloorDataCollection)
             {
