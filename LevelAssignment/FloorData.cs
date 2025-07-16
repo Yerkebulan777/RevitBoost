@@ -98,9 +98,11 @@ namespace LevelAssignment
             Debug.Assert(ModelCategoryFilter is not null, "ModelCategoryFilter is not initialized!");
             Debug.Assert(BoundingRegionFilter is not null, "BoundingRegionFilter is not initialized!");
 
-            ElementParameterFilter filter = new(new HasValueFilterRule(LevelSharedParameter.Id));
+            ElementParameterFilter valueFilter = new(new HasValueFilterRule(LevelSharedParameter.Id));
 
-            ElementFilter[] elementFilters = [ModelCategoryFilter, BoundingRegionFilter, CombinedLevelFilter, filter];
+            ElementParameterFilter paramFilter = new(new SharedParameterApplicableRule(LevelSharedParameter.Name));
+
+            ElementFilter[] elementFilters = [ModelCategoryFilter, BoundingRegionFilter, CombinedLevelFilter, paramFilter, valueFilter];
 
             (_, string output) = CollectorHelper.GetFilteredElementCollector(document, elementFilters);
 
