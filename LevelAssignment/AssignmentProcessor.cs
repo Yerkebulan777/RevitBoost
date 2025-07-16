@@ -126,6 +126,7 @@ namespace LevelAssignment
                 foreach (ElementId elementId in elementIds)
                 {
                     Element element = doc.GetElement(elementId);
+
                     Parameter param = element?.get_Parameter(paramDefinition);
 
                     if (param is null)
