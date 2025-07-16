@@ -51,14 +51,13 @@ namespace LevelAssignment
 
             ProjectBoundaryOutline = _boundaryCalculator.ComputeProjectBoundary(_document, FloorDataCollection);
 
-            (List<ElementId> modelCategoryIds, string otput) = CategoryHelper.GetModelCategoryIds(_document);
+            (List<ElementId> modelCategoryIds, _) = CategoryHelper.GetModelCategoryIds(_document);
 
             ModelCategoryFilter = new ElementMulticategoryFilter(modelCategoryIds);
 
             _ = output.AppendLine($"Shared parameter: {LevelSharedParameter?.Name}");
             _ = output.AppendLine($"Number of floors: {FloorDataCollection?.Count}");
             _ = output.AppendLine("Start process:");
-            _ = output.AppendLine(otput);
 
             ICollection<ElementId> elementIds = null;
 
@@ -112,7 +111,7 @@ namespace LevelAssignment
             int assignedCount = 0;
             StringBuilder output = new();
 
-            output.AppendLine($"Start setting floor number to {value}");
+            _ = output.AppendLine($"Start setting floor number to {value}");
 
             InternalDefinition paramDefinition = LevelSharedParameter.GetDefinition();
 
@@ -125,11 +124,11 @@ namespace LevelAssignment
 
                     if (param is null)
                     {
-                        output.AppendLine($"❌ Parameter not found: {element.Category}");
+                        _ = output.AppendLine($"❌ Parameter not found: {element.Category}");
                     }
                     else if (param.IsReadOnly)
                     {
-                        output.AppendLine($"❌ Read-only parameter: {elementId.IntegerValue}");
+                        _ = output.AppendLine($"❌ Read-only parameter: {elementId.IntegerValue}");
                     }
                     else if (param.UserModifiable && param.Set(value))
                     {
@@ -138,11 +137,11 @@ namespace LevelAssignment
                 }
             }, out string error))
             {
-                output.AppendLine($"❌ Transaction failed: {error}");
+                _ = output.AppendLine($"❌ Transaction failed: {error}");
             }
 
-            output.AppendLine($"Total element count: {elementIds.Count}");
-            output.AppendLine($"Total elements assigned: {assignedCount}");
+            _ = output.AppendLine($"Total element count: {elementIds.Count}");
+            _ = output.AppendLine($"Total elements assigned: {assignedCount}");
 
             return output.ToString();
         }
