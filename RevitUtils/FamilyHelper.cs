@@ -15,14 +15,7 @@ namespace RevitUtils
         /// <returns>Элемент-основа или null, если основа отсутствует</returns>
         public static Element GetHost(FamilyInstance instance)
         {
-            if (instance is null || !instance.IsValidObject)
-            {
-                Debug.WriteLine("Instance is null or invalid");
-            }
-
-            Element host = instance?.Host;
-
-            return host is Instance && host.IsValidObject ? host : null;
+            return instance?.Host;
         }
 
         /// <summary>
@@ -30,29 +23,7 @@ namespace RevitUtils
         /// </summary>
         public static FamilyInstance GetParentFamily(FamilyInstance nestedInstance)
         {
-            if (nestedInstance is null || !nestedInstance.IsValidObject)
-            {
-                Debug.WriteLine("Nested instance is null or invalid");
-                return null;
-            }
-
-            try
-            {
-                Element parent = nestedInstance.SuperComponent;
-
-                if (parent is FamilyInstance parentInstance && parentInstance.IsValidObject)
-                {
-                    return parentInstance;
-                }
-
-                Debug.WriteLine("Family does not have a valid super component");
-                return null;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error getting parent family: {ex.Message}");
-                return null;
-            }
+            return nestedInstance?.SuperComponent as FamilyInstance;
         }
 
         /// <summary>
@@ -60,12 +31,6 @@ namespace RevitUtils
         /// </summary>
         public static List<FamilyInstance> GetNestedFamilies(Document doc, FamilyInstance parent)
         {
-            if (doc is null || parent is null || !parent.IsValidObject)
-            {
-                Debug.WriteLine("Document or parent instance is null or invalid");
-                return [];
-            }
-
             List<FamilyInstance> nestedInstances = [];
 
             try
