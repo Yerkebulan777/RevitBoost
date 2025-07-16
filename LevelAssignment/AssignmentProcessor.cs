@@ -36,7 +36,7 @@ namespace LevelAssignment
 
             HashSet<ElementId> elemIdSet = [];
 
-            double offset = UnitManager.MmToFoot(250);
+            double offset = UnitManager.MmToFoot(300);
             double сlearance = UnitManager.MmToFoot(100);
 
             _ = output.AppendLine("\nThe start of level assignment...");
