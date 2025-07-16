@@ -113,7 +113,6 @@ namespace LevelAssignment
             StringBuilder output = new();
 
             output.AppendLine($"Start setting floor number to {value}");
-            output.AppendLine($"The total element count: {elementIds.Count}");
 
             InternalDefinition paramDefinition = LevelSharedParameter.GetDefinition();
 
@@ -142,7 +141,8 @@ namespace LevelAssignment
                 output.AppendLine($"❌ Transaction failed: {error}");
             }
 
-            output.AppendLine($"TotalLevelCount elements assigned: {assignedCount}");
+            output.AppendLine($"Total element count: {elementIds.Count}");
+            output.AppendLine($"Total elements assigned: {assignedCount}");
 
             return output.ToString();
         }
