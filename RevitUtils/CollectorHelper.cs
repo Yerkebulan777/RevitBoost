@@ -102,7 +102,7 @@ namespace RevitUtils
             return elementIds?.Count > 0 ? collector.WherePasses(new ExclusionFilter(elementIds)) : collector;
         }
 
-        public static FilteredElementCollector WhereSharedParameterApplicable(this FilteredElementCollector collector, string parameterName)
+        public static FilteredElementCollector WhereHasParameter(this FilteredElementCollector collector, string parameterName)
         {
             SharedParameterApplicableRule rule = new(parameterName);
             ElementParameterFilter filter = new(rule);

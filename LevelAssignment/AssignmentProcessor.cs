@@ -60,19 +60,20 @@ namespace LevelAssignment
             _ = output.AppendLine("Start process:");
             _ = output.AppendLine(otput);
 
+            ICollection<ElementId> elementIds;
+
             foreach (FloorData floor in FloorDataCollection)
             {
                 try
                 {
                     _ = output.AppendLine();
+
                     floor.AggregateLevelFilter();
                     floor.ModelCategoryFilter = ModelCategoryFilter;
                     floor.LevelSharedParameter = LevelSharedParameter;
                     floor.CreateIntersectFilter(ProjectBoundaryOutline, offset, сlearance);
 
-                    _ = output.AppendLine(floor.AssertElementsExistence(_document));
-
-                    ICollection<ElementId> elementIds = floor.CreateLevelCollector(_document).ToElementIds();
+                    elementIds = floor.CreateLevelCollector(_document).ToElementIds();
 
                     foreach (Element element in floor.CreateExcludedCollector(_document, elementIds))
                     {
@@ -112,9 +113,6 @@ namespace LevelAssignment
         public string ApplyLevelParameter(Document doc, ICollection<ElementId> elementIds, int levelValue)
         {
             int assignedCount = 0;
-            int notModifiableCount = 0;
-            int readOnlyParameterCount = 0;
-
             StringBuilder output = new();
 
             _ = output.AppendLine($"Start setting floor number to {levelValue}");
@@ -133,23 +131,12 @@ namespace LevelAssignment
                     {
                         if (param.IsReadOnly)
                         {
-                            readOnlyParameterCount++;
-                            continue;
+                            output.AppendLine($"Read-only element: {elementId.IntegerValue}");
                         }
-
-                        if (!param.UserModifiable)
-                        {
-                            notModifiableCount++;
-                            continue;
-                        }
-
-                        if (param.Set(levelValue))
+                        else if (param.UserModifiable && param.Set(levelValue))
                         {
                             assignedCount++;
-                            continue;
                         }
-
-                        _ = output.AppendLine($"❌ Failed element {element.UniqueId}");
                     }
                 }
             }, out string error))
@@ -157,8 +144,6 @@ namespace LevelAssignment
                 _ = output.AppendLine($"❌ Transaction failed: {error}");
             }
 
-            _ = output.AppendLine($"Read-only elements: {readOnlyParameterCount}");
-            _ = output.AppendLine($"Not modifiable elements: {notModifiableCount}");
             _ = output.AppendLine($"TotalLevelCount elements assigned: {assignedCount}");
 
             return output.ToString();

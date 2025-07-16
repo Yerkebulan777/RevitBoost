@@ -114,10 +114,13 @@ namespace LevelAssignment
         /// </summary>
         public FilteredElementCollector CreateLevelCollector(Document doc)
         {
+            string paramName = LevelSharedParameter.Name;
+
             return new FilteredElementCollector(doc)
                 .WherePasses(BoundingRegionFilter)
                 .WherePasses(ModelCategoryFilter)
-                .WherePasses(CombinedLevelFilter);
+                .WherePasses(CombinedLevelFilter)
+                .WhereHasParameter(paramName);
         }
 
         /// <summary>
@@ -125,9 +128,12 @@ namespace LevelAssignment
         /// </summary>
         public FilteredElementCollector CreateExcludedCollector(Document doc, ICollection<ElementId> elementIds)
         {
+            string paramName = LevelSharedParameter.Name;
+
             return new FilteredElementCollector(doc)
                 .WherePasses(BoundingRegionFilter)
                 .WherePasses(ModelCategoryFilter)
+                .WhereHasParameter(paramName)
                 .ExcludeElements(elementIds);
         }
 
