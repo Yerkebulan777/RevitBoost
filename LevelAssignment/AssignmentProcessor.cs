@@ -134,11 +134,10 @@ namespace LevelAssignment
                         if (param.UserModifiable && param.Set(value))
                         {
                             assignedCount++;
+                            continue;
                         }
-                        else
-                        {
-                            _ = output.AppendLine($"❌ {element.Id.IntegerValue}");
-                        }
+
+                        _ = output.AppendLine($"❌ {element.Id.IntegerValue}");
                     }
                 }
             }, out string error))
@@ -146,7 +145,6 @@ namespace LevelAssignment
                 _ = output.AppendLine($"❌ Transaction failed: {error}");
             }
 
-            _ = output.AppendLine($"Total element count: {elementIds.Count}");
             _ = output.AppendLine($"Total elements assigned: {assignedCount}");
 
             return output.ToString();
