@@ -7,13 +7,37 @@ namespace RevitUtils
 {
     public static class CollectorHelper
     {
+        // Безопасная работа с коллектором
+        public static IList<Element> SafeCollectElements(Document doc, params ElementFilter[] filters)
+        {
+            try
+            {
+                FilteredElementCollector collector;
+
+                collector = new FilteredElementCollector(doc).WhereElementIsNotElementType();
+
+                foreach (ElementFilter filter in filters.Where(flt => flt is not null))
+                {
+                    Debug.WriteLine($"Применен фильтр: {nameof(filter.GetType)}");
+                    collector = collector.WherePasses(filter);
+                    Debug.Assert(0 == collector.GetElementCount());
+                }
+
+                return collector.ToElements();
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Error {ex.Message}", ex);
+            }
+        }
+
 
         #region FilteredByFamilylName
 
         public static List<FamilyInstance> GetInstancesByFamilyName(Document doc, BuiltInCategory bic, string familyName)
         {
-            return new FilteredElementCollector(doc).OfCategory(bic).OfClass(typeof(FamilyInstance)).WhereElementIsNotElementType()
-                .Cast<FamilyInstance>().Where(x => x.Symbol?.FamilyName?.IndexOf(familyName, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
+            return [.. new FilteredElementCollector(doc).OfCategory(bic).OfClass(typeof(FamilyInstance)).WhereElementIsNotElementType()
+                .Cast<FamilyInstance>().Where(x => x.Symbol?.FamilyName?.IndexOf(familyName, StringComparison.OrdinalIgnoreCase) >= 0)];
         }
 
         #endregion
@@ -163,6 +187,29 @@ namespace RevitUtils
 
             return clashingElements;
         }
+
+
+
+        public static void DiagnoseCollectorIssues(Document doc, ElementFilter filter)
+        {
+            FilteredElementCollector collector = new(doc);
+
+            int totalCount = collector.GetElementCount();
+            Console.WriteLine($"Total elements: {totalCount}");
+
+            // Затем применяем фильтр
+            _ = collector.WherePasses(filter);
+            int filteredCount = collector.GetElementCount();
+            Console.WriteLine($"Filtered elements: {filteredCount}");
+
+            if (filteredCount == 0 && totalCount > 0)
+            {
+                Console.WriteLine("⚠️ Фильтр исключил все элементы!");
+            }
+        }
+
+
+
 
 
 
