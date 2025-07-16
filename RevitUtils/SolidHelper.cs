@@ -5,7 +5,7 @@ namespace RevitUtils
 {
     public static class SolidHelper
     {
-        public static Solid CreateSolidBoxByPoint(XYZ minPoint, XYZ maxPoint, double height)
+        public static Solid CreateSolidBoxByPoint(XYZ minPoint, XYZ maxPoint)
         {
             XYZ pt0 = new(minPoint.X, minPoint.Y, minPoint.Z);
             XYZ pt1 = new(maxPoint.X, minPoint.Y, minPoint.Z);
@@ -17,6 +17,7 @@ namespace RevitUtils
             Line edge2 = Line.CreateBound(pt2, pt3);
             Line edge3 = Line.CreateBound(pt3, pt0);
 
+            double height = Math.Abs(maxPoint.Z - minPoint.Z);
             List<Curve> profile = [edge0, edge1, edge2, edge3];
             List<CurveLoop> loops = [CurveLoop.Create(profile)];
 

@@ -8,9 +8,9 @@ namespace LevelAssignment
     {
         public List<ElementId> ContainedLevelIds { get; internal set; }
         public SharedParameterElement LevelSharedParameter { get; internal set; }
-        public ElementFilter SpatialIntersectionFilter { get; internal set; }
+        public ElementFilter BoundingRegionFilter { get; internal set; }
         public ElementFilter ModelCategoryFilter { get; internal set; }
-        public ElementFilter AggregatedLevelFilter { get; internal set; }
+        public ElementFilter CombinedLevelFilter { get; internal set; }
         public ElementFilter ElementExclusionFilter { get; internal set; }
         public BoundingBoxXYZ BoundingBox { get; internal set; }
         public Solid FloorBoundingSolid { get; internal set; }
@@ -50,7 +50,7 @@ namespace LevelAssignment
                 allLevelFilters.Add(CollectorHelper.BuildNumericParameterFilter(BuiltInParameter.SCHEDULE_LEVEL_PARAM, evaluator, levelId));
             }
 
-            AggregatedLevelFilter = new LogicalOrFilter(allLevelFilters);
+            CombinedLevelFilter = new LogicalOrFilter(allLevelFilters);
         }
 
         /// <summary>
@@ -69,7 +69,7 @@ namespace LevelAssignment
                 minPoint = Transform.Identity.OfPoint(new XYZ(minPoint.X, minPoint.Y, elevation));
                 maxPoint = Transform.Identity.OfPoint(new XYZ(maxPoint.X, maxPoint.Y, elevation + adjustedHeight));
 
-                FloorBoundingSolid = SolidHelper.CreateSolidBoxByPoint(minPoint, maxPoint, adjustedHeight);
+                FloorBoundingSolid = SolidHelper.CreateSolidBoxByPoint(minPoint, maxPoint);
 
                 GeometryOutline = new Outline(minPoint, maxPoint);
 
@@ -81,7 +81,7 @@ namespace LevelAssignment
                 BoundingBoxIntersectsFilter boundingBoxFilter = new(GeometryOutline);
                 ElementIntersectsSolidFilter solidIntersectionFilter = new(FloorBoundingSolid);
 
-                SpatialIntersectionFilter = new LogicalOrFilter(boundingBoxFilter, solidIntersectionFilter);
+                BoundingRegionFilter = new LogicalOrFilter(boundingBoxFilter, solidIntersectionFilter);
 
                 return;
             }
@@ -95,9 +95,9 @@ namespace LevelAssignment
         public FilteredElementCollector CreateLevelCollector(Document doc)
         {
             return new FilteredElementCollector(doc)
-                    .WherePasses(ModelCategoryFilter)
-                    .WherePasses(AggregatedLevelFilter)
-                    .WherePasses(SpatialIntersectionFilter);
+                .WherePasses(BoundingRegionFilter)
+                .WherePasses(ModelCategoryFilter)
+                .WherePasses(CombinedLevelFilter);
         }
 
         /// <summary>
@@ -105,12 +105,10 @@ namespace LevelAssignment
         /// </summary>
         public FilteredElementCollector CreateExcludedCollector(Document doc, ICollection<ElementId> elementIds)
         {
-            FilteredElementCollector collector;
-            collector = new FilteredElementCollector(doc)
-                        .WherePasses(ModelCategoryFilter)
-                        .WherePasses(SpatialIntersectionFilter);
-
-            return collector.ExcludeElements(elementIds);
+            return new FilteredElementCollector(doc)
+                .WherePasses(BoundingRegionFilter)
+                .WherePasses(ModelCategoryFilter)
+                .ExcludeElements(elementIds);
         }
 
         /// <summary>
@@ -146,9 +144,9 @@ namespace LevelAssignment
                     ContainedLevelIds?.Clear();
                     ModelCategoryFilter?.Dispose();
                     LevelSharedParameter?.Dispose();
-                    AggregatedLevelFilter?.Dispose();
+                    CombinedLevelFilter?.Dispose();
                     ElementExclusionFilter?.Dispose();
-                    SpatialIntersectionFilter?.Dispose();
+                    BoundingRegionFilter?.Dispose();
                     FloorBoundingSolid?.Dispose();
                     GeometryOutline?.Dispose();
                     BoundingBox?.Dispose();
