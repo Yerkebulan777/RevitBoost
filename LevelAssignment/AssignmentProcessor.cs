@@ -69,7 +69,7 @@ namespace LevelAssignment
                     floor.LevelSharedParameter = LevelSharedParameter;
                     floor.CreateIntersectFilter(ProjectBoundaryOutline, offset, сlearance);
 
-                    ICollection<ElementId> elementIds = floor.CreateLevelFilteredCollector(_document).ToElementIds();
+                    ICollection<ElementId> elementIds = floor.CreateLevelCollector(_document).ToElementIds();
 
                     foreach (Element element in floor.CreateExcludedCollector(_document, elementIds))
                     {
