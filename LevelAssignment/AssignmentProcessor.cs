@@ -60,7 +60,7 @@ namespace LevelAssignment
             _ = output.AppendLine("Start process:");
             _ = output.AppendLine(otput);
 
-            ICollection<ElementId> elementIds;
+            ICollection<ElementId> elementIds = null;
 
             foreach (FloorData floor in FloorDataCollection)
             {
@@ -87,7 +87,7 @@ namespace LevelAssignment
 
                     floor.FloorBoundingSolid.CreateDirectShape(_document);
 
-                    _ = output.AppendLine(SetParameterValue(_document, elementIds, floor.FloorIndex));
+
                 }
                 catch (Exception ex)
                 {
@@ -99,6 +99,7 @@ namespace LevelAssignment
                     _ = output.AppendLine($"✅ Floor: {floor.DisplayName} <<{floor.FloorIndex}>> ");
                     _ = output.AppendLine($"✅ Floor height: {UnitManager.FootToMt(floor.Height)} м.");
                     _ = output.AppendLine($"✅ Floor elevat: {UnitManager.FootToMt(floor.ProjectElevation)} м.");
+                    _ = output.AppendLine(SetParameterValue(_document, elementIds, floor.FloorIndex));
                 }
             }
 
