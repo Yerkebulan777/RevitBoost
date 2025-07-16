@@ -135,7 +135,7 @@ namespace LevelAssignment
                     }
                     else if (param.IsReadOnly)
                     {
-                        int paramValue = Convert.ToInt32(param.AsValueString());
+                        int paramValue = Convert.ToInt32(param.AsDouble());
 
                         if (paramValue == value)
                         {
