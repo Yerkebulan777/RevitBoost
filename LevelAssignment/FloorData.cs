@@ -6,8 +6,8 @@ namespace LevelAssignment
 {
     public sealed class FloorData : IDisposable
     {
-        public List<ElementId> ContainedLevelIds { get; internal set; }
         public SharedParameterElement LevelSharedParameter { get; internal set; }
+        public List<ElementId> ContainedLevelIds { get; internal set; }
         public ElementFilter BoundingRegionFilter { get; internal set; }
         public ElementFilter ModelCategoryFilter { get; internal set; }
         public ElementFilter CombinedLevelFilter { get; internal set; }

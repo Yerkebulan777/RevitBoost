@@ -71,6 +71,8 @@ namespace LevelAssignment
 
                     ICollection<ElementId> elementIds = floor.CreateLevelCollector(_document).ToElementIds();
 
+                    Debug.Assert(elementIds.Count > 0, "No elements found for the floor");
+
                     foreach (Element element in floor.CreateExcludedCollector(_document, elementIds))
                     {
                         Debug.WriteLine($"Исключающий ID: {element.Id} ");
