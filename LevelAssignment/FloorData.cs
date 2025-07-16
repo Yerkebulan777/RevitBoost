@@ -146,7 +146,6 @@ namespace LevelAssignment
 
             if (bbox is null || !bbox.Enabled)
             {
-                Debug.Fail("BoundingBox not enabled!");
                 return false;
             }
 

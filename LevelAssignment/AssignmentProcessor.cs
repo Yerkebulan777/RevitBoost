@@ -1,7 +1,6 @@
 ﻿using Autodesk.Revit.DB;
 using CommonUtils;
 using RevitUtils;
-using System.Diagnostics;
 using System.Text;
 
 namespace LevelAssignment
@@ -76,9 +75,16 @@ namespace LevelAssignment
 
                     foreach (Element element in floor.CreateExcludedCollector(_document, elementIds))
                     {
-                        Debug.WriteLine($"Исключающий ID: {element.Id} ");
+                        if (element is FamilyInstance instance)
+                        {
+                            FamilyInstance parent = FamilyHelper.GetParentFamily(instance);
 
-                        if (floor.IsContained(in element))
+                            if (floor.IsContained(parent) || floor.IsContained(in element))
+                            {
+                                elementIds.Add(element.Id);
+                            }
+                        }
+                        else if (floor.IsContained(in element))
                         {
                             elementIds.Add(element.Id);
                         }
