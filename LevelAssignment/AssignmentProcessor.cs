@@ -87,7 +87,7 @@ namespace LevelAssignment
 
                     floor.FloorBoundingSolid.CreateDirectShape(_document);
 
-                    _ = output.AppendLine(ApplyLevelParameter(_document, elementIds, floor.FloorIndex));
+                    _ = output.AppendLine(SetParameterValue(_document, elementIds, floor.FloorIndex));
                 }
                 catch (Exception ex)
                 {
@@ -110,42 +110,42 @@ namespace LevelAssignment
         /// <summary>
         /// Устанавливает значение параметра для элементов
         /// </summary>
-        public string ApplyLevelParameter(Document doc, ICollection<ElementId> elementIds, int levelValue)
+        public string SetParameterValue(Document doc, ICollection<ElementId> elementIds, int value)
         {
             int assignedCount = 0;
             StringBuilder output = new();
 
-            _ = output.AppendLine($"Start setting floor number to {levelValue}");
-            _ = output.AppendLine($"The total element count: {elementIds.Count}");
+            output.AppendLine($"Start setting floor number to {value}");
+            output.AppendLine($"The total element count: {elementIds.Count}");
 
-            InternalDefinition levelParamGuid = LevelSharedParameter.GetDefinition();
+            InternalDefinition paramDefinition = LevelSharedParameter.GetDefinition();
 
             if (!TransactionHelper.TryCreateTransaction(doc, $"SetFloorNumber", () =>
             {
                 foreach (ElementId elementId in elementIds)
                 {
                     Element element = doc.GetElement(elementId);
-                    Parameter param = element?.get_Parameter(levelParamGuid);
+                    Parameter param = element?.get_Parameter(paramDefinition);
 
                     if (param is null)
                     {
-                        _ = output.AppendLine($"❌ Parameter not found: {element.Category}");
+                        output.AppendLine($"❌ Parameter not found: {element.Category}");
                     }
                     else if (param.IsReadOnly)
                     {
-                        _ = output.AppendLine($"❌ Read-only element: {elementId.IntegerValue}");
+                        output.AppendLine($"❌ Read-only parameter: {elementId.IntegerValue}");
                     }
-                    else if (param.UserModifiable && param.Set(levelValue))
+                    else if (param.UserModifiable && param.Set(value))
                     {
                         assignedCount++;
                     }
                 }
             }, out string error))
             {
-                _ = output.AppendLine($"❌ Transaction failed: {error}");
+                output.AppendLine($"❌ Transaction failed: {error}");
             }
 
-            _ = output.AppendLine($"TotalLevelCount elements assigned: {assignedCount}");
+            output.AppendLine($"TotalLevelCount elements assigned: {assignedCount}");
 
             return output.ToString();
         }
