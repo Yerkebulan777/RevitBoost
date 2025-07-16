@@ -127,16 +127,17 @@ namespace LevelAssignment
                     Element element = doc.GetElement(elementId);
                     Parameter param = element?.get_Parameter(levelParamGuid);
 
-                    if (param is not null)
+                    if (param is null)
                     {
-                        if (param.IsReadOnly)
-                        {
-                            output.AppendLine($"Read-only element: {elementId.IntegerValue}");
-                        }
-                        else if (param.UserModifiable && param.Set(levelValue))
-                        {
-                            assignedCount++;
-                        }
+                        _ = output.AppendLine($"❌ Parameter not found: {element.Category}");
+                    }
+                    else if (param.IsReadOnly)
+                    {
+                        _ = output.AppendLine($"❌ Read-only element: {elementId.IntegerValue}");
+                    }
+                    else if (param.UserModifiable && param.Set(levelValue))
+                    {
+                        assignedCount++;
                     }
                 }
             }, out string error))
