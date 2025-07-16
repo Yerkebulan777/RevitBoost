@@ -34,7 +34,7 @@ namespace LevelAssignment
         {
             StringBuilder output = new();
 
-            HashSet<ElementId> elemIdSet = [];
+
 
             double offset = UnitManager.MmToFoot(300);
             double сlearance = UnitManager.MmToFoot(100);
@@ -53,7 +53,7 @@ namespace LevelAssignment
 
             ProjectBoundaryOutline = _boundaryCalculator.ComputeProjectBoundary(_document, FloorDataCollection);
 
-            ModelCategoryFilter = new ElementMulticategoryFilter(CollectorHelper.GetModelCategoryIds(_document));
+            ModelCategoryFilter = new ElementMulticategoryFilter(CategoryHelper.GetModelCategoryIds(_document));
 
             _ = output.AppendLine($"Shared parameter: {LevelSharedParameter?.Name}");
             _ = output.AppendLine($"Number of floors: {FloorDataCollection?.Count}");
@@ -69,20 +69,21 @@ namespace LevelAssignment
                     floor.LevelSharedParameter = LevelSharedParameter;
                     floor.CreateIntersectFilter(ProjectBoundaryOutline, offset, сlearance);
 
-                    elemIdSet = [.. floor.CreateLevelFilteredCollector(_document).ToElementIds()];
+                    ICollection<ElementId> elementIds = floor.CreateLevelFilteredCollector(_document).ToElementIds();
 
-                    foreach (Element element in floor.CreateExcludedCollector(_document, elemIdSet))
+                    foreach (Element element in floor.CreateExcludedCollector(_document, elementIds))
                     {
                         Debug.WriteLine($"Исключающий ID: {element.Id} ");
 
                         if (floor.IsContained(in element))
                         {
-                            bool addedSuccessfully = elemIdSet.Add(element.Id);
-                            Debug.Assert(addedSuccessfully, $"Failed to add element");
+                            elementIds.Add(element.Id);
                         }
                     }
 
                     floor.FloorBoundingSolid.CreateDirectShape(_document);
+
+                    _ = output.AppendLine(ApplyLevelParameter(_document, elementIds, floor.FloorIndex));
                 }
                 catch (Exception ex)
                 {
@@ -94,7 +95,6 @@ namespace LevelAssignment
                     _ = output.AppendLine($"✅ Floor: {floor.DisplayName} <<{floor.FloorIndex}>> ");
                     _ = output.AppendLine($"✅ Floor height: {UnitManager.FootToMt(floor.Height)} м.");
                     _ = output.AppendLine($"✅ Floor elevat: {UnitManager.FootToMt(floor.ProjectElevation)} м.");
-                    _ = output.AppendLine(ApplyLevelParameter(_document, elemIdSet, floor.FloorIndex));
                 }
             }
 
@@ -106,7 +106,7 @@ namespace LevelAssignment
         /// <summary>
         /// Устанавливает значение параметра для элементов
         /// </summary>
-        public string ApplyLevelParameter(Document doc, HashSet<ElementId> elemIdSet, int levelValue)
+        public string ApplyLevelParameter(Document doc, ICollection<ElementId> elementIds, int levelValue)
         {
             int assignedCount = 0;
             int notModifiableCount = 0;
@@ -115,13 +115,13 @@ namespace LevelAssignment
             StringBuilder output = new();
 
             _ = output.AppendLine($"Start setting floor number to {levelValue}");
-            _ = output.AppendLine($"The total element count: {elemIdSet.Count}");
+            _ = output.AppendLine($"The total element count: {elementIds.Count}");
 
             InternalDefinition levelParamGuid = LevelSharedParameter.GetDefinition();
 
             if (!TransactionHelper.TryCreateTransaction(doc, $"SetFloorNumber", () =>
             {
-                foreach (ElementId elementId in elemIdSet)
+                foreach (ElementId elementId in elementIds)
                 {
                     Element element = doc.GetElement(elementId);
                     Parameter param = element?.get_Parameter(levelParamGuid);

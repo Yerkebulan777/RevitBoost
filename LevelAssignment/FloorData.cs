@@ -39,11 +39,6 @@ namespace LevelAssignment
         /// </summary>
         public void AggregateLevelFilter()
         {
-            if (ContainedLevelIds.Count == 0)
-            {
-                throw new InvalidOperationException("No levels found for aggregation!");
-            }
-
             FilterNumericEquals evaluator = new();
             IList<ElementFilter> allLevelFilters = [];
 
@@ -113,11 +108,9 @@ namespace LevelAssignment
         public FilteredElementCollector CreateExcludedCollector(Document doc, ICollection<ElementId> elementIds)
         {
             FilteredElementCollector collector;
-            string paramName = LevelSharedParameter.Name;
             collector = new FilteredElementCollector(doc)
                         .WherePasses(ModelCategoryFilter)
-                        .WherePasses(SpatialIntersectionFilter)
-                        .WhereSharedParameterApplicable(paramName);
+                        .WherePasses(SpatialIntersectionFilter);
 
             return collector.ExcludeElements(elementIds);
         }
