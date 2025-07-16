@@ -31,7 +31,7 @@ namespace LintelMaster
                 throw new ArgumentException("Family name cannot be empty");
             }
 
-            SortedDictionary<SizeKey, List<LintelData>> result = new();
+            SortedDictionary<SizeKey, List<LintelData>> result = [];
             const BuiltInCategory bic = BuiltInCategory.OST_StructuralFraming;
 
             List<FamilyInstance> instances = CollectorHelper.GetInstancesByFamilyName(doc, bic, familyName);
@@ -70,13 +70,15 @@ namespace LintelMaster
                 return null;
             }
 
-            FamilyInstance parentInstance = FamilyHelper.GetParentFamily(instance);
+            Element parentInstance = FamilyHelper.GetParentFamily(instance);
+
             if (parentInstance == null)
             {
                 return null;
             }
 
             (int thick, int width, int height)? dimensions = ExtractOpeningSize(parentInstance);
+
             if (dimensions == null)
             {
                 return null;

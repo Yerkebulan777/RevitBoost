@@ -77,14 +77,14 @@ namespace LevelAssignment
                     {
                         if (element is FamilyInstance instance)
                         {
-                            FamilyInstance parent = FamilyHelper.GetParentFamily(instance);
+                            Element parent = FamilyHelper.GetParentFamily(instance);
 
-                            if (floor.IsContained(parent) || floor.IsContained(in element))
+                            if (floor.IsContained(in parent) || floor.IsContained(in element))
                             {
                                 elementIds.Add(element.Id);
                             }
                         }
-                        else if (floor.IsContained(in element))
+                        else if (element.IsValidObject && floor.IsContained(in element))
                         {
                             elementIds.Add(element.Id);
                         }

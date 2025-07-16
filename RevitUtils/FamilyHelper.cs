@@ -21,9 +21,9 @@ namespace RevitUtils
         /// <summary>
         /// Находит родительское семейство по экземпляру вложенного семейства
         /// </summary>
-        public static FamilyInstance GetParentFamily(FamilyInstance nestedInstance)
+        public static Element GetParentFamily(FamilyInstance nestedInstance)
         {
-            return nestedInstance?.SuperComponent as FamilyInstance;
+            return nestedInstance?.SuperComponent;
         }
 
         /// <summary>
