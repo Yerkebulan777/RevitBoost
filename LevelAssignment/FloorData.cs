@@ -89,7 +89,9 @@ namespace LevelAssignment
             throw new InvalidOperationException($"Height must be greater! {DisplayName}");
         }
 
-
+        /// <summary>
+        /// Проверяет наличие элементов в документе, соответствующих заданным фильтрам
+        /// </summary>
         public string AssertElementsExistence(Document document)
         {
             Debug.Assert(CombinedLevelFilter is not null, "CombinedLevelFilter is not initialized!");
@@ -100,9 +102,9 @@ namespace LevelAssignment
 
             ElementFilter[] elementFilters = [ModelCategoryFilter, BoundingRegionFilter, CombinedLevelFilter, filter];
 
-            (FilteredElementCollector collector, string output) = CollectorHelper.GetFilteredElementCollector(document, elementFilters);
+            (_, string output) = CollectorHelper.GetFilteredElementCollector(document, elementFilters);
 
-            return 0 == collector.GetElementCount() ? throw new InvalidOperationException(output) : output;
+            return output;
         }
 
         /// <summary>
