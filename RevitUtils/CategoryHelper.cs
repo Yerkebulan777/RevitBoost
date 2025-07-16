@@ -53,21 +53,16 @@ namespace RevitUtils
             {
                 Category category = Category.GetCategory(doc, catId);
 
-                Debug.Assert(category is not null, $"Invalid {catId.IntegerValue}");
+                Debug.WriteLineIf(category is not null, $"Category  {category.Name}");
 
-                if (category is not null && category.CategoryType == CategoryType.Model)
+                if (category.CategoryType == CategoryType.Model && category.CanAddSubcategory && category.IsVisibleInUI)
                 {
-                    Debug.WriteLineIf(category.IsVisibleInUI, $"Category {category.Name}");
-
-                    if (category.CanAddSubcategory && category.IsTagCategory)
-                    {
-                        builder.AppendLine($"✅ Category: {category.Name}");
-                        categoryIds.Add(catId);
-                    }
+                    builder.AppendLine($"✅ Model category: {category.Name}");
+                    categoryIds.Add(catId);
                 }
             }
 
-            builder.AppendLine($"✅ Category Ids collected: {categoryIds.Count}");
+            builder.AppendLine($"✅ Category Ids collected: {categoryIds.Count}\n");
 
             return (categoryIds, builder.ToString());
         }
