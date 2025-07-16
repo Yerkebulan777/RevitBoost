@@ -129,26 +129,16 @@ namespace LevelAssignment
 
                     Parameter param = element?.get_Parameter(paramDefinition);
 
-                    if (param is null)
+                    if (param is not null && !param.IsReadOnly)
                     {
-                        _ = output.AppendLine($"❌ Parameter not found: {element.Category}");
-                    }
-                    else if (param.IsReadOnly)
-                    {
-                        int paramValue = Convert.ToInt32(param.AsDouble());
-
-                        if (paramValue == value)
+                        if (param.UserModifiable && param.Set(value))
                         {
                             assignedCount++;
                         }
                         else
                         {
-                            _ = output.AppendLine($"❌ Value {paramValue}: {elementId.IntegerValue}");
+                            _ = output.AppendLine($"❌ {element.Id.IntegerValue}");
                         }
-                    }
-                    else if (param.UserModifiable && param.Set(value))
-                    {
-                        assignedCount++;
                     }
                 }
             }, out string error))
