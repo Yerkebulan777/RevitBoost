@@ -6,7 +6,7 @@ namespace RevitUtils
     public static class RevitPathHelper
     {
 
-        public static string DetermineExportDirectory(Document doc, string folderName, out string revitFilePath)
+        public static string GetExportDirectory(Document doc, string folderName, out string revitFilePath)
         {
             revitFilePath = GetRevitFilePath(doc);
             return PathHelper.DetermineDirectory(revitFilePath, folderName);
