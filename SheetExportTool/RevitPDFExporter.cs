@@ -1,82 +1,100 @@
 ﻿using Autodesk.Revit.DB;
+using Serilog;
+using System.Text;
 
 namespace ExportPdfTool
 {
-    public class RevitPdfExporter
+    namespace ExportPdfTool
     {
-        private readonly Document _document;
-        private readonly string _outputPath;
-
-        public RevitPdfExporter(Document document, string outputPath)
+        public class RevitPdfExporter
         {
-            _document = document;
-            _outputPath = outputPath;
-        }
+            private readonly Document _document;
+            private readonly string _outputPath;
 
-        public void ExportAllSheets(string exportFileName)
-        {
-            List<ViewSheet> sheets = GetValidSheets();
-
-            if (!sheets.Any())
+            public RevitPdfExporter(Document document, string outputPath)
             {
-                Console.WriteLine("No printable sheets found");
-                return;
+                _document = document;
+                _outputPath = outputPath;
             }
 
-            PDFExportOptions pdfOptions = CreatePDFOptions(exportFileName);
-            List<ElementId> sheetIds = [.. sheets.Select(s => s.Id)];
-
-            if (sheetIds.Count > 0)
+            public void ExportAllSheets(string exportFileName)
             {
-                try
+                StringBuilder logBuilder = new();
+
+                List<ViewSheet> sheets = GetValidSheets();
+
+                _ = logBuilder.AppendLine("=== PDF Export ===");
+                _ = logBuilder.AppendLine($"Output path: {_outputPath}");
+                _ = logBuilder.AppendLine($"Document: {_document.Title}");
+                _ = logBuilder.AppendLine($"Export file: {exportFileName}");
+                _ = logBuilder.AppendLine($"Start PDF export for {sheets.Count} sheets...");
+                _ = logBuilder.AppendLine($"Found {sheets.Count} valid sheets for export:");
+
+                if (sheets.Any())
                 {
-                    if (_document.Export(_outputPath, sheetIds, pdfOptions))
+                    try
                     {
-                        Console.WriteLine($"Successfully exported {sheets.Count} sheets");
+                        PDFExportOptions pdfOptions = CreatePDFOptions(exportFileName);
+
+                        if (_document.Export(_outputPath, [.. sheets.Select(s => s.Id)], pdfOptions))
+                        {
+                            _ = logBuilder.AppendLine($"✓ Successfully exported {sheets.Count} sheets");
+                            Log.Information(logBuilder.ToString());
+                        }
+                        else
+                        {
+                            _ = logBuilder.AppendLine($"⚠ Something wrong!");
+                            Log.Warning(logBuilder.ToString());
+                        }
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        Console.WriteLine("Export completed with warnings");
+                        _ = logBuilder.Clear();
+                        _ = logBuilder.AppendLine("=== PDF Export Operation Failed ===");
+                        _ = logBuilder.AppendLine($"✗ Failed to export {sheets.Count} sheets");
+                        _ = logBuilder.AppendLine($"✗ Error: {ex.Message}");
+                        Log.Error(ex, logBuilder.ToString());
                     }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Export failed: {ex.Message}");
-                }
-                finally
-                {
-                    Task.Delay(1000).Wait();
-                    Console.WriteLine("Export process completed!");
                 }
             }
-        }
 
-        private List<ViewSheet> GetValidSheets()
-        {
-            return [.. new FilteredElementCollector(_document)
-                .OfClass(typeof(ViewSheet)).Cast<ViewSheet>()
-                .Where(sheet => sheet.CanBePrinted && !sheet.IsTemplate)
-                .OrderBy(sheet => sheet.SheetNumber)];
-        }
 
-        private PDFExportOptions CreatePDFOptions(string fileName)
-        {
-            return new PDFExportOptions
+            private List<ViewSheet> GetValidSheets()
             {
-                Combine = true,
-                FileName = fileName,
-                ColorDepth = ColorDepthType.Color,
-                PaperFormat = ExportPaperFormat.Default,
-                ExportQuality = PDFExportQualityType.DPI300,
-                HideUnreferencedViewTags = true,
-                HideCropBoundaries = true,
-                HideReferencePlane = true,
-                HideScopeBoxes = true,
-                StopOnError = false
-            };
+                Log.Debug("Collecting valid sheets from document...");
+
+                List<ViewSheet> sheets = [.. new FilteredElementCollector(_document)
+                    .OfClass(typeof(ViewSheet)).OfCategory(BuiltInCategory.OST_Sheets)
+                    .WhereElementIsNotElementType()
+                    .Cast<ViewSheet>()
+                    .Where(sheet => !sheet.IsPlaceholder && sheet.CanBePrinted && !sheet.IsTemplate)
+                    .OrderBy(sheet => sheet.SheetNumber)];
+
+                return sheets;
+            }
+
+
+            private PDFExportOptions CreatePDFOptions(string fileName)
+            {
+                Log.Debug("Creating PDF export options");
+
+                return new PDFExportOptions
+                {
+                    Combine = true,
+                    FileName = fileName,
+                    ColorDepth = ColorDepthType.Color,
+                    PaperFormat = ExportPaperFormat.Default,
+                    ExportQuality = PDFExportQualityType.DPI300,
+                    HideUnreferencedViewTags = true,
+                    HideCropBoundaries = true,
+                    HideReferencePlane = true,
+                    HideScopeBoxes = true,
+                    StopOnError = false
+                };
+            }
+
+
+
         }
-
-
-
     }
 }
