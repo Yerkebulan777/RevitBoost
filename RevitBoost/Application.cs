@@ -19,7 +19,7 @@ namespace RevitBoost
             catch (Exception ex)
             {
                 StringHelper.CopyToClipboard($"Не удалось загрузить RevitBoost: {ex.Message}");
-                TaskDialog.Show("Ошибка загрузки", $"Не удалось загрузить RevitBoost: {ex.Message}");
+                _ = TaskDialog.Show("Ошибка загрузки", $"Не удалось загрузить RevitBoost: {ex.Message}");
                 return Result.Failed;
             }
         }
@@ -36,20 +36,23 @@ namespace RevitBoost
             {
                 RibbonPanel panel = RibbonHelper.CreatePanel(application, "Commands", "RevitBoost");
 
-                PushButton lintelButton = panel.AddPushButton<LintelLabelingCommand>("Lintel Assignment");
-                PushButton levelButton = panel.AddPushButton<LevelAssignmentCommand>("Level Assignment");
+                PushButton lintelButton = panel.AddPushButton<LintelLabelingCommand>("Lintel assignment");
+                PushButton levelButton = panel.AddPushButton<LevelAssignmentCommand>("Level assignment");
+                PushButton exportPdfButton = panel.AddPushButton<ExportToPdfCommand>("Export to PDF");
 
                 try
                 {
-                    var smallIcon = IconHelper.GetSmallIcon();
-                    var largeIcon = IconHelper.GetLargeIcon();
+                    System.Windows.Media.Imaging.BitmapImage smallIcon = IconHelper.GetSmallIcon();
+                    System.Windows.Media.Imaging.BitmapImage largeIcon = IconHelper.GetLargeIcon();
 
                     if (smallIcon != null && largeIcon != null)
                     {
                         levelButton.Image = smallIcon;
                         lintelButton.Image = smallIcon;
+                        exportPdfButton.Image = smallIcon;
                         levelButton.LargeImage = largeIcon;
                         lintelButton.LargeImage = largeIcon;
+                        exportPdfButton.LargeImage = largeIcon;
                     }
                 }
                 catch (Exception iconEx)
@@ -59,7 +62,7 @@ namespace RevitBoost
             }
             catch (Exception ex)
             {
-                TaskDialog.Show("Ошибка создания ribbon", ex.Message);
+                _ = TaskDialog.Show("Ошибка создания ribbon", ex.Message);
                 throw;
             }
         }

@@ -10,7 +10,7 @@ using System.IO;
 namespace RevitBoost.Commands
 {
     [Transaction(TransactionMode.ReadOnly)]
-    public class ExportAllSheetsCommand : IExternalCommand
+    public class ExportToPdfCommand : IExternalCommand
     {
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
