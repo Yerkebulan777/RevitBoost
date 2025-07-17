@@ -1,5 +1,4 @@
 ﻿using Autodesk.Revit.Attributes;
-using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using CommonUtils;
 using LintelMaster;
@@ -8,9 +7,6 @@ using System.Text;
 
 namespace RevitBoost.Commands
 {
-    /// <summary>
-    /// Команда для маркировки перемычек
-    /// </summary>
     [Transaction(TransactionMode.Manual)]
     public class LintelLabelingCommand : IExternalCommand
     {
@@ -70,8 +66,7 @@ namespace RevitBoost.Commands
 
             return Result.Succeeded;
         }
+
+
     }
-
-
-
 }
