@@ -2,6 +2,7 @@
 using Autodesk.Revit.UI;
 using CommonUtils;
 using ExportPdfTool;
+using RevitUtils;
 
 namespace RevitBoost.Commands
 {
@@ -11,11 +12,11 @@ namespace RevitBoost.Commands
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             Document doc = commandData.Application.ActiveUIDocument.Document;
-            string outputPath = @"C:\RevitExports\PDFs";
+            string outputPath = RevitPathHelper.DetermineExportDirectory(doc, "03_PDF", out string revitFilePath);
 
             try
             {
-                outputPath.EnsureDirectory();
+                PathHelper.EnsureDirectory(outputPath);
                 RevitPdfExporter exporter = new(doc, outputPath);
                 exporter.ExportAllSheets(doc.Title);
 
@@ -27,5 +28,7 @@ namespace RevitBoost.Commands
                 return Result.Failed;
             }
         }
+
+
     }
 }
