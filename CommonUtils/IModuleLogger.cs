@@ -10,11 +10,4 @@
         void Fatal(Exception exception, string message, params object[] args);
         IDisposable BeginScope(string name, params (string key, object value)[] properties);
     }
-
-    public interface IModuleLoggerFactory
-    {
-        IModuleLogger CreateLogger(string moduleName, string projectPath);
-        void ConfigureRevitContext(string applicationName);
-        void FlushAndClose();
-    }
 }

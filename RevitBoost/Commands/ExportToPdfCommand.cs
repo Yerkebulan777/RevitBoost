@@ -3,9 +3,9 @@ using Autodesk.Revit.UI;
 using CommonUtils;
 using ExportPdfTool;
 using RevitUtils;
-using Serilog;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 
 namespace RevitBoost.Commands
 {
@@ -18,7 +18,16 @@ namespace RevitBoost.Commands
             string outputPath = PathHelper.GetExportDirectory(doc, out string revitFilePath, "03_PDF");
             string revitFileName = Path.GetFileNameWithoutExtension(revitFilePath);
 
-            Log.Information("Export PDF started: {FileName}", revitFileName);
+            IModuleLogger logger = ModuleLogger.Create(doc, typeof(LevelAssignmentCommand));
+
+            using var scope = logger.BeginScope("CommandExecution");
+
+            logger.Information("ExportToPdfCommand...");
+
+            StringBuilder resultBuilder = new();
+
+            resultBuilder.AppendLine($"Loger path: {logger.LogFilePath}");
+
             Stopwatch stopwatch = Stopwatch.StartNew();
 
             try
@@ -29,17 +38,32 @@ namespace RevitBoost.Commands
 
                 stopwatch.Stop();
 
-                Log.Information("Export PDF completed {ElapsedTime:F2} min", stopwatch.Elapsed.TotalMinutes);
+                resultBuilder.AppendLine($"Turnaround time: {stopwatch.Elapsed.TotalMinutes:F2} min");
 
                 return Result.Succeeded;
             }
             catch (Exception ex)
             {
                 stopwatch.Stop();
-                Log.Error("Export PDF failed: {ErrorMessage}", ex.Message);
-                message = $"Error during export: {ex.Message}";
+
+                resultBuilder.AppendLine($"Exception: {ex.Message}");
+
+                if (ex.InnerException != null)
+                {
+                    resultBuilder.AppendLine($"Details: {ex.InnerException.Message}");
+                }
+
+                message = resultBuilder.ToString();
                 return Result.Failed;
             }
+            finally
+            {
+                logger.Information(resultBuilder.ToString());
+                DialogHelper.ShowInfo("Export PDF", resultBuilder.ToString());
+            }
         }
+
+
+
     }
 }

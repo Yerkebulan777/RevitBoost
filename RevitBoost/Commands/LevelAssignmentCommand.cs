@@ -10,7 +10,7 @@ namespace RevitBoost.Commands
     [Transaction(TransactionMode.Manual)]
     public class LevelAssignmentCommand : IExternalCommand
     {
-        Dictionary<string, List<string>> ungroupedGroupInfo { get; set; }
+        private Dictionary<string, List<string>> ungroupedGroupInfo { get; set; }
 
         private static readonly Guid PARAMETER_GUID = new("4673f045-9574-471f-9677-ac538a9e9a2d");
 
@@ -20,7 +20,7 @@ namespace RevitBoost.Commands
 
             IModuleLogger logger = ModuleLogger.Create(doc, typeof(LevelAssignmentCommand));
 
-            using var scope = logger.BeginScope("CommandExecution");
+            using IDisposable scope = logger.BeginScope("CommandExecution");
 
             logger.Information("Starting LevelAssignmentCommand...");
 
@@ -34,13 +34,12 @@ namespace RevitBoost.Commands
                 return Result.Failed;
             }
 
-            ungroupedGroupInfo = GroupHelper.UngroupAllAndSaveInfo(doc);
-
             try
             {
                 AssignmentProcessor orchestrator = new(doc, logger);
+                ungroupedGroupInfo = GroupHelper.UngroupAllAndSaveInfo(doc);
                 resultBuilder.AppendLine(orchestrator.Execute(PARAMETER_GUID));
-                DialogHelper.ShowInfo("Assignment completed", resultBuilder.ToString());
+                GroupHelper.RestoreGroups(doc, ungroupedGroupInfo);
             }
             catch (Exception ex)
             {
@@ -48,17 +47,20 @@ namespace RevitBoost.Commands
 
                 if (ex.InnerException != null)
                 {
-                    resultBuilder.AppendLine($"Детали: {ex.InnerException.Message}");
+                    resultBuilder.AppendLine($"Details: {ex.InnerException.Message}");
                 }
 
-                DialogHelper.ShowError("Error", resultBuilder.ToString());
+                message = resultBuilder.ToString();
+                return Result.Failed;
             }
-
-            GroupHelper.RestoreGroups(doc, ungroupedGroupInfo);
+            finally
+            {
+                logger.Information(resultBuilder.ToString());
+                DialogHelper.ShowInfo("Completed", resultBuilder.ToString());
+            }
 
             return Result.Succeeded;
         }
-
 
 
 
