@@ -4,22 +4,16 @@ using Serilog.Context;
 
 namespace CommonUtils
 {
-    public sealed class ModuleLogger : IModuleLogger
+    public sealed class ModuleLogger(ILogger logger, string moduleName) : IModuleLogger
     {
-        private readonly ILogger _logger;
-        private readonly string _moduleName;
+        private readonly ILogger _logger = logger.ForContext("Module", moduleName);
+        private readonly string _moduleName = moduleName;
         public string LogFilePath { get; set; }
-
-        private ModuleLogger(ILogger logger, string moduleName)
-        {
-            _logger = logger.ForContext("Module", moduleName);
-            _moduleName = moduleName;
-        }
 
         /// <summary>
         /// Создает логгер для Revit команды
         /// </summary>
-        public static  IModuleLogger Create(Document document, Type callerType)
+        public static IModuleLogger Create(Document document, Type callerType)
         {
             string moduleName = callerType.Name.Replace("Command", string.Empty);
             string projectDirectory = PathHelper.GetProjectDirectory(document, out string revitFilePath);
@@ -37,9 +31,12 @@ namespace CommonUtils
                 .Enrich.WithProperty("Document", revitFileName)
                 .CreateLogger();
 
-            LogFilePath = logFile;
+            ModuleLogger moduleLogger = new(logger, moduleName)
+            {
+                LogFilePath = logFile
+            };
 
-            return new ModuleLogger(logger, moduleName);
+            return moduleLogger;
         }
 
         public void Debug(string message, params object[] args)
@@ -84,15 +81,9 @@ namespace CommonUtils
         }
 
 
-        private sealed class CompositeDisposable : IDisposable
+        private sealed class CompositeDisposable(List<IDisposable> disposables) : IDisposable
         {
-            private readonly List<IDisposable> _disposables;
-
-            public CompositeDisposable(List<IDisposable> disposables)
-            {
-                _disposables = disposables;
-            }
-
+            private readonly List<IDisposable> _disposables = disposables;
             public void Dispose()
             {
                 foreach (IDisposable disposable in _disposables)

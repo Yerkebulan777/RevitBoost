@@ -15,7 +15,7 @@ namespace RevitBoost.Commands
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             Document doc = commandData.Application.ActiveUIDocument.Document;
-            string outputPath = RevitPathHelper.GetExportDirectory(doc, "03_PDF", out string revitFilePath);
+            string outputPath = PathHelper.GetExportDirectory(doc, out string revitFilePath, "03_PDF");
             string revitFileName = Path.GetFileNameWithoutExtension(revitFilePath);
 
             Log.Information("Export PDF started: {FileName}", revitFileName);
