@@ -1,4 +1,5 @@
 ﻿using Autodesk.Revit.DB;
+using System.Text;
 
 namespace RevitUtils
 {
@@ -7,7 +8,7 @@ namespace RevitUtils
         /// <summary>
         /// Задает значение параметра
         /// </summary>
-        public static bool SetParameterValue(Element element, string paramName, object value)
+        public static bool SetParamValue(Element element, string paramName, object value)
         {
             Parameter parameter = element?.LookupParameter(paramName);
 
@@ -47,8 +48,6 @@ namespace RevitUtils
                         }
                         return parameter.Set(new ElementId(Convert.ToInt32(value)));
 
-                    default:
-                        throw new InvalidOperationException($"{parameter.StorageType}");
                 }
             }
 
@@ -58,12 +57,29 @@ namespace RevitUtils
         /// <summary>
         /// Получает числовое значение параметра по BuiltInParameter
         /// </summary>
-        public static double GetParamValueAsDouble(Element element, BuiltInParameter paramId)
+        public static double GetValueAsDouble(Element element, BuiltInParameter paramId)
         {
             Parameter parameter = element.get_Parameter(paramId);
             return parameter.HasValue ? parameter.AsDouble() : 0;
         }
 
+        /// <summary>
+        /// Проверяет наличие общего параметра в проекте
+        /// </summary>
+        public static bool ValidateSharedParameter(Document doc, Guid guid, StringBuilder messageBuilder)
+        {
+            SharedParameterElement sharedParam = SharedParameterElement.Lookup(doc, guid);
+
+            if (sharedParam is null)
+            {
+                messageBuilder.AppendLine("General parameter not found in the project");
+                messageBuilder.AppendLine("Add a parameter via Manage > General Parameters");
+                return false;
+            }
+
+            messageBuilder.AppendLine($"Parameter found: {sharedParam.Name}");
+            return true;
+        }
 
 
     }

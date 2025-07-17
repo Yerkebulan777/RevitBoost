@@ -2,6 +2,7 @@
 {
     public interface IModuleLogger
     {
+        string LogFilePath { get; set; }
         void Debug(string message, params object[] args);
         void Information(string message, params object[] args);
         void Warning(string message, params object[] args);

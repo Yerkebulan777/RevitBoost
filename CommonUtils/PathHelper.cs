@@ -1,4 +1,5 @@
-﻿using Microsoft.Win32;
+﻿using Autodesk.Revit.DB;
+using Microsoft.Win32;
 using System.Diagnostics;
 
 namespace CommonUtils
@@ -7,10 +8,35 @@ namespace CommonUtils
     {
         private static readonly string[] SectionAcronyms = { "AR", "AS", "APT", "KJ", "KR", "KG", "OV", "VK", "EOM", "EM", "PS", "SS", "OViK", "APT", "BIM" };
 
+
+        public static string GetProjectDirectory(Document doc, out string revitFilePath)
+        {
+            revitFilePath = GetRevitFilePath(doc);
+            return LocateDirectory(revitFilePath, "*PROJECT*");
+        }
+
+
+        public static string GetExportDirectory(Document doc, out string revitFilePath, string folderName)
+        {
+            revitFilePath = GetRevitFilePath(doc);
+            return DetermineDirectory(revitFilePath, folderName);
+        }
+
+
+        private static string GetRevitFilePath(Document document)
+        {
+            if (document.IsWorkshared && !document.IsDetached)
+            {
+                ModelPath modelPath = document.GetWorksharingCentralModelPath();
+                return ModelPathUtils.ConvertModelPathToUserVisiblePath(modelPath);
+            }
+            return document.PathName;
+        }
+
         /// <summary>
         /// Находит родительскую папку проекта по заданному пути
         /// </summary>
-        public static string GetProjectDirectory(string filePath, string pattern = "*PROJECT*")
+        static string LocateDirectory(string filePath, string pattern)
         {
             SearchOption opt = SearchOption.TopDirectoryOnly;
             DirectoryInfo dirInfo = Directory.GetParent(filePath);
@@ -32,7 +58,7 @@ namespace CommonUtils
         {
             foreach (string section in SectionAcronyms)
             {
-                string tempPath = GetProjectDirectory(filePath, section);
+                string tempPath = LocateDirectory(filePath, section);
 
                 if (!string.IsNullOrEmpty(tempPath))
                 {
@@ -61,7 +87,7 @@ namespace CommonUtils
         {
             foreach (string section in SectionAcronyms)
             {
-                string tempPath = GetProjectDirectory(filePath, section);
+                string tempPath = LocateDirectory(filePath, section);
 
                 if (!string.IsNullOrEmpty(tempPath))
                 {

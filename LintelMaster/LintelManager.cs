@@ -138,16 +138,16 @@ namespace LintelMaster
         /// </summary>
         private (double width, double height)? ExtractDoorDimensions(FamilyInstance instance)
         {
-            double width = ParameterHelper.GetParamValueAsDouble(instance.Symbol, BuiltInParameter.DOOR_WIDTH);
+            double width = ParameterHelper.GetValueAsDouble(instance.Symbol, BuiltInParameter.DOOR_WIDTH);
             if (width == 0)
             {
-                width = ParameterHelper.GetParamValueAsDouble(instance, BuiltInParameter.DOOR_WIDTH);
+                width = ParameterHelper.GetValueAsDouble(instance, BuiltInParameter.DOOR_WIDTH);
             }
 
-            double height = ParameterHelper.GetParamValueAsDouble(instance.Symbol, BuiltInParameter.DOOR_HEIGHT);
+            double height = ParameterHelper.GetValueAsDouble(instance.Symbol, BuiltInParameter.DOOR_HEIGHT);
             if (height == 0)
             {
-                height = ParameterHelper.GetParamValueAsDouble(instance, BuiltInParameter.DOOR_HEIGHT);
+                height = ParameterHelper.GetValueAsDouble(instance, BuiltInParameter.DOOR_HEIGHT);
             }
 
             return width <= 0 || height <= 0 ? null : (width, height);
@@ -158,18 +158,18 @@ namespace LintelMaster
         /// </summary>
         private (double width, double height)? ExtractWindowDimensions(FamilyInstance instance)
         {
-            double width = ParameterHelper.GetParamValueAsDouble(instance.Symbol, BuiltInParameter.WINDOW_WIDTH);
+            double width = ParameterHelper.GetValueAsDouble(instance.Symbol, BuiltInParameter.WINDOW_WIDTH);
 
             if (width == 0)
             {
-                width = ParameterHelper.GetParamValueAsDouble(instance, BuiltInParameter.WINDOW_WIDTH);
+                width = ParameterHelper.GetValueAsDouble(instance, BuiltInParameter.WINDOW_WIDTH);
             }
 
-            double height = ParameterHelper.GetParamValueAsDouble(instance.Symbol, BuiltInParameter.WINDOW_HEIGHT);
+            double height = ParameterHelper.GetValueAsDouble(instance.Symbol, BuiltInParameter.WINDOW_HEIGHT);
 
             if (height == 0)
             {
-                height = ParameterHelper.GetParamValueAsDouble(instance, BuiltInParameter.WINDOW_HEIGHT);
+                height = ParameterHelper.GetValueAsDouble(instance, BuiltInParameter.WINDOW_HEIGHT);
             }
 
             return width <= 0 || height <= 0 ? null : (width, height);

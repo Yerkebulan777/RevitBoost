@@ -1,4 +1,5 @@
-﻿using Serilog;
+﻿using Autodesk.Revit.DB;
+using Serilog;
 using Serilog.Context;
 
 namespace CommonUtils
@@ -7,12 +8,40 @@ namespace CommonUtils
     {
         private readonly ILogger _logger;
         private readonly string _moduleName;
+        public string LogFilePath { get; set; }
 
-        public ModuleLogger(ILogger logger, string moduleName)
+        private ModuleLogger(ILogger logger, string moduleName)
         {
             _logger = logger.ForContext("Module", moduleName);
             _moduleName = moduleName;
         }
+
+        /// <summary>
+        /// Создает логгер для Revit команды
+        /// </summary>
+        public static  IModuleLogger Create(Document document, Type callerType)
+        {
+            string moduleName = callerType.Name.Replace("Command", string.Empty);
+            string projectDirectory = PathHelper.GetProjectDirectory(document, out string revitFilePath);
+            string revitFileName = Path.GetFileNameWithoutExtension(revitFilePath);
+            string logDirectory = Path.Combine(projectDirectory, "Log", moduleName);
+            string logFile = Path.Combine(logDirectory, $"{revitFileName}.log");
+
+            PathHelper.EnsureDirectory(logDirectory);
+            PathHelper.DeleteExistsFile(logFile);
+
+            Serilog.Core.Logger logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .WriteTo.File(logFile, shared: true)
+                .Enrich.WithProperty("Module", moduleName)
+                .Enrich.WithProperty("Document", revitFileName)
+                .CreateLogger();
+
+            LogFilePath = logFile;
+
+            return new ModuleLogger(logger, moduleName);
+        }
+
 
         public void Debug(string message, params object[] args)
         {
@@ -41,11 +70,11 @@ namespace CommonUtils
 
         public IDisposable BeginScope(string name, params (string key, object value)[] properties)
         {
-            List<IDisposable> disposables = new()
-            {
+            List<IDisposable> disposables =
+            [
                 LogContext.PushProperty("Scope", name),
                 LogContext.PushProperty("Module", _moduleName)
-            };
+            ];
 
             foreach ((string key, object value) in properties)
             {
