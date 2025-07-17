@@ -25,14 +25,12 @@ namespace CommonUtils
         /// <summary>
         /// Создание директории, если не существует
         /// </summary>
-        public static string EnsureDirectory(this string path)
+        public static void EnsureDirectory(this string path)
         {
             if (!string.IsNullOrEmpty(path) && !Directory.Exists(path))
             {
                 Directory.CreateDirectory(path);
             }
-
-            return path;
         }
 
         /// <summary>

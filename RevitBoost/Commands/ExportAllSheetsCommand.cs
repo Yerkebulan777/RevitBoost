@@ -15,7 +15,7 @@ namespace RevitBoost.Commands
 
             try
             {
-                _ = outputPath.EnsureDirectory();
+                outputPath.EnsureDirectory();
                 RevitPdfExporter exporter = new(doc, outputPath);
                 exporter.ExportAllSheets(doc.Title);
 
