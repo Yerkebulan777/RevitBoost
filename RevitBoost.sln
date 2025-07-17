@@ -31,7 +31,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Utils", "Utils", "{7EA793EF
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LevelAssignment", "LevelAssignment\LevelAssignment.csproj", "{14A6FDFD-FE8E-450F-AA30-85B758225852}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SheetExportTool", "SheetExportTool\SheetExportTool.csproj", "{F09ECCB0-9EEE-41EB-8300-DB425A6A12F8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExportPdfTool", "SheetExportTool\ExportPdfTool.csproj", "{F09ECCB0-9EEE-41EB-8300-DB425A6A12F8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

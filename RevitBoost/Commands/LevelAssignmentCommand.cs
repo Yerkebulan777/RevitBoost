@@ -8,9 +8,6 @@ using System.Text;
 
 namespace RevitBoost.Commands
 {
-    /// <summary>
-    /// Команда для автоматического назначения элементов к этажам
-    /// </summary>
     [Transaction(TransactionMode.Manual)]
     public class LevelAssignmentCommand : IExternalCommand
     {
