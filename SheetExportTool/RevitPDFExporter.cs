@@ -13,7 +13,7 @@ namespace ExportPdfTool
             _outputPath = outputPath;
         }
 
-        public void ExportAllSheets(bool combineFiles = true)
+        public void ExportAllSheets(string exportFileName)
         {
             List<ViewSheet> sheets = GetValidSheets();
 
@@ -23,8 +23,8 @@ namespace ExportPdfTool
                 return;
             }
 
-            PDFExportOptions pdfOptions = CreatePDFOptions(combineFiles);
-            List<ElementId> sheetIds = sheets.Select(s => s.Id).ToList();
+            PDFExportOptions pdfOptions = CreatePDFOptions(exportFileName);
+            List<ElementId> sheetIds = [.. sheets.Select(s => s.Id)];
 
             try
             {
@@ -47,29 +47,30 @@ namespace ExportPdfTool
 
         private List<ViewSheet> GetValidSheets()
         {
-            return new FilteredElementCollector(_document)
-                .OfClass(typeof(ViewSheet))
-                .Cast<ViewSheet>()
-                .Where(sheet => sheet.CanBePrinted && !sheet.IsTemplate && !string.IsNullOrEmpty(sheet.SheetNumber))
-                .OrderBy(sheet => sheet.SheetNumber)
-                .ToList();
+            return [.. new FilteredElementCollector(_document)
+                .OfClass(typeof(ViewSheet)).Cast<ViewSheet>()
+                .Where(sheet => sheet.CanBePrinted && !sheet.IsTemplate)
+                .OrderBy(sheet => sheet.SheetNumber)];
         }
 
-        private PDFExportOptions CreatePDFOptions(bool combineFiles)
+        private PDFExportOptions CreatePDFOptions(string fileName)
         {
             return new PDFExportOptions
             {
-                FileName = combineFiles ? "AllSheets_Combined" : "Individual_Sheets",
-                Combine = combineFiles,
+                Combine = true,
+                FileName = fileName,
                 ColorDepth = ColorDepthType.Color,
-                ExportQuality = PDFExportQualityType.DPI600,
+                PaperFormat = ExportPaperFormat.Default,
+                ExportQuality = PDFExportQualityType.DPI300,
+                HideUnreferencedViewTags = true,
                 HideCropBoundaries = true,
                 HideReferencePlane = true,
                 HideScopeBoxes = true,
-                HideUnreferencedViewTags = true,
-                PaperFormat = ExportPaperFormat.Default,
                 StopOnError = false
             };
         }
+
+
+
     }
 }
