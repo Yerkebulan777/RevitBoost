@@ -18,7 +18,7 @@ namespace RevitBoost.Commands
             string outputPath = PathHelper.GetExportDirectory(doc, out string revitFilePath, "03_PDF");
             string revitFileName = Path.GetFileNameWithoutExtension(revitFilePath);
 
-            IModuleLogger logger = ModuleLogger.Create(doc, typeof(LevelAssignmentCommand));
+            IModuleLogger logger = ModuleLogger.Create(doc, typeof(ExportToPdfCommand));
 
             using var scope = logger.BeginScope("CommandExecution");
 
@@ -63,6 +63,7 @@ namespace RevitBoost.Commands
                 DialogHelper.ShowInfo("Export PDF", resultBuilder.ToString());
             }
         }
+
 
 
     }
