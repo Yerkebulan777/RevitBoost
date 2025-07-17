@@ -42,7 +42,6 @@ namespace CommonUtils
             return new ModuleLogger(logger, moduleName);
         }
 
-
         public void Debug(string message, params object[] args)
         {
             _logger.Debug(message, args);
@@ -83,6 +82,7 @@ namespace CommonUtils
 
             return new CompositeDisposable(disposables);
         }
+
 
         private sealed class CompositeDisposable : IDisposable
         {
