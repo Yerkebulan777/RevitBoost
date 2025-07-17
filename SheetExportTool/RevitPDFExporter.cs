@@ -26,22 +26,28 @@ namespace ExportPdfTool
             PDFExportOptions pdfOptions = CreatePDFOptions(exportFileName);
             List<ElementId> sheetIds = [.. sheets.Select(s => s.Id)];
 
-            try
+            if (sheetIds.Count > 0)
             {
-                bool success = _document.Export(_outputPath, sheetIds, pdfOptions);
-
-                if (success)
+                try
                 {
-                    Console.WriteLine($"Successfully exported {sheets.Count} sheets");
+                    if (_document.Export(_outputPath, sheetIds, pdfOptions))
+                    {
+                        Console.WriteLine($"Successfully exported {sheets.Count} sheets");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Export completed with warnings");
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    Console.WriteLine("Export completed with warnings");
+                    Console.WriteLine($"Export failed: {ex.Message}");
                 }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Export failed: {ex.Message}");
+                finally
+                {
+                    Task.Delay(1000).Wait();
+                    Console.WriteLine("Export process completed!");
+                }
             }
         }
 
