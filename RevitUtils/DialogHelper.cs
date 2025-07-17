@@ -11,7 +11,6 @@ public static class DialogHelper
     public static void ShowInfo(string title, string message)
     {
         StringHelper.CopyToClipboard(message);
-
         TaskDialog dialog = new(title)
         {
             MainContent = message,

@@ -54,6 +54,7 @@ namespace RevitBoost.Commands
                 }
 
                 message = resultBuilder.ToString();
+                StringHelper.CopyToClipboard(message);
                 return Result.Failed;
             }
             finally
