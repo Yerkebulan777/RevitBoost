@@ -74,10 +74,7 @@ namespace RevitBoost.Commands
             try
             {
                 AssignmentProcessor orchestrator = new(doc, logger);
-
-                _ = resultBuilder.AppendLine("=== НАЗНАЧЕНИЕ ЭЛЕМЕНТОВ К ЭТАЖАМ ===");
-                _ = resultBuilder.AppendLine(orchestrator.Execute(PARAMETER_GUID));
-
+                resultBuilder.AppendLine(orchestrator.Execute(PARAMETER_GUID));
                 ShowResult("Назначение завершено", resultBuilder.ToString());
             }
             catch (Exception ex)

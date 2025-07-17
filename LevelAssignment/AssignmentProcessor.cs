@@ -36,7 +36,7 @@ namespace LevelAssignment
             double offset = UnitManager.MmToFoot(300);
             double сlearance = UnitManager.MmToFoot(100);
 
-            _ = output.AppendLine("\nThe start of level assignment...");
+            _ = output.AppendLine("=== ASSIGNMENT OF ELEMENTS TO FLOORS ===");
 
             LevelSharedParameter = SharedParameterElement.Lookup(_document, sharedParameterGuid);
 
