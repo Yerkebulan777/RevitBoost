@@ -6,7 +6,7 @@ namespace RevitUtils;
 /// <summary>
 /// Менеджер для отображения результатов выполнения операций
 /// </summary>
-public static class ResultDialogManager
+public static class DialogHelper
 {
     /// <summary>
     /// Отображает результат с копированием в буфер обмена
