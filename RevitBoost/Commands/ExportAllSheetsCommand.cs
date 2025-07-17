@@ -1,7 +1,7 @@
 ﻿using Autodesk.Revit.Attributes;
 using Autodesk.Revit.UI;
+using CommonUtils;
 using ExportPdfTool;
-using System.IO;
 
 namespace RevitBoost.Commands
 {
@@ -15,7 +15,7 @@ namespace RevitBoost.Commands
 
             try
             {
-                _ = Directory.CreateDirectory(outputPath);
+                _ = outputPath.EnsureDirectory();
                 RevitPdfExporter exporter = new(doc, outputPath);
                 exporter.ExportAllSheets(doc.Title);
 

@@ -17,7 +17,7 @@ namespace RevitBoost.Commands
         {
             Document doc = commandData.Application.ActiveUIDocument.Document;
 
-            string logPath = Path.Combine(PathHelper.FindProjectRoot(doc.PathName), "Log");
+            string logPath = Path.Combine(PathHelper.GetProjectDirectory(doc.PathName), "Log");
 
             IModuleLogger logger = LoggerHelper.CreateCommandLogger(doc.Title, ToString(), logPath);
 

@@ -13,23 +13,7 @@ namespace RevitUtils
         private static readonly string[] sectionAcronyms = { "AR", "AS", "APT", "KJ", "KR", "KG", "OV", "VK", "EOM", "EM", "PS", "SS", "OViK", "APT", "BIM" };
 
 
-        public static string GetUNCPath(string inputPath)
-        {
-            inputPath = Path.GetFullPath(inputPath);
-
-            using (RegistryKey key = Registry.CurrentUser.OpenSubKey("Network\\" + inputPath[0]))
-            {
-                if (key != null)
-                {
-                    inputPath = key.GetValue("RemotePath").ToString() + inputPath.Remove(0, 2).ToString();
-                }
-            }
-
-            return inputPath;
-        }
-
-
-        private static string GetPathFromRoot(string filePath, string searchName)
+        private static string GetDirectoryFromRoot(string filePath, string searchName)
         {
             StringComparison comparison = StringComparison.OrdinalIgnoreCase;
 
@@ -57,7 +41,7 @@ namespace RevitUtils
         {
             foreach (string section in sectionAcronyms)
             {
-                string tempPath = GetPathFromRoot(filePath, section);
+                string tempPath = GetDirectoryFromRoot(filePath, section);
 
                 if (!string.IsNullOrEmpty(tempPath))
                 {
@@ -73,7 +57,7 @@ namespace RevitUtils
         {
             foreach (string section in sectionAcronyms)
             {
-                string tempPath = GetPathFromRoot(filePath, section);
+                string tempPath = GetDirectoryFromRoot(filePath, section);
 
                 if (!string.IsNullOrEmpty(tempPath))
                 {
