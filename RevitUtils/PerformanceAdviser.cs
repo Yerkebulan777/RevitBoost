@@ -78,7 +78,7 @@ internal class FlippedDoorCheck : IPerformanceAdviserRule
         }
         else
         {
-            //Pass the element IDs of the flipped doors to the revit failure reporting APIs.
+            //Передайте идентификаторы элементов перевернутых дверей API-интерфейсу отчетов об ошибках revit.
             FailureMessage fm = new(m_doorWarningId);
             _ = fm.SetFailingElements(m_FlippedDoors);
             Transaction failureReportingTransaction = new(document, "Failure reporting transaction");
