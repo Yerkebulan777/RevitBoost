@@ -6,16 +6,10 @@ namespace ExportPdfTool
 {
     namespace ExportPdfTool
     {
-        public class RevitPdfExporter
+        public class RevitPdfExporter(Document document, string outputPath)
         {
-            private readonly Document _document;
-            private readonly string _outputPath;
-
-            public RevitPdfExporter(Document document, string outputPath)
-            {
-                _document = document;
-                _outputPath = outputPath;
-            }
+            private readonly Document _document = document;
+            private readonly string _outputPath = outputPath;
 
             public void ExportAllSheets(string exportFileName)
             {
@@ -63,14 +57,13 @@ namespace ExportPdfTool
             {
                 Log.Debug("Collecting valid sheets from document...");
 
-                List<ViewSheet> sheets = [.. new FilteredElementCollector(_document)
-                    .OfClass(typeof(ViewSheet)).OfCategory(BuiltInCategory.OST_Sheets)
+                return [.. new FilteredElementCollector(_document)
+                    .OfClass(typeof(ViewSheet))
+                    .OfCategory(BuiltInCategory.OST_Sheets)
                     .WhereElementIsNotElementType()
                     .Cast<ViewSheet>()
-                    .Where(sheet => !sheet.IsPlaceholder && sheet.CanBePrinted && !sheet.IsTemplate)
+                    .Where(sheet => sheet.CanBePrinted && !sheet.IsPlaceholder && !sheet.IsTemplate)
                     .OrderBy(sheet => sheet.SheetNumber)];
-
-                return sheets;
             }
 
 
