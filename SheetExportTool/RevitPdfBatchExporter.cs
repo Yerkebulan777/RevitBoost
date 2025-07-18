@@ -31,7 +31,7 @@ namespace ExportPdfTool
                 {
                     PDFExportOptions pdfOptions = CreatePDFOptions(exportFileName, ColorDepthType.Color);
 
-                    if (_document.Export(_outputPath, [.. sheets.Select(s => s.ViewSheetId)], pdfOptions))
+                    if (_document.Export(_outputPath, [.. sheets.Select(s => s.SheetId)], pdfOptions))
                     {
                         _ = logBuilder.AppendLine($"✓ Successfully exported {sheets.Count} sheets");
                         Log.Information(logBuilder.ToString());

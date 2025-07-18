@@ -9,7 +9,8 @@ namespace RevitUtils
 {
     public record SheetModel(ElementId ElementId)
     {
-        public readonly ElementId ViewSheetId = ElementId;
+        public readonly ElementId SheetId = ElementId;
+        public required string SheetName { get; init; }
         public required string OrganizationGroupName { get; init; }
         public required PageOrientationType Orientation { get; init; }
         public required double DigitalSheetNumber { get; init; }
@@ -21,31 +22,21 @@ namespace RevitUtils
 
     public static class SheetModelUtility
     {
+        private static readonly Regex PrefixPattern = new(@"^(\s*)", RegexOptions.Compiled);
+        private static readonly Regex NumberPattern = new(@"[^0-9,.]", RegexOptions.Compiled);
+
         /// <summary>
         /// Получает и сортирует модели листов для последующей печати
         /// </summary>
         public static List<SheetModel> GetSortedSheetModels(Document doc, bool colorEnabled, out string output)
         {
-            return SortSheetModels(doc, GetSheetModels(doc, colorEnabled), out output);
-        }
-
-        /// <summary>
-        /// Сортирует модели листов 
-        /// </summary>
-        /// <summary>
-        /// Сортирует модели листов и возвращает информацию о них
-        /// </summary>
-        public static List<SheetModel> SortSheetModels(Document doc, IEnumerable<SheetModel> sheetModels, out string output)
-        {
             int groupCount = 0;
             StringBuilder builder = new();
             string currentGroup = string.Empty;
 
-            List<SheetModel> sortedSheets = new(100);
+            List<SheetModel> sortedSheets = SortSheetModels(GetSheetModels(doc, colorEnabled));
 
-            foreach (SheetModel sheet in sortedSheets?
-                .OrderBy(sm => sm.OrganizationGroupName)
-                .ThenBy(sm => sm.DigitalSheetNumber))
+            foreach (SheetModel sheet in sortedSheets)
             {
                 if (currentGroup != sheet.OrganizationGroupName)
                 {
@@ -59,18 +50,27 @@ namespace RevitUtils
                     _ = builder.AppendLine($"📁 Group: {currentGroup}");
                 }
 
-                Element element = doc.GetElement(sheet.ViewSheetId);
+                _ = builder.AppendLine($"  📄 {sheet.DigitalSheetNumber} - {sheet.SheetName} ({sheet.WidthInMm}x{sheet.HeightInMm})");
 
-                if (element is ViewSheet viewSheet)
-                {
-                    string sheetName = viewSheet.get_Parameter(BuiltInParameter.SHEET_NAME).AsString();
-                    string sheetNumber = viewSheet.get_Parameter(BuiltInParameter.SHEET_NUMBER).AsString();
-                    _ = builder.AppendLine($"  📄 {sheetNumber} - {sheetName} ({sheet.WidthInMm}x{sheet.HeightInMm})");
-                }
             }
 
             output = builder.ToString();
+
             return sortedSheets;
+        }
+
+        /// <summary>
+        /// Сортирует модели листов 
+        /// </summary>
+        /// <summary>
+        /// Сортирует модели листов и возвращает информацию о них
+        /// </summary>
+        public static List<SheetModel> SortSheetModels(IEnumerable<SheetModel> sheetModels)
+        {
+            return sheetModels?
+                .OrderBy(sm => sm.OrganizationGroupName)
+                .ThenBy(sm => sm.DigitalSheetNumber)
+                .ToList();
         }
 
         /// <summary>
@@ -88,6 +88,7 @@ namespace RevitUtils
                 double heightInMm = UnitManager.FootToMm(titleBlock.get_Parameter(BuiltInParameter.SHEET_HEIGHT).AsDouble());
 
                 string sheetNumber = titleBlock.get_Parameter(BuiltInParameter.SHEET_NUMBER).AsString();
+                string sheetName = titleBlock.get_Parameter(BuiltInParameter.SHEET_NAME).AsString();
 
                 Element sheetInstance = GetViewSheetByNumber(doc, sheetNumber);
 
@@ -111,6 +112,7 @@ namespace RevitUtils
                                 Orientation = orientation,
                                 HeightInMm = heightInMm,
                                 WidthInMm = widthInMm,
+                                SheetName = sheetName,
                             };
                         }
                     }
@@ -146,22 +148,23 @@ namespace RevitUtils
         /// </summary>
         private static string GetOrganizationGroupName(Document doc, ViewSheet viewSheet)
         {
-            Regex matchPrefix = new(@"^(\s*)");
-            StringBuilder stringBuilder = new();
-
             BrowserOrganization organization = BrowserOrganization.GetCurrentBrowserOrganizationForSheets(doc);
 
-            foreach (FolderItemInfo folderInfo in organization.GetFolderItems(viewSheet.Id))
+            IList<FolderItemInfo> folderItems = organization.GetFolderItems(viewSheet.Id);
+
+            if (folderItems.Any())
             {
-                if (folderInfo.IsValidObject)
+                StringBuilder builder = new(folderItems.Count());
+
+                foreach (FolderItemInfo folderInfo in folderItems.Where(f => f.IsValidObject))
                 {
-                    string folderName = folderInfo.Name;
-                    folderName = matchPrefix.Replace(folderName, string.Empty);
-                    _ = stringBuilder.Append(folderName);
+                    _ = builder.Append(PrefixPattern.Replace(folderInfo.Name, string.Empty));
                 }
+
+                return StringHelper.ReplaceInvalidChars(builder.ToString());
             }
 
-            return StringHelper.ReplaceInvalidChars(stringBuilder.ToString());
+            return string.Empty;
         }
 
         /// <summary>
@@ -169,8 +172,8 @@ namespace RevitUtils
         /// </summary>
         private static double ParseSheetNumber(string sheetNumber)
         {
-            string digitNumber = Regex.Replace(sheetNumber, @"[^0-9,.]", string.Empty);
-            return double.TryParse(digitNumber, NumberStyles.Any, CultureInfo.InvariantCulture, out double number) ? number : 0;
+            string digitNumber = NumberPattern.Replace(sheetNumber, string.Empty);
+            return double.TryParse(digitNumber, NumberStyles.Float, CultureInfo.InvariantCulture, out double number) ? number : 0;
         }
 
         /// <summary>
@@ -188,13 +191,13 @@ namespace RevitUtils
         /// </summary>
         public static string FormatSheetName(string projectName, string groupName, string sheetNumber, string viewSheetName)
         {
-            string number = NormalizeSheetNumber(sheetNumber);
+            string normalizedNumber = NormalizeSheetNumber(sheetNumber);
 
             string sheetTitle = string.IsNullOrWhiteSpace(groupName)
-                ? StringHelper.NormalizeLength($"{projectName} - Лист-{number} - {viewSheetName}")
-                : StringHelper.NormalizeLength($"{projectName} - Лист-{groupName}-{number} - {viewSheetName}");
+                ? $"{projectName} - Лист-{normalizedNumber} - {viewSheetName}"
+                : $"{projectName} - Лист-{groupName}-{normalizedNumber} - {viewSheetName}";
 
-            return StringHelper.ReplaceInvalidChars(sheetTitle);
+            return StringHelper.ReplaceInvalidChars(StringHelper.NormalizeLength(sheetTitle));
         }
 
         /// <summary>
@@ -202,12 +205,10 @@ namespace RevitUtils
         /// </summary>
         private static string NormalizeSheetNumber(string inputSheetNumber)
         {
-            string sheetNumber = StringHelper.ReplaceInvalidChars(inputSheetNumber);
-
-            sheetNumber = sheetNumber.TrimStart('0');
-            sheetNumber = sheetNumber.TrimEnd('.');
-
-            return sheetNumber.Trim();
+            return StringHelper.ReplaceInvalidChars(inputSheetNumber)
+                .TrimStart('0')
+                .TrimEnd('.')
+                .Trim();
         }
 
         #endregion

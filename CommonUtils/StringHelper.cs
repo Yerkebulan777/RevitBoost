@@ -6,27 +6,30 @@ namespace CommonUtils
 {
     public static class StringHelper
     {
-        public static string ReplaceInvalidChars(this string textLine)
+        public static string ReplaceInvalidChars(this string text)
         {
-            char[] invalidChars = Path.GetInvalidFileNameChars();
+            HashSet<char> invalidChars = [.. Path.GetInvalidFileNameChars()];
 
-            StringBuilder result = new(textLine.Length);
+            StringBuilder result = new(text.Length);
 
-            if (!string.IsNullOrWhiteSpace(textLine))
+            if (!string.IsNullOrEmpty(text))
             {
-                textLine = textLine.TrimEnd('_');
-                textLine = textLine.Normalize();
+                text = text.TrimEnd('_');
 
-                foreach (char c in textLine)
+                for (int i = 0; i < text.Length; i++)
                 {
+                    char c = text[i];
+
                     if (!invalidChars.Contains(c))
                     {
-                        result.Append(c);
+                        _ = result.Append(c);
                     }
                 }
+
+                return result.ToString();
             }
 
-            return result.ToString();
+            return string.Empty;
         }
 
 
@@ -38,7 +41,7 @@ namespace CommonUtils
 
                 if (emptyIndex != -1)
                 {
-                    textLine = $"{textLine.Substring(0, emptyIndex).Trim()}...";
+                    textLine = $"{textLine[..emptyIndex].Trim()}...";
                 }
             }
 
