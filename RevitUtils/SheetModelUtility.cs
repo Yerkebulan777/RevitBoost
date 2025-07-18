@@ -24,20 +24,55 @@ namespace RevitUtils
         /// <summary>
         /// Получает и сортирует модели листов для последующей печати
         /// </summary>
-        public static List<SheetModel> GetSortedSheetModels(Document doc, bool colorEnabled)
+        public static List<SheetModel> GetSortedSheetModels(Document doc, bool colorEnabled, out string output)
         {
-            return SortSheetModels(GetSheetModels(doc, colorEnabled));
+            return SortSheetModels(doc, GetSheetModels(doc, colorEnabled), out output);
         }
 
         /// <summary>
         /// Сортирует модели листов 
         /// </summary>
-        public static List<SheetModel> SortSheetModels(IEnumerable<SheetModel> sheetModels)
+        /// <summary>
+        /// Сортирует модели листов и возвращает информацию о них
+        /// </summary>
+        public static List<SheetModel> SortSheetModels(Document doc, IEnumerable<SheetModel> sheetModels, out string output)
         {
-            return sheetModels?
+            int groupCount = 0;
+            StringBuilder builder = new();
+            string currentGroup = string.Empty;
+
+            List<SheetModel> sortedSheets = new(100);
+
+            foreach (SheetModel sheet in sortedSheets?
                 .OrderBy(sm => sm.OrganizationGroupName)
-                .ThenBy(sm => sm.DigitalSheetNumber).ToList();
+                .ThenBy(sm => sm.DigitalSheetNumber))
+            {
+                if (currentGroup != sheet.OrganizationGroupName)
+                {
+                    if (groupCount > 0)
+                    {
+                        _ = builder.AppendLine();
+                    }
+
+                    groupCount++;
+                    currentGroup = sheet.OrganizationGroupName;
+                    _ = builder.AppendLine($"📁 Group: {currentGroup}");
+                }
+
+                Element element = doc.GetElement(sheet.ViewSheetId);
+
+                if (element is ViewSheet viewSheet)
+                {
+                    string sheetName = viewSheet.get_Parameter(BuiltInParameter.SHEET_NAME).AsString();
+                    string sheetNumber = viewSheet.get_Parameter(BuiltInParameter.SHEET_NUMBER).AsString();
+                    _ = builder.AppendLine($"  📄 {sheetNumber} - {sheetName} ({sheet.WidthInMm}x{sheet.HeightInMm})");
+                }
+            }
+
+            output = builder.ToString();
+            return sortedSheets;
         }
+
         /// <summary>
         /// Получает и группирует данные листов для последующей печати
         /// </summary>
