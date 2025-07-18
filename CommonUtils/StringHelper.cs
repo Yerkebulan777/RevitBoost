@@ -6,8 +6,6 @@ namespace CommonUtils
 {
     public static class StringHelper
     {
-
-
         public static string ReplaceInvalidChars(this string textLine)
         {
             char[] invalidChars = Path.GetInvalidFileNameChars();

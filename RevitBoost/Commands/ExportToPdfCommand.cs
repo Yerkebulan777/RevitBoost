@@ -33,7 +33,7 @@ namespace RevitBoost.Commands
             try
             {
                 PathHelper.EnsureDirectory(outputPath);
-                RevitPdfExporter exporter = new(doc, outputPath);
+                RevitPdfBatchExporter exporter = new(doc, outputPath);
                 exporter.ExportAllSheets(revitFileName);
 
                 stopwatch.Stop();
