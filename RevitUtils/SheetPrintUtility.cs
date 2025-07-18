@@ -88,14 +88,6 @@ namespace RevitUtils
         }
 
         /// <summary>
-        /// Определяет ориентацию страницы по ширине и высоте
-        /// </summary>
-        private static PageOrientationType GetOrientation(double width, double height)
-        {
-            return width > height ? PageOrientationType.Landscape : PageOrientationType.Portrait;
-        }
-
-        /// <summary>
         /// Получает ViewSheet по номеру листа
         /// </summary>
         private static Element GetViewSheetByNumber(Document document, string sheetNumber)
@@ -111,20 +103,17 @@ namespace RevitUtils
         }
 
         /// <summary>
-        /// Проверяет валидность модели листа
+        /// Определяет ориентацию страницы по ширине и высоте
         /// </summary>
-        private static bool IsValidSheetModel(string groupName, double digit)
+        private static PageOrientationType GetOrientation(double width, double height)
         {
-            return !groupName.StartsWith("#") || digit is > 0 and < 500;
+            return width > height ? PageOrientationType.Landscape : PageOrientationType.Portrait;
         }
-
-
-        #region Formatting
 
         /// <summary>
         /// Получает имя организационной группы
         /// </summary>
-        static string GetOrganizationGroupName(Document doc, ViewSheet viewSheet)
+        private static string GetOrganizationGroupName(Document doc, ViewSheet viewSheet)
         {
             Regex matchPrefix = new(@"^(\s*)");
             StringBuilder stringBuilder = new();
@@ -145,9 +134,42 @@ namespace RevitUtils
         }
 
         /// <summary>
+        /// Парсит номер листа для получения числового значения
+        /// </summary>
+        private static double ParseSheetNumber(string sheetNumber)
+        {
+            string digitNumber = Regex.Replace(sheetNumber, @"[^0-9,.]", string.Empty);
+            return double.TryParse(digitNumber, NumberStyles.Any, CultureInfo.InvariantCulture, out double number) ? number : 0;
+        }
+
+        /// <summary>
+        /// Проверяет валидность модели листа
+        /// </summary>
+        private static bool IsValidSheetModel(string groupName, double digit)
+        {
+            return !groupName.StartsWith("#") || digit is > 0 and < 500;
+        }
+
+
+        #region Formatting
+        /// <summary>
+        /// Форматирует имя листа по заданным параметрам
+        /// </summary>
+        public static string FormatSheetName(string projectName, string groupName, string sheetNumber, string viewSheetName)
+        {
+            string number = NormalizeSheetNumber(sheetNumber);
+
+            string sheetTitle = string.IsNullOrWhiteSpace(groupName)
+                ? StringHelper.NormalizeLength($"{projectName} - Лист-{number} - {viewSheetName}")
+                : StringHelper.NormalizeLength($"{projectName} - Лист-{groupName}-{number} - {viewSheetName}");
+
+            return StringHelper.ReplaceInvalidChars(sheetTitle);
+        }
+
+        /// <summary>
         /// Получает чистый номер листа
         /// </summary>
-        public static string GetSheetNumber(string inputSheetNumber)
+        private static string NormalizeSheetNumber(string inputSheetNumber)
         {
             string sheetNumber = StringHelper.ReplaceInvalidChars(inputSheetNumber);
 
@@ -155,33 +177,6 @@ namespace RevitUtils
             sheetNumber = sheetNumber.TrimEnd('.');
 
             return sheetNumber.Trim();
-        }
-
-        /// <summary>
-        /// Форматирует имя листа по заданным параметрам
-        /// </summary>
-        public static string FormatSheetName(string projectName, string groupName, string sheetNumber, string viewSheetName)
-        {
-            string sheetTitle = string.IsNullOrWhiteSpace(groupName)
-                ? StringHelper.NormalizeLength($"{projectName} - Лист-{sheetNumber} - {viewSheetName}")
-                : StringHelper.NormalizeLength($"{projectName} - Лист-{groupName}-{sheetNumber} - {viewSheetName}");
-
-            return StringHelper.ReplaceInvalidChars(sheetTitle);
-        }
-
-        /// <summary>
-        /// Парсит номер листа для получения числового значения
-        /// </summary>
-        public static double ParseSheetNumber(string sheetNumber)
-        {
-            if (string.IsNullOrEmpty(sheetNumber))
-            {
-                return 0;
-            }
-
-            string digitNumber = Regex.Replace(sheetNumber, @"[^0-9,.]", string.Empty);
-
-            return double.TryParse(digitNumber, NumberStyles.Any, CultureInfo.InvariantCulture, out double number) ? number : 0;
         }
 
         #endregion
