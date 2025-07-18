@@ -107,7 +107,7 @@ namespace RevitUtils
                         string groupName = GetOrganizationGroupName(doc, viewSheet);
                         double digitNumber = ParseSheetNumber(sheetNumber);
 
-                        if (IsValidSheetModel(groupName, digitNumber, sheetName))
+                        if (IsValidSheet(groupName, digitNumber, sheetName))
                         {
                             yield return new SheetModel(viewSheet.Id)
                             {
@@ -206,12 +206,13 @@ namespace RevitUtils
         /// <summary>
         /// Проверяет валидность модели листа
         /// </summary>
-        private static bool IsValidSheetModel(string groupName, double digit, string sheetName)
+        private static bool IsValidSheet(string groupName, double digitalSheetNumber, string sheetName)
         {
             bool nameCheck = !string.IsNullOrWhiteSpace(sheetName) && sheetName.Length > 5;
-            bool groupCheck = !groupName.Contains("#") && digit > 0 && digit < 300;
+            bool symbolCheck = !groupName.Contains("#") && !sheetName.Contains("#");
+            bool groupCheck = digitalSheetNumber is > 0 and < 500;
 
-            return groupCheck && nameCheck;
+            return symbolCheck && groupCheck && nameCheck;
         }
 
         /// <summary>
