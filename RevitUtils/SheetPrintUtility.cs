@@ -4,18 +4,18 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
-using PaperSize = System.Drawing.Printing.PaperSize;
 
 namespace RevitUtils
 {
     public record SheetModel(ElementId ElementId)
     {
         public readonly ElementId ViewSheetId = ElementId;
-        public required PaperSize SheetPaperSize { get; init; }
         public required string OrganizationGroupName { get; init; }
         public required PageOrientationType Orientation { get; init; }
         public required double DigitalSheetNumber { get; init; }
         public required bool IsColorEnabled { get; init; }
+        public double HeightInMm { get; internal set; }
+        public double WidthInMm { get; internal set; }
     }
 
 
@@ -34,13 +34,11 @@ namespace RevitUtils
         /// <summary>
         /// Получает и группирует данные листов для последующей печати
         /// </summary>
-        public static Dictionary<string, List<SheetModel>> GetSheetGroups(Document doc, string printerName, bool сolorEnabled)
+        public static IEnumerable <SheetModel> GetSheetModels(Document doc, bool сolorEnabled)
         {
             BuiltInCategory bic = BuiltInCategory.OST_TitleBlocks;
             FilteredElementCollector collector = new FilteredElementCollector(doc).OfCategory(bic);
             collector = collector.OfClass(typeof(FamilyInstance)).WhereElementIsNotElementType();
-
-            Dictionary<string, List<SheetModel>> formatGroups = new(StringComparer.OrdinalIgnoreCase);
 
             foreach (FamilyInstance titleBlock in collector.Cast<FamilyInstance>())
             {
@@ -53,37 +51,28 @@ namespace RevitUtils
 
                 if (sheetInstance is ViewSheet viewSheet && viewSheet.CanBePrinted && !viewSheet.IsPlaceholder)
                 {
-                    if (PrinterApiUtility.GetOrCreatePaperSize(printerName, widthInMm, heightInMm, out PaperSize paperSize))
+                    PageOrientationType orientation = GetOrientation(widthInMm, heightInMm);
+                    Debug.WriteLine($"Sheet: {viewSheet.Name} ({orientation})");
+                    string groupName = GetOrganizationGroupName(doc, viewSheet);
+                    double digitNumber = ParseSheetNumber(sheetNumber);
+
+                    if (IsValidSheetModel(groupName, digitNumber))
                     {
-                        PageOrientationType orientation = GetOrientation(widthInMm, heightInMm);
-                        Debug.WriteLine($"Sheet: {viewSheet.Name} ({paperSize.PaperName})");
-                        string groupName = GetOrganizationGroupName(doc, viewSheet);
-                        double digitNumber = ParseSheetNumber(sheetNumber);
-
-                        if (IsValidSheetModel(groupName, digitNumber))
+                        SheetModel sheetModel = new(viewSheet.Id)
                         {
-                            SheetModel sheetModel = new(viewSheet.Id)
-                            {
-                                OrganizationGroupName = groupName,
-                                DigitalSheetNumber = digitNumber,
-                                IsColorEnabled = сolorEnabled,
-                                SheetPaperSize = paperSize,
-                                Orientation = orientation,
-                            };
+                            OrganizationGroupName = groupName,
+                            DigitalSheetNumber = digitNumber,
+                            IsColorEnabled = сolorEnabled,
+                            Orientation = orientation,
+                            HeightInMm = heightInMm,
+                            WidthInMm = widthInMm,
+                        };
 
-                            if (!formatGroups.TryGetValue(paperSize.PaperName, out List<SheetModel> sheetList))
-                            {
-                                sheetList = [];
-                                formatGroups[paperSize.PaperName] = sheetList;
-                            }
-
-                            sheetList.Add(sheetModel);
-                        }
+                        yield return sheetModel;
                     }
                 }
             }
 
-            return formatGroups;
         }
 
         /// <summary>
