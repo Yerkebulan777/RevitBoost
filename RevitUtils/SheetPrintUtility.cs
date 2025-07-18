@@ -49,13 +49,13 @@ namespace RevitUtils
         /// <summary>
         /// Получает и группирует данные листов для последующей печати
         /// </summary>
-        public static Dictionary<string, SheetModel> GetData(Document doc, string printerName, bool сolorEnabled)
+        public static Dictionary<string, List<SheetModel>> GetData(Document doc, string printerName, bool сolorEnabled)
         {
             BuiltInCategory bic = BuiltInCategory.OST_TitleBlocks;
             FilteredElementCollector collector = new FilteredElementCollector(doc).OfCategory(bic);
             collector = collector.OfClass(typeof(FamilyInstance)).WhereElementIsNotElementType();
 
-            Dictionary<string, SheetModel> formatGroups = new(StringComparer.OrdinalIgnoreCase);
+            Dictionary<string, List<SheetModel>> formatGroups = new(StringComparer.OrdinalIgnoreCase);
 
             foreach (FamilyInstance titleBlock in collector.Cast<FamilyInstance>())
             {
