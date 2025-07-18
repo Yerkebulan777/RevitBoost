@@ -1,4 +1,5 @@
 ﻿using Autodesk.Revit.DB;
+using RevitUtils;
 using Serilog;
 using System.Text;
 
@@ -13,7 +14,7 @@ namespace ExportPdfTool
         {
             StringBuilder logBuilder = new();
 
-            List<ViewSheet> sheets = GetValidSheets();
+            var sheets = SheetModelUtility.GetSheetModels(_document, true);
 
             _ = logBuilder.AppendLine("=== PDF Export ===");
             _ = logBuilder.AppendLine($"Output path: {_outputPath}");
@@ -48,20 +49,6 @@ namespace ExportPdfTool
                     Log.Error(ex, logBuilder.ToString());
                 }
             }
-        }
-
-
-        private List<ViewSheet> GetValidSheets()
-        {
-            Log.Debug("Collecting valid sheets from document...");
-
-            return [.. new FilteredElementCollector(_document)
-                    .OfClass(typeof(ViewSheet))
-                    .OfCategory(BuiltInCategory.OST_Sheets)
-                    .WhereElementIsNotElementType()
-                    .Cast<ViewSheet>()
-                    .Where(sheet => sheet.CanBePrinted && !sheet.IsPlaceholder && !sheet.IsTemplate)
-                    .OrderBy(sheet => sheet.SheetNumber)];
         }
 
 

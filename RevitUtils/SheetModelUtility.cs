@@ -22,15 +22,22 @@ namespace RevitUtils
     public static class SheetModelUtility
     {
         /// <summary>
+        /// Получает и сортирует модели листов для последующей печати
+        /// </summary>
+        public static List<SheetModel> GetSortedSheetModels(Document doc, bool colorEnabled)
+        {
+            return SortSheetModels(GetSheetModels(doc, colorEnabled));
+        }
+
+        /// <summary>
         /// Сортирует модели листов 
         /// </summary>
-        public static List<SheetModel> SortSheetModels(List<SheetModel> sheetModels)
+        public static List<SheetModel> SortSheetModels(IEnumerable<SheetModel> sheetModels)
         {
             return sheetModels?
                 .OrderBy(sm => sm.OrganizationGroupName)
                 .ThenBy(sm => sm.DigitalSheetNumber).ToList();
         }
-
         /// <summary>
         /// Получает и группирует данные листов для последующей печати
         /// </summary>
