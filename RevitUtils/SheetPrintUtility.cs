@@ -9,28 +9,14 @@ using PaperSize = System.Drawing.Printing.PaperSize;
 
 namespace RevitUtils
 {
-    public record SheetModel
+    public record SheetModel(ElementId ElementId)
     {
-        public required ElementId ViewSheetId { get; init; }
+        public readonly ElementId ViewSheetId = ElementId;
         public required PaperSize SheetPaperSize { get; init; }
         public required string OrganizationGroupName { get; init; }
         public required PageOrientationType Orientation { get; init; }
         public required double DigitalSheetNumber { get; init; }
         public required bool IsColorEnabled { get; init; }
-
-        public bool IsValidSheetModel()
-        {
-            if (!OrganizationGroupName.StartsWith("#"))
-            {
-                if (DigitalSheetNumber is > 0 and < 500)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-
     }
 
 
@@ -41,9 +27,9 @@ namespace RevitUtils
         /// </summary>
         public static List<SheetModel> SortSheetModels(List<SheetModel> sheetModels)
         {
-            return sheetModels?.Where(sm => sm.IsValidSheetModel())
-                        .OrderBy(sm => sm.OrganizationGroupName)
-                        .ThenBy(sm => sm.DigitalSheetNumber).ToList();
+            return sheetModels?
+                .OrderBy(sm => sm.OrganizationGroupName)
+                .ThenBy(sm => sm.DigitalSheetNumber).ToList();
         }
 
         /// <summary>
@@ -64,39 +50,36 @@ namespace RevitUtils
 
                 string sheetNumber = titleBlock.get_Parameter(BuiltInParameter.SHEET_NUMBER).AsString();
 
-                PageOrientationType orientation = GetOrientation(widthInMm, heightInMm);
-
                 Element sheetInstance = GetViewSheetByNumber(doc, sheetNumber);
 
                 if (sheetInstance is ViewSheet viewSheet && viewSheet.CanBePrinted && !viewSheet.IsPlaceholder)
                 {
                     if (PrinterApiUtility.GetOrCreatePaperSize(printerName, widthInMm, heightInMm, out PaperSize paperSize))
                     {
-                        Debug.WriteLine($"Paper size: {paperSize.PaperName} ({paperSize.Width} x {paperSize.Height})");
-
+                        PageOrientationType orientation = GetOrientation(widthInMm, heightInMm);
+                        Debug.WriteLine($"Sheet: {viewSheet.Name} ({paperSize.PaperName})");
                         string groupName = GetOrganizationGroupName(doc, viewSheet);
-
                         double digitNumber = ParseSheetNumber(sheetNumber);
-                        if (formatGroups.TryGetValue(paperSize.PaperName, out _))
-                        {
 
-                        }
-                        else
+                        if (IsValidSheetModel(groupName, digitNumber))
                         {
-                            SheetModel group = new()
+                            SheetModel sheetModel = new(viewSheet.Id)
                             {
                                 OrganizationGroupName = groupName,
                                 DigitalSheetNumber = digitNumber,
                                 IsColorEnabled = сolorEnabled,
                                 SheetPaperSize = paperSize,
                                 Orientation = orientation,
-                                ViewSheetId = viewSheet.Id,
-
                             };
 
-                            formatGroups.Add(paperSize.PaperName, group);
-                        }
+                            if (!formatGroups.TryGetValue(paperSize.PaperName, out List<SheetModel> sheetList))
+                            {
+                                sheetList = [];
+                                formatGroups[paperSize.PaperName] = sheetList;
+                            }
 
+                            sheetList.Add(sheetModel);
+                        }
                     }
                 }
             }
@@ -125,6 +108,14 @@ namespace RevitUtils
                 .OfClass(typeof(ViewSheet))
                 .WherePasses(sheetNumberFilter)
                 .FirstElement();
+        }
+
+        /// <summary>
+        /// Проверяет валидность модели листа
+        /// </summary>
+        public static bool IsValidSheetModel(string groupName, double digit)
+        {
+            return !groupName.StartsWith("#") || digit is > 0 and < 500;
         }
 
 
