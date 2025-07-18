@@ -1,5 +1,4 @@
 ﻿using Autodesk.Revit.DB;
-using System.Diagnostics;
 using System.Text;
 using Document = Autodesk.Revit.DB.Document;
 
@@ -8,6 +7,21 @@ namespace RevitUtils
 {
     public static class CollectorHelper
     {
+        /// <summary>
+        /// Получает список уровней, которые имеют высоту меньше заданного максимума
+        /// </summary>
+        public static List<Level> GetSortedLevels(Document doc, double elevationLimitMeters = 100)
+        {
+            FilterNumericLess evaluator = new();
+            ParameterValueProvider provider = new(new ElementId(BuiltInParameter.LEVEL_ELEV));
+            double maximum = UnitManager.MmToFoot((elevationLimitMeters * 1000) - 1000);
+            FilterDoubleRule rule = new(provider, evaluator, maximum, 5E-3);
+
+            return [.. new FilteredElementCollector(doc).OfClass(typeof(Level))
+                .WherePasses(new ElementParameterFilter(rule)).Cast<Level>()
+                .OrderBy(x => x.Elevation)];
+        }
+
         /// <summary>
         /// Безопасная работа с коллектором с применением фильтров
         /// </summary>
@@ -27,21 +41,6 @@ namespace RevitUtils
             }
 
             return (collector, builder.ToString());
-        }
-
-        /// <summary>
-        /// Получает список уровней, которые имеют высоту меньше заданного максимума
-        /// </summary>
-        public static List<Level> GetSortedLevels(Document doc, double elevationLimitMeters = 100)
-        {
-            FilterNumericLess evaluator = new();
-            ParameterValueProvider provider = new(new ElementId(BuiltInParameter.LEVEL_ELEV));
-            double maximum = UnitManager.MmToFoot((elevationLimitMeters * 1000) - 1000);
-            FilterDoubleRule rule = new(provider, evaluator, maximum, 5E-3);
-
-            return [.. new FilteredElementCollector(doc).OfClass(typeof(Level))
-                .WherePasses(new ElementParameterFilter(rule)).Cast<Level>()
-                .OrderBy(x => x.Elevation)];
         }
 
         /// <summary>
@@ -69,6 +68,7 @@ namespace RevitUtils
             FilterElementIdRule filterRule = new(valueProvider, evaluator, levelId);
             return new ElementParameterFilter(filterRule);
         }
+
 
         #region Extensions
 
