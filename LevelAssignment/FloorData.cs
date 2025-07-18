@@ -157,7 +157,6 @@ namespace LevelAssignment
         public void Dispose()
         {
             Dispose(true);
-            GC.SuppressFinalize(this);
         }
 
         private void Dispose(bool disposing)
@@ -168,7 +167,6 @@ namespace LevelAssignment
                 {
                     ContainedLevelIds?.Clear();
                     ModelCategoryFilter?.Dispose();
-                    LevelSharedParameter?.Dispose();
                     CombinedLevelFilter?.Dispose();
                     ElementExclusionFilter?.Dispose();
                     BoundingRegionFilter?.Dispose();
