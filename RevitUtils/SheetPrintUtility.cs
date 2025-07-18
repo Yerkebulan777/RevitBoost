@@ -34,7 +34,7 @@ namespace RevitUtils
         /// <summary>
         /// Получает и группирует данные листов для последующей печати
         /// </summary>
-        public static Dictionary<string, List<SheetModel>> GetData(Document doc, string printerName, bool сolorEnabled)
+        public static Dictionary<string, List<SheetModel>> GetSheetGroups(Document doc, string printerName, bool сolorEnabled)
         {
             BuiltInCategory bic = BuiltInCategory.OST_TitleBlocks;
             FilteredElementCollector collector = new FilteredElementCollector(doc).OfCategory(bic);
