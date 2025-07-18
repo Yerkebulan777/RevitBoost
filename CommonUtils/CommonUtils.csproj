@@ -42,4 +42,9 @@
 
     </ItemGroup>
 
+    <!-- Добавляем System.Drawing.Common только для .NET 8+ -->
+    <ItemGroup Condition="$(TargetFramework.StartsWith('net8'))">
+        <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
+    </ItemGroup>
+
 </Project>
