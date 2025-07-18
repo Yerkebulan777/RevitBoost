@@ -10,11 +10,11 @@ namespace CommonUtils
         {
             HashSet<char> invalidChars = [.. Path.GetInvalidFileNameChars()];
 
-            StringBuilder result = new(text.Length);
-
             if (!string.IsNullOrEmpty(text))
             {
-                text = text.TrimEnd('_');
+                text = text.Trim();
+
+                StringBuilder result = new(text.Length);
 
                 for (int i = 0; i < text.Length; i++)
                 {

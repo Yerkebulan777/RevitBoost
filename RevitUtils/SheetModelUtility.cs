@@ -179,9 +179,29 @@ namespace RevitUtils
         /// <summary>
         /// Проверяет валидность модели листа
         /// </summary>
-        private static bool IsValidSheetModel(string groupName, double digit)
+        private static bool IsValidSheetModel(string groupName, double digit, string sheetName)
         {
-            return !groupName.StartsWith("#") || digit is > 0 and < 500;
+            // Основные проверки
+            if (groupName.StartsWith("#") && (digit <= 0 || digit >= 500))
+            {
+                return false;
+            }
+
+            // Проверка минимальной длины имени
+            if (string.IsNullOrWhiteSpace(sheetName) || sheetName.Length < 5)
+            {
+                return false;
+            }
+
+            foreach (char c in sheetName)
+            {
+                if (!char.IsLetterOrDigit(c) && !char.IsWhiteSpace(c) && (c < '\u0400' || c > '\u04FF'))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
 
@@ -207,8 +227,7 @@ namespace RevitUtils
         {
             return StringHelper.ReplaceInvalidChars(inputSheetNumber)
                 .TrimStart('0')
-                .TrimEnd('.')
-                .Trim();
+                .TrimEnd('.');
         }
 
         #endregion
