@@ -28,22 +28,16 @@ namespace RevitUtils
         /// </summary>
         public static List<SheetModel> GetSortedSheetModels(Document doc, bool colorEnabled, out string output)
         {
-            int groupCount = 0;
             StringBuilder builder = new();
-            string currentGroup = string.Empty;
 
             List<SheetModel> sortedSheets = SortSheetModels(GetSheetModels(doc, colorEnabled));
+
+            string currentGroup = string.Empty;
 
             foreach (SheetModel sheet in sortedSheets)
             {
                 if (currentGroup != sheet.OrganizationGroupName)
                 {
-                    if (groupCount > 0)
-                    {
-                        _ = builder.AppendLine();
-                    }
-
-                    groupCount++;
                     currentGroup = sheet.OrganizationGroupName;
                     _ = builder.AppendLine($"📁 Group: {currentGroup}");
                 }

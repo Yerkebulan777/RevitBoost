@@ -23,7 +23,7 @@ namespace RevitUtils
         }
 
         /// <summary>
-        /// Безопасная работа с коллектором с применением фильтров
+        /// Информация о коллекторе с применением фильтров
         /// </summary>
         public static (FilteredElementCollector, string) DiagnoseWithFilters(Document doc, params ElementFilter[] filters)
         {
