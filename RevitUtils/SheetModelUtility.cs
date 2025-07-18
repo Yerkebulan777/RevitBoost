@@ -22,8 +22,9 @@ namespace RevitUtils
 
     public static class SheetModelUtility
     {
-        private static readonly Regex PrefixPattern = new(@"^(\s*)", RegexOptions.Compiled);
         private static readonly Regex NumberPattern = new(@"[^0-9,.]", RegexOptions.Compiled);
+        private static readonly Regex ValidNamePattern = new(@"^[\w\s\-\.\(\)а-яё]{5,}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
 
         /// <summary>
         /// Получает и сортирует модели листов для последующей печати
@@ -102,7 +103,7 @@ namespace RevitUtils
                         string groupName = GetOrganizationGroupName(doc, viewSheet);
                         double digitNumber = ParseSheetNumber(sheetNumber);
 
-                        if (IsValidSheetModel(groupName, digitNumber))
+                        if (IsValidSheetModel(groupName, digitNumber, sheetName))
                         {
                             yield return new SheetModel(viewSheet.Id)
                             {
@@ -158,7 +159,12 @@ namespace RevitUtils
 
                 foreach (FolderItemInfo folderInfo in folderItems.Where(f => f.IsValidObject))
                 {
-                    _ = builder.Append(PrefixPattern.Replace(folderInfo.Name, string.Empty));
+                    string folderName = folderInfo.Name;
+
+                    if (!string.IsNullOrWhiteSpace(folderName))
+                    {
+                        _ = builder.Append(folderName.Trim());
+                    }
                 }
 
                 return StringHelper.ReplaceInvalidChars(builder.ToString());
@@ -181,31 +187,11 @@ namespace RevitUtils
         /// </summary>
         private static bool IsValidSheetModel(string groupName, double digit, string sheetName)
         {
-            // Основные проверки
-            if (groupName.StartsWith("#") && (digit <= 0 || digit >= 500))
-            {
-                return false;
-            }
-
-            // Проверка минимальной длины имени
-            if (string.IsNullOrWhiteSpace(sheetName) || sheetName.Length < 5)
-            {
-                return false;
-            }
-
-            foreach (char c in sheetName)
-            {
-                if (!char.IsLetterOrDigit(c) && !char.IsWhiteSpace(c) && (c < '\u0400' || c > '\u04FF'))
-                {
-                    return false;
-                }
-            }
-
-            return true;
+            return (!groupName.StartsWith("#") || (digit >= 0 && digit <= 500))
+                && !string.IsNullOrWhiteSpace(sheetName)
+                && ValidNamePattern.IsMatch(sheetName);
         }
 
-
-        #region Formatting
         /// <summary>
         /// Форматирует имя листа по заданным параметрам
         /// </summary>
@@ -225,13 +211,8 @@ namespace RevitUtils
         /// </summary>
         private static string NormalizeSheetNumber(string inputSheetNumber)
         {
-            return StringHelper.ReplaceInvalidChars(inputSheetNumber)
-                .TrimStart('0')
-                .TrimEnd('.');
+            return StringHelper.ReplaceInvalidChars(inputSheetNumber).TrimStart('0').TrimEnd('.');
         }
-
-        #endregion
-
 
 
     }
