@@ -1,6 +1,5 @@
 ﻿using Autodesk.Revit.DB;
 using CommonUtils;
-using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -97,7 +96,7 @@ namespace RevitUtils
 
                 Element sheetInstance = GetViewSheetByNumber(doc, sheetNumber);
 
-                if (sheetInstance is ViewSheet viewSheet && viewSheet.IsValidObject) 
+                if (sheetInstance is ViewSheet viewSheet && viewSheet.IsValidObject)
                 {
                     if (viewSheet.CanBePrinted && !viewSheet.IsPlaceholder)
                     {
