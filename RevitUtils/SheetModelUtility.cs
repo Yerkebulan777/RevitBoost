@@ -198,11 +198,10 @@ namespace RevitUtils
         /// </summary>
         private static bool IsValidSheetModel(string groupName, double digit, string sheetName)
         {
-            return (!groupName.StartsWith("#") || (digit >= 0 && digit <= 500))
+            return (!groupName.Contains("#") || (digit >= 0 && digit <= 500))
                 && !string.IsNullOrWhiteSpace(sheetName)
                 && ValidNamePattern.IsMatch(sheetName);
         }
-
 
         /// <summary>
         /// Получает чистый номер листа
