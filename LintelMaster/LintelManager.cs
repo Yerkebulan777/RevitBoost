@@ -1,6 +1,5 @@
 ﻿using Autodesk.Revit.DB;
 using RevitUtils;
-using System.Diagnostics;
 
 namespace LintelMaster
 {
@@ -32,28 +31,21 @@ namespace LintelMaster
             }
 
             SortedDictionary<SizeKey, List<LintelData>> result = [];
+
             const BuiltInCategory bic = BuiltInCategory.OST_StructuralFraming;
 
-            List<FamilyInstance> instances = CollectorHelper.GetInstancesByFamilyName(doc, bic, familyName);
-
-            foreach (FamilyInstance instance in instances)
+            foreach (FamilyInstance instance in CollectorHelper.CollectInstancesBySymbolName(doc, bic, familyName).OfType<FamilyInstance>())
             {
-                try
+                LintelData lintelData = ProcessSingleLintel(instance);
+
+                if (lintelData != null)
                 {
-                    LintelData lintelData = ProcessSingleLintel(instance);
-                    if (lintelData != null)
+                    if (!result.TryGetValue(lintelData.GroupKey, out List<LintelData> group))
                     {
-                        if (!result.TryGetValue(lintelData.GroupKey, out List<LintelData> group))
-                        {
-                            result[lintelData.GroupKey] = group = [];
-                        }
-                        group.Add(lintelData);
+                        result[lintelData.GroupKey] = group = [];
                     }
-                }
-                catch (Exception ex)
-                {
-                    // Просто логируем и пропускаем проблемный элемент
-                    Debug.WriteLine($"Skipped lintel {instance.Id}: {ex.Message}");
+
+                    group.Add(lintelData);
                 }
             }
 
@@ -85,6 +77,7 @@ namespace LintelMaster
             }
 
             (int thickMm, int widthMm, int heightMm) = dimensions.Value;
+
             return new LintelData(instance, thickMm, widthMm, heightMm);
         }
 

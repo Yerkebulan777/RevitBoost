@@ -104,7 +104,7 @@ namespace LevelAssignment
 
             ElementFilter[] elementFilters = [ModelCategoryFilter, BoundingRegionFilter, CombinedLevelFilter, paramFilter, valueFilter];
 
-            (_, string output) = CollectorHelper.GetFilteredElementCollector(document, elementFilters);
+            (_, string output) = CollectorHelper.DiagnoseWithFilters(document, elementFilters);
 
             return output;
         }
