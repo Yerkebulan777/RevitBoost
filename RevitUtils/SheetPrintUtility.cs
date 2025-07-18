@@ -113,7 +113,7 @@ namespace RevitUtils
         /// <summary>
         /// Проверяет валидность модели листа
         /// </summary>
-        public static bool IsValidSheetModel(string groupName, double digit)
+        private static bool IsValidSheetModel(string groupName, double digit)
         {
             return !groupName.StartsWith("#") || digit is > 0 and < 500;
         }
@@ -124,7 +124,7 @@ namespace RevitUtils
         /// <summary>
         /// Получает имя организационной группы
         /// </summary>
-        public static string GetOrganizationGroupName(Document doc, ViewSheet viewSheet)
+        static string GetOrganizationGroupName(Document doc, ViewSheet viewSheet)
         {
             Regex matchPrefix = new(@"^(\s*)");
             StringBuilder stringBuilder = new();
