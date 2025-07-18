@@ -34,11 +34,10 @@ namespace RevitBoost.Commands
             {
                 PathHelper.EnsureDirectory(outputPath);
                 RevitPdfBatchExporter exporter = new(doc, outputPath);
-                exporter.ExportAllSheets(revitFileName);
+                resultBuilder.AppendLine(exporter.ExportAllSheets(revitFileName));
+                resultBuilder.AppendLine($"Turnaround time: {stopwatch.Elapsed.TotalMinutes:F2} min");
 
                 stopwatch.Stop();
-
-                resultBuilder.AppendLine($"Turnaround time: {stopwatch.Elapsed.TotalMinutes:F2} min");
 
                 return Result.Succeeded;
             }

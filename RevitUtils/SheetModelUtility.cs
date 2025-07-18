@@ -51,7 +51,7 @@ namespace RevitUtils
                     _ = builder.AppendLine($"📁 Group: {currentGroup}");
                 }
 
-                _ = builder.AppendLine($"  📄 {sheet.DigitalSheetNumber} - {sheet.SheetName} ({sheet.WidthInMm}x{sheet.HeightInMm})");
+                _ = builder.AppendLine($" 📄 {sheet.DigitalSheetNumber} - {sheet.SheetName} ({sheet.WidthInMm}x{sheet.HeightInMm})");
 
             }
 
@@ -62,9 +62,6 @@ namespace RevitUtils
 
         /// <summary>
         /// Сортирует модели листов 
-        /// </summary>
-        /// <summary>
-        /// Сортирует модели листов и возвращает информацию о них
         /// </summary>
         public static List<SheetModel> SortSheetModels(IEnumerable<SheetModel> sheetModels)
         {
@@ -119,6 +116,20 @@ namespace RevitUtils
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Форматирует имя листа по заданным параметрам
+        /// </summary>
+        public static string FormatSheetName(string projectName, string groupName, string sheetNumber, string viewSheetName)
+        {
+            string normalizedNumber = NormalizeSheetNumber(sheetNumber);
+
+            string sheetTitle = string.IsNullOrWhiteSpace(groupName)
+                ? $"{projectName} - Лист-{normalizedNumber} - {viewSheetName}"
+                : $"{projectName} - Лист-{groupName}-{normalizedNumber} - {viewSheetName}";
+
+            return StringHelper.ReplaceInvalidChars(StringHelper.NormalizeLength(sheetTitle));
         }
 
         /// <summary>
@@ -192,19 +203,6 @@ namespace RevitUtils
                 && ValidNamePattern.IsMatch(sheetName);
         }
 
-        /// <summary>
-        /// Форматирует имя листа по заданным параметрам
-        /// </summary>
-        public static string FormatSheetName(string projectName, string groupName, string sheetNumber, string viewSheetName)
-        {
-            string normalizedNumber = NormalizeSheetNumber(sheetNumber);
-
-            string sheetTitle = string.IsNullOrWhiteSpace(groupName)
-                ? $"{projectName} - Лист-{normalizedNumber} - {viewSheetName}"
-                : $"{projectName} - Лист-{groupName}-{normalizedNumber} - {viewSheetName}";
-
-            return StringHelper.ReplaceInvalidChars(StringHelper.NormalizeLength(sheetTitle));
-        }
 
         /// <summary>
         /// Получает чистый номер листа

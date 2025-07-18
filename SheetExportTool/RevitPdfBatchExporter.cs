@@ -1,6 +1,5 @@
 ﻿using Autodesk.Revit.DB;
 using RevitUtils;
-using Serilog;
 using System.Text;
 
 namespace ExportPdfTool
@@ -10,7 +9,7 @@ namespace ExportPdfTool
         private readonly Document _document = document;
         private readonly string _outputPath = outputPath;
 
-        public void ExportAllSheets(string exportFileName)
+        public string ExportAllSheets(string exportFileName)
         {
             StringBuilder logBuilder = new();
 
@@ -34,12 +33,10 @@ namespace ExportPdfTool
                     if (_document.Export(_outputPath, [.. sheets.Select(s => s.SheetId)], pdfOptions))
                     {
                         _ = logBuilder.AppendLine($"✓ Successfully exported {sheets.Count} sheets");
-                        Log.Information(logBuilder.ToString());
                     }
                     else
                     {
                         _ = logBuilder.AppendLine($"⚠ Something wrong!");
-                        Log.Warning(logBuilder.ToString());
                     }
                 }
                 catch (Exception ex)
@@ -48,16 +45,15 @@ namespace ExportPdfTool
                     _ = logBuilder.AppendLine("=== PDF Export Operation Failed ===");
                     _ = logBuilder.AppendLine($"✗ Failed to export {sheets.Count} sheets");
                     _ = logBuilder.AppendLine($"✗ Error: {ex.Message}");
-                    Log.Error(ex, logBuilder.ToString());
                 }
             }
+
+            return logBuilder.ToString();
         }
 
 
         private PDFExportOptions CreatePDFOptions(string fileName, ColorDepthType colorType)
         {
-            Log.Debug("Creating PDF export options");
-
             return new PDFExportOptions
             {
                 Combine = true,
@@ -75,6 +71,7 @@ namespace ExportPdfTool
                 ZoomPercentage = 100,
             };
         }
+
 
 
     }
