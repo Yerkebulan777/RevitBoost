@@ -14,14 +14,16 @@ namespace ExportPdfTool
         {
             StringBuilder logBuilder = new();
 
-            List<SheetModel> sheets = SheetModelUtility.GetSortedSheetModels(_document, true);
-
             _ = logBuilder.AppendLine("=== PDF Export ===");
             _ = logBuilder.AppendLine($"Output path: {_outputPath}");
             _ = logBuilder.AppendLine($"Document: {_document.Title}");
             _ = logBuilder.AppendLine($"Export file: {exportFileName}");
+
+            List<SheetModel> sheets = SheetModelUtility.GetSortedSheetModels(_document, true, out string output);
+
             _ = logBuilder.AppendLine($"Start PDF export for {sheets.Count} sheets...");
             _ = logBuilder.AppendLine($"Found {sheets.Count} valid sheets for export:");
+            _ = logBuilder.AppendLine(output);
 
             if (sheets.Any())
             {
