@@ -61,14 +61,23 @@ namespace RevitUtils
         }
 
         /// <summary>
-        /// Сортирует модели листов 
+        /// Сортирует модели листов с фильтрацией по группам
         /// </summary>
         public static List<SheetModel> SortSheetModels(IEnumerable<SheetModel> sheetModels)
         {
-            return sheetModels?
+            if (sheetModels != null)
+            {
+                if (sheetModels.Any(sm => !string.IsNullOrWhiteSpace(sm.OrganizationGroupName)))
+                {
+                    sheetModels = sheetModels.Where(sm => !string.IsNullOrWhiteSpace(sm.OrganizationGroupName));
+                }
+
+                return [.. sheetModels
                 .OrderBy(sm => sm.OrganizationGroupName)
-                .ThenBy(sm => sm.DigitalSheetNumber)
-                .ToList();
+                .ThenBy(sm => sm.DigitalSheetNumber)];
+            }
+
+            throw new ArgumentNullException(nameof(sheetModels), "Sheet models collection cannot be null.");
         }
 
         /// <summary>
