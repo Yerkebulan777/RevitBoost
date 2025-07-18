@@ -14,12 +14,12 @@ namespace RevitUtils
         public required PageOrientationType Orientation { get; init; }
         public required double DigitalSheetNumber { get; init; }
         public required bool IsColorEnabled { get; init; }
-        public double HeightInMm { get; internal set; }
-        public double WidthInMm { get; internal set; }
+        public required double HeightInMm { get; init; }
+        public required double WidthInMm { get; init; }
     }
 
 
-    public static class SheetPrintUtility
+    public static class SheetModelUtility
     {
         /// <summary>
         /// Сортирует модели листов 
@@ -34,7 +34,7 @@ namespace RevitUtils
         /// <summary>
         /// Получает и группирует данные листов для последующей печати
         /// </summary>
-        public static IEnumerable <SheetModel> GetSheetModels(Document doc, bool сolorEnabled)
+        public static IEnumerable<SheetModel> GetSheetModels(Document doc, bool сolorEnabled)
         {
             BuiltInCategory bic = BuiltInCategory.OST_TitleBlocks;
             FilteredElementCollector collector = new FilteredElementCollector(doc).OfCategory(bic);
@@ -72,7 +72,6 @@ namespace RevitUtils
                     }
                 }
             }
-
         }
 
         /// <summary>
