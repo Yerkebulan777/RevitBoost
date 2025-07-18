@@ -12,7 +12,7 @@ namespace CommonUtils
 
             if (!string.IsNullOrEmpty(text))
             {
-                text = text.Trim();
+                text = text.Normalize().Trim();
 
                 StringBuilder result = new(text.Length);
 

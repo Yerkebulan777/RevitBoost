@@ -71,8 +71,8 @@ namespace RevitUtils
                 }
 
                 return [.. sheetModels
-                .OrderBy(sm => sm.OrganizationGroupName)
-                .ThenBy(sm => sm.DigitalSheetNumber)];
+                    .OrderBy(sm => sm.OrganizationGroupName)
+                    .ThenBy(sm => sm.DigitalSheetNumber)];
             }
 
             throw new ArgumentNullException(nameof(sheetModels), "Sheet models collection cannot be null.");
@@ -97,10 +97,8 @@ namespace RevitUtils
 
                 Element sheetInstance = GetViewSheetByNumber(doc, sheetNumber);
 
-                if (sheetInstance is ViewSheet viewSheet)
+                if (sheetInstance is ViewSheet viewSheet && viewSheet.IsValidObject) 
                 {
-                    Debug.WriteLine("Sheet: " + viewSheet.Name);
-
                     if (viewSheet.CanBePrinted && !viewSheet.IsPlaceholder)
                     {
                         PageOrientationType orientation = GetOrientation(widthInMm, heightInMm);
