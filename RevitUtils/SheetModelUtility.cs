@@ -23,8 +23,6 @@ namespace RevitUtils
     public static class SheetModelUtility
     {
         private static readonly Regex NumberPattern = new(@"[^0-9,.]", RegexOptions.Compiled);
-        private static readonly Regex ValidNamePattern = new(@"^[\w\s\-\.\(\)а-яё]{5,}$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
 
         /// <summary>
         /// Получает и сортирует модели листов для последующей печати
@@ -210,9 +208,10 @@ namespace RevitUtils
         /// </summary>
         private static bool IsValidSheetModel(string groupName, double digit, string sheetName)
         {
-            return (!groupName.Contains("#") || (digit >= 0 && digit <= 500))
-                && !string.IsNullOrWhiteSpace(sheetName)
-                && ValidNamePattern.IsMatch(sheetName);
+            bool nameCheck = !string.IsNullOrWhiteSpace(sheetName) && sheetName.Length > 5;
+            bool groupCheck = !groupName.Contains("#") && digit > 0 && digit < 300;
+
+            return groupCheck && nameCheck;
         }
 
         /// <summary>
