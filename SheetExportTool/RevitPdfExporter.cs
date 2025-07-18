@@ -26,7 +26,7 @@ namespace ExportPdfTool
             {
                 try
                 {
-                    PDFExportOptions pdfOptions = CreatePDFOptions(exportFileName);
+                    PDFExportOptions pdfOptions = CreatePDFOptions(exportFileName, ColorDepthType.Color);
 
                     if (_document.Export(_outputPath, [.. sheets.Select(s => s.Id)], pdfOptions))
                     {
@@ -65,25 +65,27 @@ namespace ExportPdfTool
         }
 
 
-        private PDFExportOptions CreatePDFOptions(string fileName)
+        private PDFExportOptions CreatePDFOptions(string fileName, ColorDepthType colorType)
         {
             Log.Debug("Creating PDF export options");
 
             return new PDFExportOptions
             {
                 Combine = true,
+                StopOnError = true,
                 FileName = fileName,
-                ColorDepth = ColorDepthType.Color,
+                HideScopeBoxes = true,
+                ColorDepth = colorType,
                 PaperFormat = ExportPaperFormat.Default,
+                RasterQuality = RasterQualityType.Medium,
                 ExportQuality = PDFExportQualityType.DPI300,
                 HideUnreferencedViewTags = true,
                 HideCropBoundaries = true,
                 HideReferencePlane = true,
-                HideScopeBoxes = true,
-                StopOnError = false
+                ZoomType = ZoomType.Zoom,
+                ZoomPercentage = 100,
             };
         }
-
 
 
     }

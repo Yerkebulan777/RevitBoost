@@ -108,31 +108,5 @@ namespace RevitUtils
         }
 
 
-        public static bool ExportSheet(Document doc, ViewSheet sheet, string folder, bool сolorEnabled)
-        {
-            ColorDepthType colorType = сolorEnabled ? ColorDepthType.Color : ColorDepthType.BlackLine;
-
-            PDFExportOptions options = new()
-            {
-                Combine = false,
-                StopOnError = true,
-                FileName = sheet.Name,
-                HideScopeBoxes = true,
-                ColorDepth = colorType,
-                HideCropBoundaries = true,
-                HideReferencePlane = true,
-                PaperFormat = ExportPaperFormat.Default,
-                RasterQuality = RasterQualityType.Medium,
-                ExportQuality = PDFExportQualityType.DPI300,
-                ZoomType = ZoomType.Zoom,
-                ZoomPercentage = 100,
-            };
-
-            IList<ElementId> viewIds = [sheet.Id];
-            return doc.Export(folder, viewIds, options);
-        }
-
-
-
     }
 }
