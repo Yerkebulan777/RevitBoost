@@ -14,7 +14,7 @@ namespace ExportPdfTool
         {
             StringBuilder logBuilder = new();
 
-            var sheets = SheetModelUtility.GetSheetModels(_document, true);
+            List<SheetModel> sheets = SheetModelUtility.GetSortedSheetModels(_document, true);
 
             _ = logBuilder.AppendLine("=== PDF Export ===");
             _ = logBuilder.AppendLine($"Output path: {_outputPath}");
@@ -29,7 +29,7 @@ namespace ExportPdfTool
                 {
                     PDFExportOptions pdfOptions = CreatePDFOptions(exportFileName, ColorDepthType.Color);
 
-                    if (_document.Export(_outputPath, [.. sheets.Select(s => s.Id)], pdfOptions))
+                    if (_document.Export(_outputPath, [.. sheets.Select(s => s.ViewSheetId)], pdfOptions))
                     {
                         _ = logBuilder.AppendLine($"✓ Successfully exported {sheets.Count} sheets");
                         Log.Information(logBuilder.ToString());

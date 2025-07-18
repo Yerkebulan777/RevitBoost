@@ -56,29 +56,28 @@ namespace RevitUtils
 
                 Element sheetInstance = GetViewSheetByNumber(doc, sheetNumber);
 
-                if (sheetInstance is ViewSheet viewSheet && viewSheet.CanBePrinted)
+                if (sheetInstance is ViewSheet viewSheet)
                 {
-                    if (viewSheet.IsPlaceholder)
-                    {
-                        throw new InvalidOperationException($"Placeholder sheet {viewSheet.Name}");
-                    }
+                    Debug.WriteLine("Sheet: " + viewSheet.Name);
 
-                    PageOrientationType orientation = GetOrientation(widthInMm, heightInMm);
-                    Debug.WriteLine($"Sheet: {viewSheet.Name} ({orientation})");
-                    string groupName = GetOrganizationGroupName(doc, viewSheet);
-                    double digitNumber = ParseSheetNumber(sheetNumber);
-
-                    if (IsValidSheetModel(groupName, digitNumber))
+                    if (viewSheet.CanBePrinted && !viewSheet.IsPlaceholder)
                     {
-                        yield return new SheetModel(viewSheet.Id)
+                        PageOrientationType orientation = GetOrientation(widthInMm, heightInMm);
+                        string groupName = GetOrganizationGroupName(doc, viewSheet);
+                        double digitNumber = ParseSheetNumber(sheetNumber);
+
+                        if (IsValidSheetModel(groupName, digitNumber))
                         {
-                            OrganizationGroupName = groupName,
-                            DigitalSheetNumber = digitNumber,
-                            IsColorEnabled = colorEnabled,
-                            Orientation = orientation,
-                            HeightInMm = heightInMm,
-                            WidthInMm = widthInMm,
-                        };
+                            yield return new SheetModel(viewSheet.Id)
+                            {
+                                OrganizationGroupName = groupName,
+                                DigitalSheetNumber = digitNumber,
+                                IsColorEnabled = colorEnabled,
+                                Orientation = orientation,
+                                HeightInMm = heightInMm,
+                                WidthInMm = widthInMm,
+                            };
+                        }
                     }
                 }
             }
