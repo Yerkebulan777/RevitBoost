@@ -79,9 +79,14 @@ namespace LevelAssignment
                         {
                             Element parent = FamilyHelper.GetParentFamily(instance);
 
-                            if (floor.IsContained(in parent) || floor.IsContained(in element))
+                            if (parent is null && floor.IsContained(in element))
                             {
                                 elementIds.Add(element.Id);
+                            }
+
+                            if (parent is not null && floor.IsContained(in parent))
+                            {
+                                elementIds.Add(parent.Id);
                             }
                         }
                         else if (element.IsValidObject && floor.IsContained(in element))
