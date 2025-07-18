@@ -34,7 +34,7 @@ namespace RevitUtils
         /// <summary>
         /// Получает и группирует данные листов для последующей печати
         /// </summary>
-        public static IEnumerable<SheetModel> GetSheetModels(Document doc, bool сolorEnabled)
+        public static IEnumerable<SheetModel> GetSheetModels(Document doc, bool colorEnabled)
         {
             BuiltInCategory bic = BuiltInCategory.OST_TitleBlocks;
             FilteredElementCollector collector = new FilteredElementCollector(doc).OfCategory(bic);
@@ -49,8 +49,13 @@ namespace RevitUtils
 
                 Element sheetInstance = GetViewSheetByNumber(doc, sheetNumber);
 
-                if (sheetInstance is ViewSheet viewSheet && viewSheet.CanBePrinted && !viewSheet.IsPlaceholder)
+                if (sheetInstance is ViewSheet viewSheet && viewSheet.CanBePrinted)
                 {
+                    if (viewSheet.IsPlaceholder)
+                    {
+                        throw new InvalidOperationException($"Placeholder sheet {viewSheet.Name}");
+                    }
+
                     PageOrientationType orientation = GetOrientation(widthInMm, heightInMm);
                     Debug.WriteLine($"Sheet: {viewSheet.Name} ({orientation})");
                     string groupName = GetOrganizationGroupName(doc, viewSheet);
@@ -58,17 +63,15 @@ namespace RevitUtils
 
                     if (IsValidSheetModel(groupName, digitNumber))
                     {
-                        SheetModel sheetModel = new(viewSheet.Id)
+                        yield return new SheetModel(viewSheet.Id)
                         {
                             OrganizationGroupName = groupName,
                             DigitalSheetNumber = digitNumber,
-                            IsColorEnabled = сolorEnabled,
+                            IsColorEnabled = colorEnabled,
                             Orientation = orientation,
                             HeightInMm = heightInMm,
                             WidthInMm = widthInMm,
                         };
-
-                        yield return sheetModel;
                     }
                 }
             }
