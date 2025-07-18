@@ -177,13 +177,16 @@ namespace RevitUtils
             {
                 StringBuilder builder = new(folderItems.Count());
 
-                foreach (FolderItemInfo folderInfo in folderItems.Where(f => f.IsValidObject))
+                foreach (FolderItemInfo folderInfo in folderItems)
                 {
-                    string folderName = folderInfo.Name;
-
-                    if (!string.IsNullOrWhiteSpace(folderName))
+                    if (folderInfo != null && folderInfo.IsValidObject)
                     {
-                        _ = builder.Append(folderName.Trim());
+                        string folderName = folderInfo.Name;
+
+                        if (!string.IsNullOrWhiteSpace(folderName))
+                        {
+                            _ = builder.Append(folderName.Trim());
+                        }
                     }
                 }
 
