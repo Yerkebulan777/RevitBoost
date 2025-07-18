@@ -121,7 +121,7 @@ namespace LevelAssignment
 
             InternalDefinition paramDefinition = LevelSharedParameter.GetDefinition();
 
-            if (!TransactionHelper.TryCreateTransaction(doc, $"SetFloorNumber", () =>
+            TransactionHelper.CreateTransaction(doc, $"SetFloorNumber", () =>
             {
                 foreach (ElementId elementId in elementIds)
                 {
@@ -140,10 +140,7 @@ namespace LevelAssignment
                         _ = output.AppendLine($"❌ {element.Id.IntegerValue}");
                     }
                 }
-            }, out string error))
-            {
-                _ = output.AppendLine($"❌ Transaction failed: {error}");
-            }
+            });
 
             _ = output.AppendLine($"Total elements assigned: {assignedCount}");
 
