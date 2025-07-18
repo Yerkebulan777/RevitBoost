@@ -6,7 +6,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using PaperSize = System.Drawing.Printing.PaperSize;
 
-
 namespace RevitUtils
 {
     public record SheetModel(ElementId ElementId)
