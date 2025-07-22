@@ -34,10 +34,6 @@ namespace ExportPdfTool
                     {
                         _ = logBuilder.AppendLine($"✓ Successfully exported {sheets.Count} sheets");
                     }
-                    else
-                    {
-                        _ = logBuilder.AppendLine($"⚠ Something wrong!");
-                    }
                 }
                 catch (Exception ex)
                 {
