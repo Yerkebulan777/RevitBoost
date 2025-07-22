@@ -55,7 +55,6 @@ namespace ExportPdfTool
                 Combine = true,
                 StopOnError = true,
                 FileName = fileName,
-                HideScopeBoxes = true,
                 ColorDepth = colorType,
                 PaperFormat = ExportPaperFormat.Default,
                 RasterQuality = RasterQualityType.Medium,
@@ -64,6 +63,7 @@ namespace ExportPdfTool
                 HideCropBoundaries = true,
                 HideReferencePlane = true,
                 ZoomType = ZoomType.Zoom,
+                HideScopeBoxes = true,
                 ZoomPercentage = 100,
             };
         }
