@@ -47,7 +47,6 @@ namespace ExportPdfTool
             return logBuilder.ToString();
         }
 
-
         private PDFExportOptions CreatePDFOptions(string fileName, ColorDepthType colorType)
         {
             return new PDFExportOptions
@@ -67,8 +66,6 @@ namespace ExportPdfTool
                 ZoomPercentage = 100,
             };
         }
-
-
 
     }
 }

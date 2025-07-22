@@ -5,6 +5,9 @@ namespace CommonUtils
 {
     public static class PrinterApiUtility
     {
+        /// <summary>
+        /// Сбрасывает принтер по умолчанию на указанный принтер
+        /// </summary>
         public static void ResetDefaultPrinter(string printerName)
         {
             PrintDocument printDocument = new();
@@ -21,21 +24,8 @@ namespace CommonUtils
         }
 
         /// <summary>
-        /// Нормализует размеры бумаги, округляя их в большую сторону
-        /// </summary>
-        private static (double minSide, double maxSide) NormalizeDimensions(double width, double height, int threshold = 5)
-        {
-            // Округление в большую сторону для гарантии достаточного размера
-            double minSide = Math.Ceiling(Math.Min(width, height) / threshold) * threshold;
-            double maxSide = Math.Ceiling(Math.Max(width, height) / threshold) * threshold;
-
-            return (minSide, maxSide);
-        }
-
-        /// <summary>
         /// Получает существующий формат бумаги или создает новый при необходимости
         /// </summary>
-        /// <returns>true, если формат был найден или успешно создан</returns>
         public static bool GetOrCreatePaperSize(string printerName, double widthInMm, double heightInMm, out PaperSize paperSize, int threshold = 5)
         {
             (double minSide, double maxSide) = NormalizeDimensions(widthInMm, heightInMm, threshold);
@@ -60,9 +50,20 @@ namespace CommonUtils
         }
 
         /// <summary>
+        /// Нормализует размеры бумаги, округляя
+        /// </summary>
+        private static (double minSide, double maxSide) NormalizeDimensions(double width, double height, int threshold = 5)
+        {
+            double minSide = Math.Round(Math.Min(width, height) / threshold) * threshold;
+            double maxSide = Math.Round(Math.Max(width, height) / threshold) * threshold;
+
+            return (minSide, maxSide);
+        }
+
+        /// <summary>
         /// Ищет существующий формат бумаги, соответствующий заданным размерам
         /// </summary>
-        public static PaperSize FindMatchingPaperSize(double minSideInMm, double maxSideInMm, int threshold = 5)
+        private static PaperSize FindMatchingPaperSize(double minSideInMm, double maxSideInMm, int threshold = 5)
         {
             PrinterSettings prntSettings = new();
 

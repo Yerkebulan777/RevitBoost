@@ -36,7 +36,7 @@ namespace LevelAssignment
             double offset = UnitManager.MmToFoot(300);
             double сlearance = UnitManager.MmToFoot(100);
 
-            _ = output.AppendLine("=== ASSIGNMENT OF ELEMENTS TO FLOORS ===");
+            output.AppendLine("=== ASSIGNMENT OF ELEMENTS TO FLOORS ===");
 
             LevelSharedParameter = SharedParameterElement.Lookup(_document, sharedParameterGuid);
 
@@ -64,7 +64,7 @@ namespace LevelAssignment
             {
                 try
                 {
-                    _ = output.AppendLine();
+                    output.AppendLine();
 
                     floor.AggregateLevelFilter();
                     floor.ModelCategoryFilter = ModelCategoryFilter;
@@ -83,13 +83,12 @@ namespace LevelAssignment
                             {
                                 elementIds.Add(element.Id);
                             }
-
-                            if (parent is not null && floor.IsContained(in parent))
+                            else if (parent is not null && floor.IsContained(in parent))
                             {
                                 elementIds.Add(parent.Id);
                             }
                         }
-                        else if (element.IsValidObject && floor.IsContained(in element))
+                        else if (floor.IsContained(in element))
                         {
                             elementIds.Add(element.Id);
                         }
@@ -97,19 +96,19 @@ namespace LevelAssignment
                 }
                 catch (Exception ex)
                 {
-                    _ = output.AppendLine($"Error during floor processing: {ex.Message}");
+                    output.AppendLine($"Error during floor processing: {ex.Message}");
                 }
                 finally
                 {
-                    _ = output.AppendLine();
-                    _ = output.AppendLine($"✅ Floor: {floor.DisplayName} <<{floor.FloorIndex}>> ");
-                    _ = output.AppendLine($"✅ Floor height: {UnitManager.FootToMt(floor.Height)} м.");
-                    _ = output.AppendLine($"✅ Floor elevat: {UnitManager.FootToMt(floor.ProjectElevation)} м.");
-                    _ = output.AppendLine(SetParameterValue(_document, elementIds, floor.FloorIndex));
+                    output.AppendLine();
+                    output.AppendLine($"✅ Floor: {floor.DisplayName} <<{floor.FloorIndex}>> ");
+                    output.AppendLine($"✅ Floor height: {UnitManager.FootToMt(floor.Height)} м.");
+                    output.AppendLine($"✅ Floor elevat: {UnitManager.FootToMt(floor.ProjectElevation)} м.");
+                    output.AppendLine(SetParameterValue(_document, elementIds, floor.FloorIndex));
                 }
             }
 
-            _ = output.AppendLine("Level assignment execution completed");
+            output.AppendLine("Level assignment execution completed");
 
             return output.ToString();
         }
