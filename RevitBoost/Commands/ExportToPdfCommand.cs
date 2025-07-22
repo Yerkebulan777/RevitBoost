@@ -15,16 +15,18 @@ namespace RevitBoost.Commands
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             Document doc = commandData.Application.ActiveUIDocument.Document;
+
             string outputPath = PathHelper.GetExportDirectory(doc, out string revitFilePath, "03_PDF");
+
             string revitFileName = Path.GetFileNameWithoutExtension(revitFilePath);
 
             IModuleLogger logger = ModuleLogger.Create(doc, typeof(ExportToPdfCommand));
 
             using var scope = logger.BeginScope("CommandExecution");
 
-            logger.Information("ExportToPdfCommand...");
-
             StringBuilder resultBuilder = new();
+
+            logger.Information("ExportToPdfCommand...");
 
             resultBuilder.AppendLine($"Loger path: {logger.LogFilePath}");
 
@@ -35,7 +37,7 @@ namespace RevitBoost.Commands
                 PathHelper.EnsureDirectory(outputPath);
                 RevitPdfBatchExporter exporter = new(doc, outputPath);
                 resultBuilder.AppendLine(exporter.ExportAllSheets(revitFileName));
-                resultBuilder.AppendLine($"Turnaround time: {stopwatch.Elapsed.TotalMinutes:F2} min");
+                resultBuilder.AppendLine($"Execution time: {stopwatch.Elapsed.TotalMinutes:F3}");
 
                 stopwatch.Stop();
 
@@ -45,12 +47,12 @@ namespace RevitBoost.Commands
             {
                 stopwatch.Stop();
 
-                resultBuilder.AppendLine($"Exception: {ex.Message}");
-
                 if (ex.InnerException != null)
                 {
                     resultBuilder.AppendLine($"Details: {ex.InnerException.Message}");
                 }
+
+                resultBuilder.AppendLine($"Exception: {ex.Message}");
 
                 message = resultBuilder.ToString();
                 StringHelper.CopyToClipboard(message);
