@@ -41,6 +41,7 @@ namespace ExportModule.Core
             try
             {
                 ExportResult result = processor.Execute(uidoc, request);
+
                 stopwatch.Stop();
 
                 _logger.Information($"{type} export completed in {stopwatch.Elapsed.TotalMinutes:F2} min");
