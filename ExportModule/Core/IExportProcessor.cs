@@ -25,7 +25,7 @@ namespace ExportModule.Core
         /// <summary>
         /// Выполнить экспорт
         /// </summary>
-        Task<ExportResult> ExecuteAsync(UIDocument uidoc, ExportRequest request);
+        ExportResult Execute(UIDocument uidoc, ExportRequest request);
 
         /// <summary>
         /// Проверить возможность экспорта
@@ -39,6 +39,7 @@ namespace ExportModule.Core
         Dwg,
         Nwc
     }
+
 
 
 }

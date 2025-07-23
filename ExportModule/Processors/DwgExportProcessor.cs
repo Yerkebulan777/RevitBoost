@@ -33,7 +33,7 @@ namespace ExportModule.Processors
             MergedViews = true,
         };
 
-        public async Task<ExportResult> ExecuteAsync(UIDocument uidoc, ExportRequest request)
+        public ExportResult Execute(UIDocument uidoc, ExportRequest request)
         {
             Stopwatch stopwatch = Stopwatch.StartNew();
 
@@ -57,7 +57,7 @@ namespace ExportModule.Processors
                 try
                 {
                     // Экспортируем каждый лист в отдельный DWG
-                    int exportedCount = await ExportSheetsToDwg(uidoc.Document, sheets, tempFolder);
+                    int exportedCount = ExportSheetsToDwg(uidoc.Document, sheets, tempFolder);
 
                     if (exportedCount > 0)
                     {
@@ -108,7 +108,7 @@ namespace ExportModule.Processors
             return collector.Any();
         }
 
-        private async Task<int> ExportSheetsToDwg(Document doc, List<SheetModel> sheets, string outputFolder)
+        private int ExportSheetsToDwg(Document doc, List<SheetModel> sheets, string outputFolder)
         {
             int successCount = 0;
             SpinWait spinWait = new();
@@ -129,7 +129,7 @@ namespace ExportModule.Processors
                         spinWait.SpinOnce();
 
                         // Небольшая задержка для стабильности
-                        await Task.Delay(100);
+                        Thread.Sleep(100);
                     }
                 }
                 catch (Exception ex)

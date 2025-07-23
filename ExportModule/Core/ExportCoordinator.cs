@@ -10,8 +10,8 @@ namespace ExportModule.Core
     /// </summary>
     public class ExportCoordinator
     {
-        private readonly Dictionary<ExportType, IExportProcessor> _processors;
         private readonly IModuleLogger _logger;
+        private readonly Dictionary<ExportType, IExportProcessor> _processors;
 
         public ExportCoordinator(IModuleLogger logger)
         {
@@ -27,7 +27,7 @@ namespace ExportModule.Core
         /// <summary>
         /// Экспорт в один формат
         /// </summary>
-        public async Task<ExportResult> ExportSingleAsync(UIDocument uidoc, ExportType type, ExportRequest request)
+        public ExportResult Export(UIDocument uidoc, ExportType type, ExportRequest request)
         {
             if (!_processors.TryGetValue(type, out IExportProcessor processor))
             {
@@ -39,7 +39,7 @@ namespace ExportModule.Core
             Stopwatch stopwatch = Stopwatch.StartNew();
             try
             {
-                ExportResult result = await processor.ExecuteAsync(uidoc, request);
+                ExportResult result = processor.Execute(uidoc, request);
                 stopwatch.Stop();
 
                 _logger.Information($"{type} export completed in {stopwatch.Elapsed.TotalMinutes:F2} min");
@@ -54,67 +54,6 @@ namespace ExportModule.Core
             }
         }
 
-        /// <summary>
-        /// Экспорт во все форматы
-        /// </summary>
-        public async Task<Dictionary<ExportType, ExportResult>> ExportAllAsync(
-            UIDocument uidoc,
-            ExportRequest request,
-            ExportConfiguration config = null)
-        {
-            config ??= new ExportConfiguration();
-
-            Dictionary<ExportType, ExportResult> results = new();
-            List<(ExportType Type, Task<ExportResult> Task)> exportTasks = [];
-
-            _logger.Information($"Starting multi-format export for {request.RevitFileName}");
-
-            // Определяем какие форматы экспортировать
-            List<ExportType> typesToExport = GetExportTypes(config);
-
-            // Последовательный экспорт (рекомендуется)
-            foreach (ExportType type in typesToExport)
-            {
-                if (!_processors[type].CanExport(uidoc))
-                {
-                    results[type] = ExportResult.Failure($"Cannot export {type} - preconditions not met");
-                    continue;
-                }
-
-                ExportResult result = await ExportSingleAsync(uidoc, type, request);
-                results[type] = result;
-
-                if (!result.IsSuccess && config.StopOnFirstError)
-                {
-                    _logger.Warning($"Stopping export due to {type} failure");
-                    break;
-                }
-            }
-
-            return results;
-        }
-
-        private List<ExportType> GetExportTypes(ExportConfiguration config)
-        {
-            List<ExportType> types = new();
-
-            if (config.ExportPdf)
-            {
-                types.Add(ExportType.Pdf);
-            }
-
-            if (config.ExportDwg)
-            {
-                types.Add(ExportType.Dwg);
-            }
-
-            if (config.ExportNwc)
-            {
-                types.Add(ExportType.Nwc);
-            }
-
-            return types;
-        }
 
 
     }

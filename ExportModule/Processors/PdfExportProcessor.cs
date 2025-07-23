@@ -15,7 +15,7 @@ namespace ExportModule.Processors
         public string FileExtension => ".pdf";
         public string FolderName => "03_PDF";
 
-        public async Task<ExportResult> ExecuteAsync(UIDocument uidoc, ExportRequest request)
+        public ExportResult Execute(UIDocument uidoc, ExportRequest request)
         {
             Stopwatch stopwatch = Stopwatch.StartNew();
 

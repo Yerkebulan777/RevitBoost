@@ -5,9 +5,6 @@ using System.Diagnostics;
 
 namespace ExportModule.Processors
 {
-    /// <summary>
-    /// Процессор экспорта в NWC (Navisworks)
-    /// </summary>
     public class NwcExportProcessor : IExportProcessor
     {
         public ExportType Type => ExportType.Nwc;
@@ -20,7 +17,7 @@ namespace ExportModule.Processors
             BuiltInCategory.OST_Lines
         };
 
-        public async Task<ExportResult> ExecuteAsync(UIDocument uidoc, ExportRequest request)
+        public ExportResult Execute(UIDocument uidoc, ExportRequest request)
         {
             Stopwatch stopwatch = Stopwatch.StartNew();
 
