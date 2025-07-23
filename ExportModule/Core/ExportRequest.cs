@@ -37,7 +37,6 @@ namespace ExportModule.Core
         public bool ExportPdf { get; set; } = true;
         public bool ExportDwg { get; set; } = true;
         public bool ExportNwc { get; set; } = true;
-        public bool RunInParallel { get; set; } = false;
         public bool StopOnFirstError { get; set; } = false;
     }
 

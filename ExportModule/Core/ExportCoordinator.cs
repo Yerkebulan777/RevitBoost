@@ -65,52 +65,29 @@ namespace ExportModule.Core
             config ??= new ExportConfiguration();
 
             Dictionary<ExportType, ExportResult> results = new();
-            List<(ExportType Type, Task<ExportResult> Task)> exportTasks = new();
+            List<(ExportType Type, Task<ExportResult> Task)> exportTasks = [];
 
             _logger.Information($"Starting multi-format export for {request.RevitFileName}");
-            _logger.Information($"Parallel execution: {config.RunInParallel}");
 
             // Определяем какие форматы экспортировать
             List<ExportType> typesToExport = GetExportTypes(config);
 
-            if (config.RunInParallel)
+            // Последовательный экспорт (рекомендуется)
+            foreach (ExportType type in typesToExport)
             {
-                // Параллельный экспорт (рискованно для Revit API)
-                foreach (ExportType type in typesToExport)
+                if (!_processors[type].CanExport(uidoc))
                 {
-                    if (_processors[type].CanExport(uidoc))
-                    {
-                        Task<ExportResult> task = ExportSingleAsync(uidoc, type, request);
-                        exportTasks.Add((type, task));
-                    }
+                    results[type] = ExportResult.Failure($"Cannot export {type} - preconditions not met");
+                    continue;
                 }
 
-                _ = await Task.WhenAll(exportTasks.Select(t => t.Task));
+                ExportResult result = await ExportSingleAsync(uidoc, type, request);
+                results[type] = result;
 
-                foreach ((ExportType type, Task<ExportResult> task) in exportTasks)
+                if (!result.IsSuccess && config.StopOnFirstError)
                 {
-                    results[type] = await task;
-                }
-            }
-            else
-            {
-                // Последовательный экспорт (рекомендуется)
-                foreach (ExportType type in typesToExport)
-                {
-                    if (!_processors[type].CanExport(uidoc))
-                    {
-                        results[type] = ExportResult.Failure($"Cannot export {type} - preconditions not met");
-                        continue;
-                    }
-
-                    ExportResult result = await ExportSingleAsync(uidoc, type, request);
-                    results[type] = result;
-
-                    if (!result.IsSuccess && config.StopOnFirstError)
-                    {
-                        _logger.Warning($"Stopping export due to {type} failure");
-                        break;
-                    }
+                    _logger.Warning($"Stopping export due to {type} failure");
+                    break;
                 }
             }
 
