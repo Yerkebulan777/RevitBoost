@@ -22,8 +22,7 @@ namespace CommonUtils
             return DetermineDirectory(revitFilePath, folderName);
         }
 
-
-        private static string GetRevitFilePath(Document document)
+        public static string GetRevitFilePath(Document document)
         {
             if (document.IsWorkshared && !document.IsDetached)
             {
