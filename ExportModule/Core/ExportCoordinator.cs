@@ -37,6 +37,7 @@ namespace ExportModule.Core
             _logger.Information($"Starting {type} export for {request.RevitFileName}");
 
             Stopwatch stopwatch = Stopwatch.StartNew();
+
             try
             {
                 ExportResult result = processor.Execute(uidoc, request);
